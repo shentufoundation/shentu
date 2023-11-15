@@ -32,9 +32,14 @@ service Query {
     option (google.api.http).get = "/shentu/bounty/v1/findings/{finding_id}";
   }
 
-  // FindingFingerprint queries Finding Fingerprint based on FindingId.
+  // FindingFingerprint queries finding fingerprint based on findingId.
   rpc FindingFingerprint(QueryFindingFingerprintRequest) returns (QueryFindingFingerprintResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/findings/{finding_id}/fingerprint";
+  }
+
+  // ProgramFingerprint queries program fingerprint based on programId.
+  rpc ProgramFingerprint(QueryProgramFingerprintRequest) returns (QueryProgramFingerprintResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/programs/{program_id}/fingerprint";
   }
 }
 
@@ -117,5 +122,16 @@ message QueryFindingFingerprintRequest {
 
 // QueryFindingFingerPrintResponse is the response type for the Query/Finding RPC method.
 message QueryFindingFingerprintResponse {
+  string fingerprint = 1;
+}
+
+// QueryProgramFingerprintRequest is the request type for the Query/Finding RPC method.
+message QueryProgramFingerprintRequest {
+  // program_id defines the unique id of the finding.
+  string program_id = 1;
+}
+
+// QueryProgramFingerprintResponse is the response type for the Query/Finding RPC method.
+message QueryProgramFingerprintResponse {
   string fingerprint = 1;
 }

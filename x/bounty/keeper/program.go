@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -83,9 +86,9 @@ func (k Keeper) CloseProgram(ctx sdk.Context, pid string, caller sdk.AccAddress)
 		if !found {
 			return types.ErrFindingNotExists
 		}
-		if finding.Status != types.FindingStatusSubmitted &&
-			finding.Status != types.FindingStatusActive &&
-			finding.Status != types.FindingStatusConfirmed {
+		if finding.Status == types.FindingStatusSubmitted ||
+			finding.Status == types.FindingStatusActive ||
+			finding.Status == types.FindingStatusConfirmed {
 			return types.ErrProgramExpired
 		}
 	}
@@ -99,4 +102,18 @@ func (k Keeper) CloseProgram(ctx sdk.Context, pid string, caller sdk.AccAddress)
 	program.Status = types.ProgramStatusClosed
 	k.SetProgram(ctx, program)
 	return nil
+}
+
+func (k Keeper) GetProgramFingerprintHash(program *types.Program) string {
+	programFingerprint := &types.ProgramFingerprint{
+		ProgramId:    program.ProgramId,
+		Name:         program.Name,
+		Detail:       program.Detail,
+		AdminAddress: program.AdminAddress,
+		Status:       program.Status,
+	}
+
+	bz := k.cdc.MustMarshal(programFingerprint)
+	hash := sha256.Sum256(bz)
+	return hex.EncodeToString(hash[:])
 }

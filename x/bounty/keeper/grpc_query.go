@@ -119,6 +119,22 @@ func (k Keeper) FindingFingerprint(c context.Context, req *types.QueryFindingFin
 		return nil, status.Errorf(codes.NotFound, "finding %s doesn't exist", req.FindingId)
 	}
 
-	findingFingerPrintHash := k.GetFindingFingerPrintHash(&finding)
+	findingFingerPrintHash := k.GetFindingFingerprintHash(&finding)
 	return &types.QueryFindingFingerprintResponse{Fingerprint: findingFingerPrintHash}, nil
+}
+
+func (k Keeper) ProgramFingerprint(c context.Context, req *types.QueryProgramFingerprintRequest) (*types.QueryProgramFingerprintResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if len(req.ProgramId) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "program-id can not be 0")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	program, found := k.GetProgram(ctx, req.ProgramId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "program %s doesn't exist", req.ProgramId)
+	}
+	programFingerPrintHash := k.GetProgramFingerprintHash(&program)
+	return &types.QueryProgramFingerprintResponse{Fingerprint: programFingerPrintHash}, nil
 }

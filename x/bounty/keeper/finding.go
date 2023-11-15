@@ -130,6 +130,11 @@ func (k Keeper) ConfirmFinding(ctx sdk.Context, msg *types.MsgConfirmFinding) (t
 	if !found {
 		return finding, types.ErrFindingNotExists
 	}
+	// only FindingStatusSubmitted
+	if finding.Status != types.FindingStatusSubmitted {
+		return finding, types.ErrFindingStatusInvalid
+	}
+
 	// get program
 	program, isExist := k.GetProgram(ctx, finding.ProgramId)
 	if !isExist {
@@ -139,21 +144,21 @@ func (k Keeper) ConfirmFinding(ctx sdk.Context, msg *types.MsgConfirmFinding) (t
 		return finding, types.ErrProgramNotActive
 	}
 
-	// only host can update finding comment
+	// only program admin can confirm finding
 	if program.AdminAddress != msg.OperatorAddress {
 		return finding, types.ErrProgramCreatorInvalid
 	}
 
 	// fingerprint comparison
-	fingerprintHash := k.GetFindingFingerPrintHash(&finding)
+	fingerprintHash := k.GetFindingFingerprintHash(&finding)
 	if msg.Fingerprint != fingerprintHash {
 		return finding, types.ErrFindingHashInvalid
 	}
 	return finding, nil
 }
 
-func (k Keeper) GetFindingFingerPrintHash(finding *types.Finding) string {
-	findingFingerPrint := &types.FindingFingerPrint{
+func (k Keeper) GetFindingFingerprintHash(finding *types.Finding) string {
+	findingFingerprint := &types.FindingFingerprint{
 		ProgramId:     finding.ProgramId,
 		FindingId:     finding.FindingId,
 		Title:         finding.Title,
@@ -161,9 +166,10 @@ func (k Keeper) GetFindingFingerPrintHash(finding *types.Finding) string {
 		SeverityLevel: finding.SeverityLevel,
 		Status:        finding.Status,
 		Detail:        finding.Detail,
+		PaymentHash:   finding.PaymentHash,
 	}
 
-	bz := k.cdc.MustMarshal(findingFingerPrint)
+	bz := k.cdc.MustMarshal(findingFingerprint)
 	hash := sha256.Sum256(bz)
 	return hex.EncodeToString(hash[:])
 }

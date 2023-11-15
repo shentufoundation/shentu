@@ -13,14 +13,13 @@ message Program {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string program_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
+  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
   string name = 2 [(gogoproto.moretags) = "yaml:\"name\""];
   // JSON by ProgramDetail
   string detail = 3 [(gogoproto.moretags) = "yaml:\"detail\""];
   string admin_address = 4 [(gogoproto.moretags) = "yaml:\"admin_address\""];
   ProgramStatus status = 5 [(gogoproto.moretags) = "yaml:\"status\""];
-  repeated BountyLevel bounty_levels = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"bounty_levels\""];
-  google.protobuf.Timestamp create_time = 7
+  google.protobuf.Timestamp create_time = 6
   [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"create_time\""];
 }
 
@@ -29,7 +28,7 @@ message Finding {
   option (gogoproto.goproto_getters) = false;
 
   string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
-  string finding_id = 2 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
+  string finding_id = 2 [(gogoproto.moretags) = "yaml:\"finding_id\""];
   string title = 3;
   string description = 4 [(gogoproto.moretags) = "yaml:\"description\""];
   string proof_of_concept = 5 [(gogoproto.moretags) = "yaml:\"proof_of_concept\""];
@@ -40,11 +39,24 @@ message Finding {
   FindingStatus status = 9 [(gogoproto.moretags) = "yaml:\"status\""];
   // JSON by FindingDetail
   string detail = 10 [(gogoproto.moretags) = "yaml:\"detail\""];
-  google.protobuf.Timestamp create_time = 11
+  string payment_hash = 11 [(gogoproto.moretags) = "yaml:\"payment_hash\""];
+  google.protobuf.Timestamp create_time = 12
   [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"create_time\""];
 }
 
-message FindingFingerPrint {
+message ProgramFingerprint {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string program_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
+  string name = 2 [(gogoproto.moretags) = "yaml:\"name\""];
+  // JSON by ProgramDetail
+  string detail = 3 [(gogoproto.moretags) = "yaml:\"detail\""];
+  string admin_address = 4 [(gogoproto.moretags) = "yaml:\"admin_address\""];
+  ProgramStatus status = 5 [(gogoproto.moretags) = "yaml:\"status\""];
+}
+
+message FindingFingerprint {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -53,10 +65,11 @@ message FindingFingerPrint {
   string title = 3;
   // hash(description + proof_of_concept + submitter)
   string finding_hash = 4 [(gogoproto.moretags) = "yaml:\"finding_hash\""];
-  SeverityLevel severity_level = 6 [(gogoproto.moretags) = "yaml:\"severity_level\""];
-  FindingStatus status = 7 [(gogoproto.moretags) = "yaml:\"status\""];
+  SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];
+  FindingStatus status = 6 [(gogoproto.moretags) = "yaml:\"status\""];
   // JSON by FindingDetail
-  string detail = 8 [(gogoproto.moretags) = "yaml:\"detail\""];
+  string detail = 7 [(gogoproto.moretags) = "yaml:\"detail\""];
+  string payment_hash = 8 [(gogoproto.moretags) = "yaml:\"payment_hash\""];
 }
 
 enum ProgramStatus {
@@ -88,20 +101,19 @@ enum FindingStatus {
   FINDING_STATUS_CLOSED = 4 [(gogoproto.enumvalue_customname) = "FindingStatusClosed"];
 }
 
-message BountyLevel {
-  option (gogoproto.equal) = false;
-  option (gogoproto.goproto_getters) = false;
-
-  SeverityLevel severity_level = 1 [(gogoproto.moretags) = "yaml:\"severity_level\""];
-  bool   poc = 2;
-  cosmos.base.v1beta1.Coin min_bounty = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"min_bounty\""];
-  cosmos.base.v1beta1.Coin max_bounty = 4 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"max_bounty\""];
-}
+//message BountyLevel {
+//  option (gogoproto.equal) = false;
+//  option (gogoproto.goproto_getters) = false;
+//
+//  SeverityLevel severity_level = 1 [(gogoproto.moretags) = "yaml:\"severity_level\""];
+//  bool   poc = 2;
+//  cosmos.base.v1beta1.Coin min_bounty = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"min_bounty\""];
+//  cosmos.base.v1beta1.Coin max_bounty = 4 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"max_bounty\""];
+//}
 
 //// ProgramDetail defines a program detail.
 //type ProgramDetail struct {
 //    Type           string        `json:"type"`
-//    Name           string        `json:"name"`
 //    Logo           string        `json:"logo"`
 //    Desc           string        `json:"desc"`
 //    Targets        []string      `json:"targets"`
@@ -121,6 +133,4 @@ message BountyLevel {
 //    Attachments   []string     `json:"attachments"`
 //    ReceiverInfo  ReceiverInfo `json:"receiver_info"`
 //    PaidInfo      PaidInfo     `json:"paid_info"`
-//    FindingHash   string       `json:"finding_hash"`
-//    ShentuAddress string       `json:"shentu_addr"`
 //}

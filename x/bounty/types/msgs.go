@@ -25,12 +25,11 @@ var (
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
 // Delegator address and validator address are the same.
-func NewMsgCreateProgram(pid, name, detail string, operator sdk.AccAddress, levels []BountyLevel) *MsgCreateProgram {
+func NewMsgCreateProgram(pid, name, detail string, operator sdk.AccAddress) *MsgCreateProgram {
 	return &MsgCreateProgram{
 		ProgramId:       pid,
 		Name:            name,
 		Detail:          detail,
-		BountyLevels:    levels,
 		OperatorAddress: operator.String(),
 	}
 }
@@ -80,12 +79,11 @@ func (msg MsgCreateProgram) ValidateBasic() error {
 }
 
 // NewMsgEditProgram edit a program.
-func NewMsgEditProgram(pid, name, detail string, operator sdk.AccAddress, levels []BountyLevel) *MsgEditProgram {
+func NewMsgEditProgram(pid, name, detail string, operator sdk.AccAddress) *MsgEditProgram {
 	return &MsgEditProgram{
 		ProgramId:       pid,
 		Name:            name,
 		Detail:          detail,
-		BountyLevels:    levels,
 		OperatorAddress: operator.String(),
 	}
 }
@@ -131,13 +129,13 @@ func (msg MsgEditProgram) ValidateBasic() error {
 // NewMsgSubmitFinding submit a new finding.
 func NewMsgSubmitFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, level SeverityLevel) *MsgSubmitFinding {
 	return &MsgSubmitFinding{
-		ProgramId:        pid,
-		FindingId:        fid,
-		Title:            title,
-		FindingHash:      hash,
-		SubmitterAddress: operator.String(),
-		SeverityLevel:    level,
-		Detail:           detail,
+		ProgramId:       pid,
+		FindingId:       fid,
+		Title:           title,
+		FindingHash:     hash,
+		OperatorAddress: operator.String(),
+		SeverityLevel:   level,
+		Detail:          detail,
 	}
 }
 
@@ -153,7 +151,7 @@ func (msg MsgSubmitFinding) Type() string { return TypeMsgSubmitFinding }
 // sign the msg as well.
 func (msg MsgSubmitFinding) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -169,7 +167,7 @@ func (msg MsgSubmitFinding) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgSubmitFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
@@ -197,12 +195,12 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 // NewMsgEditFinding submit a new finding.
 func NewMsgEditFinding(fid, title, detail, hash string, operator sdk.AccAddress, level SeverityLevel) *MsgEditFinding {
 	return &MsgEditFinding{
-		FindingId:        fid,
-		Title:            title,
-		FindingHash:      hash,
-		SubmitterAddress: operator.String(),
-		SeverityLevel:    level,
-		Detail:           detail,
+		FindingId:       fid,
+		Title:           title,
+		FindingHash:     hash,
+		OperatorAddress: operator.String(),
+		SeverityLevel:   level,
+		Detail:          detail,
 	}
 }
 
@@ -218,7 +216,7 @@ func (msg MsgEditFinding) Type() string { return TypeMsgEditFinding }
 // sign the msg as well.
 func (msg MsgEditFinding) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -234,7 +232,7 @@ func (msg MsgEditFinding) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgEditFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}

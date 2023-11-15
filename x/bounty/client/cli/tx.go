@@ -59,7 +59,7 @@ func NewCreateProgramCmd() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateProgram(pid, name, desc, creatorAddr, nil)
+			msg := types.NewMsgCreateProgram(pid, name, desc, creatorAddr)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -102,7 +102,7 @@ func NewEditProgramCmd() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgEditProgram(pid, name, detail, creatorAddr, nil)
+			msg := types.NewMsgEditProgram(pid, name, detail, creatorAddr)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

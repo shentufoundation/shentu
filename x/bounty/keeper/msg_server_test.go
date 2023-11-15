@@ -13,7 +13,7 @@ import (
 
 func (suite *KeeperTestSuite) TestCreateProgram() {
 	type args struct {
-		msgCresatePrograms []types.MsgCreateProgram
+		msgCreatePrograms []types.MsgCreateProgram
 	}
 
 	type errArgs struct {
@@ -27,7 +27,7 @@ func (suite *KeeperTestSuite) TestCreateProgram() {
 	}{
 		{"Program(1)  -> Set: Simple",
 			args{
-				msgCresatePrograms: []types.MsgCreateProgram{
+				msgCreatePrograms: []types.MsgCreateProgram{
 					{
 						Name:            "Name",
 						Detail:          "detail",
@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) TestCreateProgram() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			for _, program := range tc.args.msgCresatePrograms {
+			for _, program := range tc.args.msgCreatePrograms {
 				ctx := sdk.WrapSDKContext(suite.ctx)
 
 				_, err := suite.msgServer.CreateProgram(ctx, &program)
@@ -85,12 +85,12 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 			args{
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
-						ProgramId:        pid,
-						FindingId:        fid,
-						Title:            "Test bug 1",
-						Detail:           "detail",
-						SubmitterAddress: suite.address[0].String(),
-						SeverityLevel:    types.Critical,
+						ProgramId:       pid,
+						FindingId:       fid,
+						Title:           "Test bug 1",
+						Detail:          "detail",
+						OperatorAddress: suite.address[0].String(),
+						SeverityLevel:   types.Critical,
 					},
 				},
 			},
@@ -102,12 +102,12 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 			args{
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
-						ProgramId:        pid,
-						FindingId:        fid,
-						Title:            "Test bug 1",
-						Detail:           "detail",
-						SubmitterAddress: suite.address[0].String(),
-						SeverityLevel:    types.Critical,
+						ProgramId:       pid,
+						FindingId:       fid,
+						Title:           "Test bug 1",
+						Detail:          "detail",
+						OperatorAddress: suite.address[0].String(),
+						SeverityLevel:   types.Critical,
 					},
 				},
 			},
@@ -119,12 +119,12 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 			args{
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
-						ProgramId:        "not exist pid",
-						FindingId:        "1",
-						Title:            "Test bug 1",
-						Detail:           "detail",
-						SubmitterAddress: "Test address",
-						SeverityLevel:    types.Critical,
+						ProgramId:       "not exist pid",
+						FindingId:       "1",
+						Title:           "Test bug 1",
+						Detail:          "detail",
+						OperatorAddress: "Test address",
+						SeverityLevel:   types.Critical,
 					},
 				},
 			},
@@ -161,7 +161,7 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
-	findingFingerPrintHash := suite.app.BountyKeeper.GetFindingFingerPrintHash(&finding)
+	findingFingerPrintHash := suite.app.BountyKeeper.GetFindingFingerprintHash(&finding)
 
 	testCases := []struct {
 		name    string
@@ -211,7 +211,7 @@ func (suite *KeeperTestSuite) TestConfirmFindingPaid() {
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
 	// fingerprint
-	findingFingerPrintHash := suite.app.BountyKeeper.GetFindingFingerPrintHash(&finding)
+	findingFingerPrintHash := suite.app.BountyKeeper.GetFindingFingerprintHash(&finding)
 	suite.InitConfirmFinding(fid, findingFingerPrintHash)
 
 	testCases := []struct {
@@ -302,7 +302,7 @@ func (suite *KeeperTestSuite) TestReleaseConfirmFinding() {
 
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
-	findingFingerPrintHash := suite.app.BountyKeeper.GetFindingFingerPrintHash(&finding)
+	findingFingerPrintHash := suite.app.BountyKeeper.GetFindingFingerprintHash(&finding)
 	suite.InitConfirmFinding(fid, findingFingerPrintHash)
 
 	suite.InitConfirmFindingPaid(fid)
@@ -377,13 +377,13 @@ func (suite *KeeperTestSuite) InitSubmitFinding(pid, fid string) string {
 	hash := sha256.Sum256([]byte(desc + poc + suite.address[0].String()))
 
 	msgSubmitFinding := &types.MsgSubmitFinding{
-		ProgramId:        pid,
-		FindingId:        fid,
-		Title:            "title",
-		FindingHash:      hex.EncodeToString(hash[:]),
-		SubmitterAddress: suite.address[0].String(),
-		SeverityLevel:    types.Critical,
-		Detail:           "detail",
+		ProgramId:       pid,
+		FindingId:       fid,
+		Title:           "title",
+		FindingHash:     hex.EncodeToString(hash[:]),
+		OperatorAddress: suite.address[0].String(),
+		SeverityLevel:   types.Critical,
+		Detail:          "detail",
 	}
 
 	ctx := sdk.WrapSDKContext(suite.ctx)

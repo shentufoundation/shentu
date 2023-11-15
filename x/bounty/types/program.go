@@ -9,8 +9,8 @@ import (
 // Programs is an array of program
 type Programs []Program
 
-func NewProgram(pid, name, detail string,
-	admin sdk.AccAddress, status ProgramStatus, levels []BountyLevel, createTime time.Time) (Program, error) {
+func NewProgram(pid, name, detail string, admin sdk.AccAddress,
+	status ProgramStatus, createTime time.Time) (Program, error) {
 
 	return Program{
 		ProgramId:    pid,
@@ -18,7 +18,6 @@ func NewProgram(pid, name, detail string,
 		Detail:       detail,
 		AdminAddress: admin.String(),
 		Status:       status,
-		BountyLevels: levels,
 		CreateTime:   createTime,
 	}, nil
 }

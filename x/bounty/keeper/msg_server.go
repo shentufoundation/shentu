@@ -35,7 +35,7 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 	}
 
 	createTime := ctx.BlockHeader().Time
-	program, err := types.NewProgram(msg.ProgramId, msg.Name, msg.Detail, operatorAddr, types.ProgramStatusInactive, msg.BountyLevels, createTime)
+	program, err := types.NewProgram(msg.ProgramId, msg.Name, msg.Detail, operatorAddr, types.ProgramStatusInactive, createTime)
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +91,6 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 	}
 	if len(msg.Detail) > 0 {
 		program.Detail = msg.Detail
-	}
-	if len(msg.BountyLevels) > 0 {
-		program.BountyLevels = msg.BountyLevels
 	}
 
 	k.SetProgram(ctx, program)
@@ -166,7 +163,7 @@ func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgCloseProgra
 func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFinding) (*types.MsgSubmitFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +202,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.SubmitterAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
 
@@ -218,10 +215,6 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 	if !found {
 		return nil, types.ErrFindingNotExists
 	}
-	// check submitter
-	if finding.SubmitterAddress != msg.SubmitterAddress {
-		return nil, types.ErrFindingSubmitterInvalid
-	}
 	// check program
 	program, isExist := k.GetProgram(ctx, finding.ProgramId)
 	if !isExist {
@@ -231,6 +224,45 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 		return nil, types.ErrProgramNotActive
 	}
 
+	// program admin edit paymentHash
+	if len(msg.PaymentHash) > 0 {
+		// check status
+		if finding.Status != types.FindingStatusConfirmed {
+			return nil, types.ErrFindingStatusInvalid
+		}
+		// check operator is program admin
+		if program.AdminAddress != msg.OperatorAddress {
+			return nil, types.ErrFindingSubmitterInvalid
+		}
+		finding.PaymentHash = msg.PaymentHash
+
+		k.SetFinding(ctx, finding)
+
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeEditFindingPaymentHash,
+				sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
+				sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+			),
+		})
+		return &types.MsgEditFindingResponse{}, nil
+	}
+
+	// whitehat edit finding
+	// check status
+	if finding.Status != types.FindingStatusSubmitted {
+		return nil, types.ErrFindingStatusInvalid
+	}
+
+	// check operator is whitehat
+	if finding.SubmitterAddress != msg.OperatorAddress {
+		return nil, types.ErrFindingSubmitterInvalid
+	}
 	if len(msg.Title) > 0 {
 		finding.Title = msg.Title
 	}
@@ -255,7 +287,7 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.SubmitterAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
 

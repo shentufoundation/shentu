@@ -19,18 +19,17 @@ func TestMsgCreateProgram(t *testing.T) {
 		name           string
 		detail         string
 		creatorAddress sdk.AccAddress
-		bountyLevels   []BountyLevel
 		expectPass     bool
 	}{
-		{"1", "name", "desc", addrs[0], nil, true},
-		{"", "name", "desc", addrs[0], nil, false},
-		{"1", "", "desc", addrs[0], nil, false},
-		{"1", "name", "", addrs[0], nil, false},
-		{"1", "name", "desc", sdk.AccAddress{}, nil, false},
+		{"1", "name", "desc", addrs[0], true},
+		{"", "name", "desc", addrs[0], false},
+		{"1", "", "desc", addrs[0], false},
+		{"1", "name", "", addrs[0], false},
+		{"1", "name", "desc", sdk.AccAddress{}, false},
 	}
 
 	for i, test := range tests {
-		msg := NewMsgCreateProgram(test.pid, test.name, test.detail, test.creatorAddress, nil)
+		msg := NewMsgCreateProgram(test.pid, test.name, test.detail, test.creatorAddress)
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgCreateProgram)
 
@@ -49,18 +48,17 @@ func TestMsgEditProgram(t *testing.T) {
 		name           string
 		detail         string
 		creatorAddress sdk.AccAddress
-		bountyLevels   []BountyLevel
 		expectPass     bool
 	}{
-		{"1", "name", "desc", addrs[0], nil, true},
-		{"1", "", "desc", addrs[0], nil, true},
-		{"1", "name", "", addrs[0], nil, true},
-		{"", "name", "desc", addrs[0], nil, false},
-		{"1", "name", "desc", sdk.AccAddress{}, nil, false},
+		{"1", "name", "desc", addrs[0], true},
+		{"1", "", "desc", addrs[0], true},
+		{"1", "name", "", addrs[0], true},
+		{"", "name", "desc", addrs[0], false},
+		{"1", "name", "desc", sdk.AccAddress{}, false},
 	}
 
 	for i, test := range tests {
-		msg := NewMsgEditProgram(test.pid, test.name, test.detail, test.creatorAddress, test.bountyLevels)
+		msg := NewMsgEditProgram(test.pid, test.name, test.detail, test.creatorAddress)
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgEditProgram)
 
