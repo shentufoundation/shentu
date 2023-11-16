@@ -26,24 +26,6 @@ const (
 	Bech32PrefixConsPub = Bech32MainPrefix + sdk.PrefixValidator + sdk.PrefixConsensus + sdk.PrefixPublic
 )
 
-// PrefixToCertik convert shentu prefix address to certik prefix address
-func PrefixToCertik(address string) (string, error) {
-	hrp, data, err := bech32.DecodeAndConvert(address)
-	if err != nil {
-		return "", err
-	}
-	if !strings.HasPrefix(hrp, "shentu") {
-		return "", fmt.Errorf("invalid address:%s", address)
-	}
-
-	newhrp := strings.Replace(hrp, "shentu", "certik", 1)
-	certikAddr, err := bech32.ConvertAndEncode(newhrp, data)
-	if err != nil {
-		return "", err
-	}
-	return certikAddr, nil
-}
-
 // PrefixToShentu convert certik prefix address to shentu prefix address
 func PrefixToShentu(address string) (string, error) {
 	hrp, data, err := bech32.DecodeAndConvert(address)
