@@ -221,7 +221,7 @@ $ %s query bounty findings --page=1 --limit=100
 		},
 	}
 
-	cmd.Flags().Uint64(FlagProgramID, 0, "(optional) filter by programs find by program id")
+	cmd.Flags().String(FlagProgramID, "", "(optional) filter by programs find by program id")
 	cmd.Flags().String(FlagSubmitterAddress, "", "(optional) filter by programs find by submitter address")
 	flags.AddPaginationFlagsToCmd(cmd, "findings")
 	flags.AddQueryFlagsToCmd(cmd)

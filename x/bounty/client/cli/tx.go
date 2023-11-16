@@ -3,6 +3,7 @@ package cli
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 
 	"github.com/spf13/cobra"
 
@@ -26,6 +27,7 @@ func NewTxCmd() *cobra.Command {
 		NewCloseProgramCmd(),
 		NewSubmitFindingCmd(),
 		NewEditFindingCmd(),
+		NewActivateFindingCmd(),
 		NewConfirmFindingCmd(),
 		NewConfirmFindingPaidCmd(),
 		NewCloseFindingCmd(),
@@ -54,12 +56,12 @@ func NewCreateProgramCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			desc, err := cmd.Flags().GetString(FlagDetail)
+			detail, err := cmd.Flags().GetString(FlagDetail)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgCreateProgram(pid, name, desc, creatorAddr)
+			msg := types.NewMsgCreateProgram(pid, name, detail, creatorAddr)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -269,8 +271,22 @@ func NewEditFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			hash := sha256.Sum256([]byte(desc + poc + submitAddr.String()))
-			hashString := hex.EncodeToString(hash[:])
+			if len(desc) > 0 {
+				if len(poc) == 0 {
+					return errors.New("poc is empty")
+				}
+			}
+			if len(poc) > 0 {
+				if len(desc) == 0 {
+					return errors.New("desc is empty")
+				}
+			}
+
+			hashString := ""
+			if len(desc) > 0 && len(poc) > 0 {
+				hash := sha256.Sum256([]byte(desc + poc + submitAddr.String()))
+				hashString = hex.EncodeToString(hash[:])
+			}
 
 			paymentHash, err := cmd.Flags().GetString(FlagFindingPaymentHash)
 			if err != nil {
