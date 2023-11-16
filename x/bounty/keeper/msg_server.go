@@ -254,8 +254,8 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 	}
 
 	// whitehat edit finding
-	// check status
-	if finding.Status != types.FindingStatusSubmitted {
+	//  StatusSubmitted and StatusActive can be edited
+	if finding.Status != types.FindingStatusSubmitted && finding.Status != types.FindingStatusActive {
 		return nil, types.ErrFindingStatusInvalid
 	}
 
@@ -292,6 +292,57 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 	})
 
 	return &types.MsgEditFindingResponse{}, nil
+}
+
+func (k msgServer) ActivateFinding(goCtx context.Context, msg *types.MsgActivateFinding) (*types.MsgActivateFindingResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	// get finding
+	finding, found := k.GetFinding(ctx, msg.FindingId)
+	if !found {
+		return nil, types.ErrFindingNotExists
+	}
+	// only StatusSubmitted can activate
+	if finding.Status != types.FindingStatusSubmitted {
+		return nil, types.ErrFindingStatusInvalid
+	}
+
+	// get program
+	program, isExist := k.GetProgram(ctx, finding.ProgramId)
+	if !isExist {
+		return nil, types.ErrProgramNotExists
+	}
+	if program.Status != types.ProgramStatusActive {
+		return nil, types.ErrProgramNotActive
+	}
+
+	// program admin and bounty certificate can activate finding
+	if program.AdminAddress != msg.OperatorAddress && !k.certKeeper.IsBountyAdmin(ctx, operatorAddr) {
+		return nil, types.ErrFindingOperatorNotAllowed
+	}
+
+	finding.Status = types.FindingStatusActive
+	k.SetFinding(ctx, finding)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeActivateFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
+			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+		),
+	})
+
+	return &types.MsgActivateFindingResponse{}, nil
 }
 
 func (k msgServer) ConfirmFinding(goCtx context.Context, msg *types.MsgConfirmFinding) (*types.MsgConfirmFindingResponse, error) {

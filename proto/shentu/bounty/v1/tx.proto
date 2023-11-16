@@ -31,6 +31,9 @@ service Msg {
   // EditFinding defines a method for editing a new finding.
   rpc EditFinding(MsgEditFinding) returns (MsgEditFindingResponse);
 
+  // ActivateFinding defines a method for activate a new finding.
+  rpc ActivateFinding(MsgActivateFinding) returns (MsgActivateFindingResponse);
+
   // ConfirmFinding defines a method for host confirm a finding.
   rpc ConfirmFinding(MsgConfirmFinding) returns (MsgConfirmFindingResponse);
 
@@ -139,6 +142,18 @@ message MsgConfirmFinding {
 
 // MsgConfirmFindingResponse defines the Msg/AcceptFinding response type.
 message MsgConfirmFindingResponse {}
+
+// MsgActivateFinding defines a message to activate a finding to an existing finding.
+message MsgActivateFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgActivateFindingResponse defines the Msg/AcceptFinding response type.
+message MsgActivateFindingResponse {}
 
 // MsgConfirmFindingPaid defines a message to close a finding to an existing finding.
 message MsgConfirmFindingPaid {

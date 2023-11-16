@@ -9,6 +9,7 @@ const (
 	EventTypeSubmitFinding          = "submit_finding"
 	EventTypeEditFinding            = "edit_finding"
 	EventTypeEditFindingPaymentHash = "edit_finding_payment_hash"
+	EventTypeActivateFinding        = "activate_finding"
 	EventTypeConfirmFinding         = "confirm_finding"
 	EventTypeConfirmFindingPaid     = "confirm_finding_paid"
 	EventTypeCloseFinding           = "close_finding"

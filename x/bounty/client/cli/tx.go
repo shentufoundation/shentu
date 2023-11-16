@@ -297,6 +297,27 @@ func NewEditFindingCmd() *cobra.Command {
 	return cmd
 }
 
+func NewActivateFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "activate-finding [finding id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "activate the specific finding",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			submitAddr := clientCtx.GetFromAddress()
+			msg := types.NewMsgActivateFinding(args[0], submitAddr)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	return cmd
+}
+
 func NewConfirmFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "confirm-finding [finding id]",

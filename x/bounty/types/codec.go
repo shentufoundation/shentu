@@ -19,6 +19,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgEditFinding{}, "bounty/EditFinding", nil)
 	cdc.RegisterConcrete(MsgConfirmFinding{}, "bounty/ConfirmFinding", nil)
 	cdc.RegisterConcrete(MsgConfirmFindingPaid{}, "bounty/ConfirmFindingPaid", nil)
+	cdc.RegisterConcrete(MsgActivateFinding{}, "bounty/ActivateFinding", nil)
 	cdc.RegisterConcrete(MsgCloseFinding{}, "bounty/CloseFinding", nil)
 	cdc.RegisterConcrete(MsgReleaseFinding{}, "bounty/ReleaseFinding", nil)
 }
@@ -33,6 +34,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgEditFinding{},
 		&MsgConfirmFinding{},
 		&MsgConfirmFindingPaid{},
+		&MsgActivateFinding{},
 		&MsgCloseFinding{},
 		&MsgReleaseFinding{},
 	)

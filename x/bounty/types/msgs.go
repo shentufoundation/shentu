@@ -12,6 +12,7 @@ const (
 	TypeMsgCloseProgram       = "close_program"
 	TypeMsgSubmitFinding      = "submit_finding"
 	TypeMsgEditFinding        = "edit_finding"
+	TypeMsgActivateFinding    = "activate_finding"
 	TypeMsgConfirmFinding     = "confirm_finding"
 	TypeMsgConfirmFindingPaid = "confirm_finding_paid"
 	TypeMsgCloseFinding       = "close_finding"
@@ -19,8 +20,8 @@ const (
 )
 
 var (
-	_, _, _, _    sdk.Msg = &MsgCreateProgram{}, &MsgEditProgram{}, &MsgActivateProgram{}, &MsgCloseProgram{}
-	_, _, _, _, _ sdk.Msg = &MsgSubmitFinding{}, &MsgEditFinding{}, &MsgConfirmFinding{}, &MsgCloseFinding{}, &MsgReleaseFinding{}
+	_, _, _, _       sdk.Msg = &MsgCreateProgram{}, &MsgEditProgram{}, &MsgActivateProgram{}, &MsgCloseProgram{}
+	_, _, _, _, _, _ sdk.Msg = &MsgSubmitFinding{}, &MsgEditFinding{}, &MsgActivateFinding{}, &MsgConfirmFinding{}, &MsgCloseFinding{}, &MsgReleaseFinding{}
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -322,6 +323,49 @@ func (msg MsgCloseProgram) ValidateBasic() error {
 	return nil
 }
 
+func NewMsgActivateFinding(findingID string, hostAddr sdk.AccAddress) *MsgActivateFinding {
+	return &MsgActivateFinding{
+		FindingId:       findingID,
+		OperatorAddress: hostAddr.String(),
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgActivateFinding) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgActivateFinding) Type() string { return TypeMsgActivateFinding }
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgActivateFinding) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners implements the sdk.Msg interface. It returns the address(es) that
+// must sign over msg.GetSignBytes().
+func (msg MsgActivateFinding) GetSigners() []sdk.AccAddress {
+	// host should sign the message
+	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{hostAddr}
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgActivateFinding) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+	if len(msg.FindingId) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+	}
+	return nil
+}
+
 func NewMsgConfirmFinding(findingID, fingerprint string, hostAddr sdk.AccAddress) *MsgConfirmFinding {
 	return &MsgConfirmFinding{
 		FindingId:       findingID,
@@ -361,7 +405,7 @@ func (msg MsgConfirmFinding) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.FindingId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	if len(msg.Fingerprint) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty fingerprint")

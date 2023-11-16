@@ -155,7 +155,7 @@ func TestMsgSubmitFinding(t *testing.T) {
 	}
 }
 
-func TestMsgConfirmFinding(t *testing.T) {
+func TestMsgActivateFinding(t *testing.T) {
 	testCases := []struct {
 		fid        string
 		addr       sdk.AccAddress
@@ -167,7 +167,34 @@ func TestMsgConfirmFinding(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		msg := NewMsgConfirmFinding(tc.fid, "fingerprint", tc.addr)
+		msg := NewMsgActivateFinding(tc.fid, tc.addr)
+
+		require.Equal(t, msg.Route(), RouterKey)
+		require.Equal(t, msg.Type(), TypeMsgActivateFinding)
+
+		if tc.expectPass {
+			require.NoError(t, msg.ValidateBasic())
+			require.Equal(t, msg.GetSigners(), []sdk.AccAddress{tc.addr})
+		} else {
+			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+		}
+	}
+}
+
+func TestMsgConfirmFinding(t *testing.T) {
+	testCases := []struct {
+		fid, fingerprint string
+		addr             sdk.AccAddress
+		expectPass       bool
+	}{
+		{"1", "fingerprint", addrs[0], true},
+		{"", "fingerprint", addrs[0], false},
+		{"1", "", addrs[0], false},
+		{"1", "fingerprint", sdk.AccAddress{}, false},
+	}
+
+	for i, tc := range testCases {
+		msg := NewMsgConfirmFinding(tc.fid, tc.fingerprint, tc.addr)
 
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgConfirmFinding)

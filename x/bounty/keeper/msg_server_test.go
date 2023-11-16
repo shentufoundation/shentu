@@ -153,6 +153,53 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestActivateFinding() {
+	pid, fid := uuid.NewString(), uuid.NewString()
+	suite.InitCreateProgram(pid)
+	suite.InitActivateProgram(pid)
+	suite.InitSubmitFinding(pid, fid)
+
+	_, found := suite.keeper.GetFinding(suite.ctx, fid)
+	suite.Require().True(found)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgActivateFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgActivateFinding{},
+			false,
+		},
+		{
+			"valid request",
+			&types.MsgActivateFinding{
+				FindingId:       fid,
+				OperatorAddress: suite.address[0].String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.ActivateFinding(ctx, testCase.req)
+
+			finding, _ := suite.keeper.GetFinding(suite.ctx, fid)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(finding.Status, types.FindingStatusActive)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(finding.Status, types.FindingStatusSubmitted)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestConfirmFinding() {
 	pid, fid := uuid.NewString(), uuid.NewString()
 	suite.InitCreateProgram(pid)
