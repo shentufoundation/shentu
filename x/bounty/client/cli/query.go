@@ -25,8 +25,6 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	bountyQueryCmd.AddCommand(
-		GetCmdQueryHost(),
-		GetCmdQueryHosts(),
 		GetCmdQueryProgram(),
 		GetCmdQueryPrograms(),
 		GetCmdQueryFinding(),
