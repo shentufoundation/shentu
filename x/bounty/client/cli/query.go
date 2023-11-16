@@ -38,26 +38,6 @@ func GetQueryCmd() *cobra.Command {
 	return bountyQueryCmd
 }
 
-// GetCmdQueryHost implements the query host command.
-func GetCmdQueryHost() *cobra.Command {
-	//TODO implement me
-	cmd := &cobra.Command{}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdQueryHosts implements the query hosts command. Command to Get a
-// Host Information list.
-func GetCmdQueryHosts() *cobra.Command {
-	//TODO implement me
-	cmd := &cobra.Command{}
-
-	flags.AddPaginationFlagsToCmd(cmd, "hosts")
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
 // GetCmdQueryProgram implements the query program command.
 func GetCmdQueryProgram() *cobra.Command {
 	cmd := &cobra.Command{

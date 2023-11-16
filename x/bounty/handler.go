@@ -47,6 +47,10 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.ConfirmFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
+		case *types.MsgConfirmFindingPaid:
+			res, err := msgServer.ConfirmFindingPaid(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgCloseFinding:
 			res, err := msgServer.CloseFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
