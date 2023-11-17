@@ -1,0 +1,193 @@
+syntax = "proto3";
+package shentu.bounty.v1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
+
+import "cosmos/base/v1beta1/coin.proto";
+import "shentu/bounty/v1/bounty.proto";
+
+option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
+
+// Msg defines the staking Msg service.
+service Msg {
+  // CreateProgram defines a method for creating a new program.
+  rpc CreateProgram(MsgCreateProgram) returns (MsgCreateProgramResponse);
+
+  // EditProgram defines a method for modifying a program.
+  rpc EditProgram(MsgEditProgram) returns (MsgEditProgramResponse);
+
+  // Activate a program status by program_id
+  rpc ActivateProgram(MsgActivateProgram) returns (MsgActivateProgramResponse);
+
+  // Closed a program status by program_id
+  rpc CloseProgram(MsgCloseProgram) returns (MsgCloseProgramResponse);
+
+  // SubmitFinding defines a method for submitting a new finding.
+  rpc SubmitFinding(MsgSubmitFinding) returns (MsgSubmitFindingResponse);
+
+  // EditFinding defines a method for editing a new finding.
+  rpc EditFinding(MsgEditFinding) returns (MsgEditFindingResponse);
+
+  // ActivateFinding defines a method for activate a new finding.
+  rpc ActivateFinding(MsgActivateFinding) returns (MsgActivateFindingResponse);
+
+  // ConfirmFinding defines a method for host confirm a finding.
+  rpc ConfirmFinding(MsgConfirmFinding) returns (MsgConfirmFindingResponse);
+
+  // ConfirmFindingPaid defines a method for submitter confirm a finding paid
+  rpc ConfirmFindingPaid(MsgConfirmFindingPaid) returns (MsgConfirmFindingPaidResponse);
+
+  // CloseFinding defines a method for submitter or certifier close a finding
+  rpc CloseFinding(MsgCloseFinding) returns (MsgCloseFindingResponse);
+
+  // PublishFinding defines a method for publish a finding.
+  rpc PublishFinding(MsgPublishFinding) returns (MsgPublishFindingResponse);
+}
+
+// MsgCreateProgram defines a SDK message for creating a new program.
+message MsgCreateProgram {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string name = 2;
+  string detail = 3;
+  string operator_address = 4 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgEditProgram defines a SDK message for editing a program.
+message MsgEditProgram {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string name = 2;
+  string detail = 3;
+  string operator_address = 4 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgCreateProgramResponse defines the Msg/CreateProgram response type.
+message MsgCreateProgramResponse {
+}
+
+// MsgModifyProgramResponse defines the Msg/ModifyProgram response type.
+message MsgEditProgramResponse {}
+
+message MsgActivateProgram {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+message MsgActivateProgramResponse {}
+
+message MsgCloseProgram {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+message MsgCloseProgramResponse {}
+
+// MsgSubmitFinding defines a message to submit a finding.
+message MsgSubmitFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string finding_id = 2 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string title = 3;
+  string finding_hash = 4 [(gogoproto.moretags) = "yaml:\"finding_hash\""];
+  string operator_address = 5 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+  SeverityLevel severity_level = 6 [(gogoproto.moretags) = "yaml:\"severity_level\""];
+  string detail = 7;
+}
+
+// MsgSubmitFindingResponse defines the MsgSubmitFinding response type.
+message MsgSubmitFindingResponse {}
+
+// MsgEditFinding defines a message to edit a finding.
+message MsgEditFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string title = 2;
+  string finding_hash = 3 [(gogoproto.moretags) = "yaml:\"finding_hash\""];
+  string operator_address = 4 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+  SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];
+  string detail = 6;
+  string payment_hash = 7 [(gogoproto.moretags) = "yaml:\"payment_hash\""];
+}
+
+// MsgEditFindingResponse defines the MsgEditFinding response type.
+message MsgEditFindingResponse {}
+
+// MsgConfirmFinding defines a message to confirm a finding to an existing finding.
+message MsgConfirmFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+  string fingerprint = 3;
+}
+
+// MsgConfirmFindingResponse defines the Msg/AcceptFinding response type.
+message MsgConfirmFindingResponse {}
+
+// MsgActivateFinding defines a message to activate a finding to an existing finding.
+message MsgActivateFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgActivateFindingResponse defines the Msg/AcceptFinding response type.
+message MsgActivateFindingResponse {}
+
+// MsgConfirmFindingPaid defines a message to close a finding to an existing finding.
+message MsgConfirmFindingPaid {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgCloseFindingResponse defines the Msg/CloseFinding response type.
+message MsgConfirmFindingPaidResponse {}
+
+// MsgCloseFinding defines a message to close a finding to an existing finding.
+message MsgCloseFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgCloseFindingResponse defines the Msg/CloseFinding response type.
+message MsgCloseFindingResponse {}
+
+// MsgPublishFinding defines a message to publish a finding.
+message MsgPublishFinding {
+  option (gogoproto.equal) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string description = 2 [(gogoproto.moretags) = "yaml:\"description\""];
+  string proof_of_concept = 3 [(gogoproto.moretags) = "yaml:\"proof_of_concept\""];
+  string operator_address = 4 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgPublishFindingResponse defines the MsgPublishFinding response type.
+message MsgPublishFindingResponse {}

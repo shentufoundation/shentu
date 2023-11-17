@@ -74,12 +74,12 @@ func TasksInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
-//three invariants are checked
-// 1. sum of operator's collater should be equal to stored totalCollateral
-// 2. module account balance minus totalCollateral should be larger or equal to
-//    sum of operator's reward plus sum of pending task's bounty
-// 3. module account balance should be larger or equal to
-//    sum of operator's collateral plus sum of withdraw amount
+// three invariants are checked
+//  1. sum of operator's collater should be equal to stored totalCollateral
+//  2. module account balance minus totalCollateral should be larger or equal to
+//     sum of operator's reward plus sum of pending task's bounty
+//  3. module account balance should be larger or equal to
+//     sum of operator's collateral plus sum of withdraw amount
 func FundInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		broken := false

@@ -29,6 +29,7 @@ enum CertificateType {
     CERT_TYPE_SHIELD_POOL_CREATOR = 5 [(gogoproto.enumvalue_customname) = "CertificateTypeShieldPoolCreator"];
     CERT_TYPE_IDENTITY = 6 [(gogoproto.enumvalue_customname) = "CertificateTypeIdentity"];
     CERT_TYPE_GENERAL = 7 [(gogoproto.enumvalue_customname) = "CertificateTypeGeneral"];
+    CERT_TYPE_BOUNTY_ADMIN = 8 [(gogoproto.enumvalue_customname) = "CertificateTypeBountyAdmin"];
 }
 
 message CompilationContent {
@@ -96,6 +97,12 @@ message Identity {
 }
 
 message General {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    string content = 1;
+}
+
+message BountyAdmin {
     option (cosmos_proto.implements_interface) = "Content";
 
     string content = 1;

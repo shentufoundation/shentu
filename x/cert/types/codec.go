@@ -24,6 +24,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&ShieldPoolCreator{}, "cert/ShieldPoolCreator", nil)
 	cdc.RegisterConcrete(&Identity{}, "cert/Identity", nil)
 	cdc.RegisterConcrete(&General{}, "cert/General", nil)
+	cdc.RegisterConcrete(&BountyAdmin{}, "cert/BountyAdmin", nil)
 
 	cdc.RegisterInterface((*Content)(nil), nil)
 }
@@ -51,6 +52,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&ShieldPoolCreator{},
 		&Identity{},
 		&General{},
+		&BountyAdmin{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

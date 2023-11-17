@@ -201,3 +201,16 @@ func (k Keeper) GetNextCertificateID(ctx sdk.Context) uint64 {
 	opBz := store.Get(types.NextCertificateIDStoreKey())
 	return binary.LittleEndian.Uint64(opBz)
 }
+
+// IsBountyAdmin checks if an address is a bounty admin.
+func (k Keeper) IsBountyAdmin(ctx sdk.Context, address sdk.AccAddress) bool {
+	certificates := k.GetCertificatesByTypeAndContent(ctx, types.CertificateTypeBountyAdmin, address.String())
+
+	for _, certificate := range certificates {
+		if certificate.GetContentString() == address.String() {
+			return true
+		}
+	}
+
+	return false
+}

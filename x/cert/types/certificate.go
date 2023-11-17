@@ -29,6 +29,8 @@ func CertificateTypeFromString(s string) CertificateType {
 		return CertificateTypeIdentity
 	case "GENERAL", "CERT_TYPE_GENERAL":
 		return CertificateTypeGeneral
+	case "BOUNTYADMIN", "CERT_TYPE_BOUNTYADMIN":
+		return CertificateTypeBountyAdmin
 	default:
 		return CertificateTypeNil
 	}
@@ -51,6 +53,8 @@ func TranslateCertificateType(certificate Certificate) CertificateType {
 		return CertificateTypeIdentity
 	case *General:
 		return CertificateTypeGeneral
+	case *BountyAdmin:
+		return CertificateTypeBountyAdmin
 	default:
 		return CertificateTypeNil
 	}
@@ -81,6 +85,8 @@ func AssembleContent(certTypeStr, content string) Content {
 		return &Identity{content}
 	case CertificateTypeGeneral:
 		return &General{content}
+	case CertificateTypeBountyAdmin:
+		return &BountyAdmin{content}
 	default:
 		return nil
 	}
