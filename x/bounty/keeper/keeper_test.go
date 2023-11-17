@@ -23,13 +23,16 @@ type KeeperTestSuite struct {
 	address     []sdk.AccAddress
 	msgServer   types.MsgServer
 	queryClient types.QueryClient
+
+	// addr type
+	programAddr, whiteHatAddr, bountyAdminAddr, normalAddr sdk.AccAddress
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.BountyKeeper
-	suite.address = shentuapp.AddTestAddrs(suite.app, suite.ctx, 4, sdk.NewInt(1e10))
+	suite.address = shentuapp.AddTestAddrs(suite.app, suite.ctx, 5, sdk.NewInt(1e10))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.BountyKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -46,6 +49,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.app.CertKeeper.SetNextCertificateID(suite.ctx, id+1)
 	suite.app.CertKeeper.SetCertificate(suite.ctx, certificate)
 
+	suite.programAddr = suite.address[0]
+	suite.whiteHatAddr = suite.address[1]
+	// suite.address[2] is certifier addr
+	suite.bountyAdminAddr = suite.address[3]
+	suite.normalAddr = suite.address[4]
 }
 
 func TestKeeperTestSuite(t *testing.T) {

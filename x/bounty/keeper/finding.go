@@ -130,8 +130,8 @@ func (k Keeper) ConfirmFinding(ctx sdk.Context, msg *types.MsgConfirmFinding) (t
 	if !found {
 		return finding, types.ErrFindingNotExists
 	}
-	//  StatusSubmitted and StatusActive can be confirmed
-	if finding.Status != types.FindingStatusSubmitted && finding.Status != types.FindingStatusActive {
+	// only StatusActive can be confirmed
+	if finding.Status != types.FindingStatusActive {
 		return finding, types.ErrFindingStatusInvalid
 	}
 

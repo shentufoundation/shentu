@@ -43,8 +43,8 @@ service Msg {
   // CloseFinding defines a method for submitter or certifier close a finding
   rpc CloseFinding(MsgCloseFinding) returns (MsgCloseFindingResponse);
 
-  // MsgReleaseFinding defines a method for release a finding.
-  rpc ReleaseFinding(MsgReleaseFinding) returns (MsgReleaseFindingResponse);
+  // PublishFinding defines a method for publish a finding.
+  rpc PublishFinding(MsgPublishFinding) returns (MsgPublishFindingResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new program.
@@ -179,8 +179,8 @@ message MsgCloseFinding {
 // MsgCloseFindingResponse defines the Msg/CloseFinding response type.
 message MsgCloseFindingResponse {}
 
-// MsgReleaseFinding defines a message to release a finding.
-message MsgReleaseFinding {
+// MsgPublishFinding defines a message to publish a finding.
+message MsgPublishFinding {
   option (gogoproto.equal) = false;
 
   string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
@@ -189,5 +189,5 @@ message MsgReleaseFinding {
   string operator_address = 4 [(gogoproto.moretags) = "yaml:\"operator_address\""];
 }
 
-// MsgReleaseFindingResponse defines the MsgReleaseFinding response type.
-message MsgReleaseFindingResponse {}
+// MsgPublishFindingResponse defines the MsgPublishFinding response type.
+message MsgPublishFindingResponse {}

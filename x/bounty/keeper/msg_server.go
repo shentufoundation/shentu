@@ -460,7 +460,7 @@ func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFindin
 	return &types.MsgCloseFindingResponse{}, nil
 }
 
-func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFinding) (*types.MsgReleaseFindingResponse, error) {
+func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFinding) (*types.MsgPublishFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// get finding
@@ -504,7 +504,7 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeReleaseFinding,
+			types.EventTypePublishFinding,
 			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
 			sdk.NewAttribute(types.AttributeKeyProgramID, program.ProgramId),
 		),
@@ -515,5 +515,5 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		),
 	})
 
-	return &types.MsgReleaseFindingResponse{}, nil
+	return &types.MsgPublishFindingResponse{}, nil
 }

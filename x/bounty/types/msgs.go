@@ -16,12 +16,12 @@ const (
 	TypeMsgConfirmFinding     = "confirm_finding"
 	TypeMsgConfirmFindingPaid = "confirm_finding_paid"
 	TypeMsgCloseFinding       = "close_finding"
-	TypeMsgReleaseFinding     = "release_finding"
+	TypeMsgPublishFinding     = "publish_finding"
 )
 
 var (
 	_, _, _, _       sdk.Msg = &MsgCreateProgram{}, &MsgEditProgram{}, &MsgActivateProgram{}, &MsgCloseProgram{}
-	_, _, _, _, _, _ sdk.Msg = &MsgSubmitFinding{}, &MsgEditFinding{}, &MsgActivateFinding{}, &MsgConfirmFinding{}, &MsgCloseFinding{}, &MsgReleaseFinding{}
+	_, _, _, _, _, _ sdk.Msg = &MsgSubmitFinding{}, &MsgEditFinding{}, &MsgActivateFinding{}, &MsgConfirmFinding{}, &MsgCloseFinding{}, &MsgPublishFinding{}
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -501,9 +501,9 @@ func (msg MsgCloseFinding) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgReleaseFinding release finding.
-func NewMsgReleaseFinding(fid, desc, poc string, operator sdk.AccAddress) *MsgReleaseFinding {
-	return &MsgReleaseFinding{
+// NewMsgPublishFinding publish finding.
+func NewMsgPublishFinding(fid, desc, poc string, operator sdk.AccAddress) *MsgPublishFinding {
+	return &MsgPublishFinding{
 		FindingId:       fid,
 		Description:     desc,
 		ProofOfConcept:  poc,
@@ -512,14 +512,14 @@ func NewMsgReleaseFinding(fid, desc, poc string, operator sdk.AccAddress) *MsgRe
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgReleaseFinding) Route() string { return RouterKey }
+func (msg MsgPublishFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgReleaseFinding) Type() string { return TypeMsgReleaseFinding }
+func (msg MsgPublishFinding) Type() string { return TypeMsgPublishFinding }
 
 // GetSigners implements the sdk.Msg interface. It returns the address(es) that
 // must sign over msg.GetSignBytes().
-func (msg MsgReleaseFinding) GetSigners() []sdk.AccAddress {
+func (msg MsgPublishFinding) GetSigners() []sdk.AccAddress {
 	// releaser should sign the message
 	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
@@ -529,13 +529,13 @@ func (msg MsgReleaseFinding) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes returns the message bytes to sign over.
-func (msg MsgReleaseFinding) GetSignBytes() []byte {
+func (msg MsgPublishFinding) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgReleaseFinding) ValidateBasic() error {
+func (msg MsgPublishFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())

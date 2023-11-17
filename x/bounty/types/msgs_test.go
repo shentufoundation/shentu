@@ -260,7 +260,7 @@ func TestMsgCloseFinding(t *testing.T) {
 	}
 }
 
-func TestMsgReleaseFinding(t *testing.T) {
+func TestMsgPublishFinding(t *testing.T) {
 	testCases := []struct {
 		fid, desc, poc string
 		addr           sdk.AccAddress
@@ -274,10 +274,10 @@ func TestMsgReleaseFinding(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		msg := NewMsgReleaseFinding(tc.fid, tc.desc, tc.poc, tc.addr)
+		msg := NewMsgPublishFinding(tc.fid, tc.desc, tc.poc, tc.addr)
 
 		require.Equal(t, msg.Route(), RouterKey)
-		require.Equal(t, msg.Type(), TypeMsgReleaseFinding)
+		require.Equal(t, msg.Type(), TypeMsgPublishFinding)
 
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic())

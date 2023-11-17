@@ -21,7 +21,7 @@ func (suite *KeeperTestSuite) TestSetGetFinding() {
 		ProgramId:    uuid.NewString(),
 		Name:         "name",
 		Detail:       "detail",
-		AdminAddress: suite.address[0].String(),
+		AdminAddress: suite.programAddr.String(),
 		Status:       types.ProgramStatusInactive,
 	}
 	suite.keeper.SetProgram(suite.ctx, program)
@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestSetGetFinding() {
 						FindingId:        "1",
 						Title:            "title",
 						Description:      "desc",
-						SubmitterAddress: suite.address[0].String(),
+						SubmitterAddress: suite.whiteHatAddr.String(),
 						CreateTime:       time.Time{},
 						Status:           types.FindingStatusSubmitted,
 						FindingHash:      "",

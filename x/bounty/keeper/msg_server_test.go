@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) TestCreateProgram() {
 					{
 						Name:            "Name",
 						Detail:          "detail",
-						OperatorAddress: suite.address[0].String(),
+						OperatorAddress: suite.programAddr.String(),
 						ProgramId:       "1",
 					},
 				},
@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 						FindingId:       fid,
 						Title:           "Test bug 1",
 						Detail:          "detail",
-						OperatorAddress: suite.address[0].String(),
+						OperatorAddress: suite.whiteHatAddr.String(),
 						SeverityLevel:   types.Critical,
 					},
 				},
@@ -106,7 +106,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 						FindingId:       fid,
 						Title:           "Test bug 1",
 						Detail:          "detail",
-						OperatorAddress: suite.address[0].String(),
+						OperatorAddress: suite.whiteHatAddr.String(),
 						SeverityLevel:   types.Critical,
 					},
 				},
@@ -123,7 +123,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 						FindingId:       "1",
 						Title:           "Test bug 1",
 						Detail:          "detail",
-						OperatorAddress: "Test address",
+						OperatorAddress: suite.whiteHatAddr.String(),
 						SeverityLevel:   types.Critical,
 					},
 				},
@@ -176,7 +176,7 @@ func (suite *KeeperTestSuite) TestActivateFinding() {
 			"valid request",
 			&types.MsgActivateFinding{
 				FindingId:       fid,
-				OperatorAddress: suite.address[0].String(),
+				OperatorAddress: suite.bountyAdminAddr.String(),
 			},
 			true,
 		},
@@ -205,6 +205,7 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 	suite.InitCreateProgram(pid)
 	suite.InitActivateProgram(pid)
 	suite.InitSubmitFinding(pid, fid)
+	suite.InitActivateFinding(fid)
 
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
@@ -224,7 +225,7 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 			"valid request => ",
 			&types.MsgConfirmFinding{
 				FindingId:       fid,
-				OperatorAddress: suite.address[0].String(),
+				OperatorAddress: suite.programAddr.String(),
 				Fingerprint:     findingFingerPrintHash,
 			},
 			true,
@@ -243,7 +244,7 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 				suite.Require().Equal(finding.Status, types.FindingStatusConfirmed)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal(finding.Status, types.FindingStatusSubmitted)
+				suite.Require().Equal(finding.Status, types.FindingStatusActive)
 			}
 		})
 	}
@@ -254,6 +255,7 @@ func (suite *KeeperTestSuite) TestConfirmFindingPaid() {
 	suite.InitCreateProgram(pid)
 	suite.InitActivateProgram(pid)
 	suite.InitSubmitFinding(pid, fid)
+	suite.InitActivateFinding(fid)
 
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
@@ -275,7 +277,7 @@ func (suite *KeeperTestSuite) TestConfirmFindingPaid() {
 			"valid request",
 			&types.MsgConfirmFindingPaid{
 				FindingId:       fid,
-				OperatorAddress: suite.address[0].String(),
+				OperatorAddress: suite.whiteHatAddr.String(),
 			},
 			true,
 		},
@@ -318,7 +320,7 @@ func (suite *KeeperTestSuite) TestCloseFinding() {
 			"valid request",
 			&types.MsgCloseFinding{
 				FindingId:       fid,
-				OperatorAddress: suite.address[0].String(),
+				OperatorAddress: suite.programAddr.String(),
 			},
 			true,
 		},
@@ -341,11 +343,12 @@ func (suite *KeeperTestSuite) TestCloseFinding() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestReleaseConfirmFinding() {
+func (suite *KeeperTestSuite) TestPublishConfirmFinding() {
 	pid, fid := uuid.NewString(), uuid.NewString()
 	suite.InitCreateProgram(pid)
 	suite.InitActivateProgram(pid)
 	suite.InitSubmitFinding(pid, fid)
+	suite.InitActivateFinding(fid)
 
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
@@ -356,19 +359,19 @@ func (suite *KeeperTestSuite) TestReleaseConfirmFinding() {
 
 	testCases := []struct {
 		name    string
-		req     *types.MsgReleaseFinding
+		req     *types.MsgPublishFinding
 		expPass bool
 	}{
 		{
 			"empty request",
-			&types.MsgReleaseFinding{},
+			&types.MsgPublishFinding{},
 			false,
 		},
 		{
 			"valid request",
-			&types.MsgReleaseFinding{
+			&types.MsgPublishFinding{
 				FindingId:       fid,
-				OperatorAddress: suite.address[0].String(),
+				OperatorAddress: suite.programAddr.String(),
 				Description:     "desc",
 				ProofOfConcept:  "poc",
 			},
@@ -379,7 +382,7 @@ func (suite *KeeperTestSuite) TestReleaseConfirmFinding() {
 	for _, testCase := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
 			ctx := sdk.WrapSDKContext(suite.ctx)
-			_, err := suite.msgServer.ReleaseFinding(ctx, testCase.req)
+			_, err := suite.msgServer.PublishFinding(ctx, testCase.req)
 
 			finding, _ := suite.keeper.GetFinding(suite.ctx, fid)
 
@@ -400,7 +403,7 @@ func (suite *KeeperTestSuite) InitCreateProgram(pid string) {
 		ProgramId:       pid,
 		Name:            "name",
 		Detail:          "detail",
-		OperatorAddress: suite.address[0].String(),
+		OperatorAddress: suite.programAddr.String(),
 	}
 
 	ctx := sdk.WrapSDKContext(suite.ctx)
@@ -411,7 +414,7 @@ func (suite *KeeperTestSuite) InitCreateProgram(pid string) {
 func (suite *KeeperTestSuite) InitActivateProgram(pid string) {
 	msgCreateProgram := &types.MsgActivateProgram{
 		ProgramId:       pid,
-		OperatorAddress: suite.address[3].String(),
+		OperatorAddress: suite.bountyAdminAddr.String(),
 	}
 
 	ctx := sdk.WrapSDKContext(suite.ctx)
@@ -421,14 +424,14 @@ func (suite *KeeperTestSuite) InitActivateProgram(pid string) {
 
 func (suite *KeeperTestSuite) InitSubmitFinding(pid, fid string) string {
 	desc, poc := "desc", "poc"
-	hash := sha256.Sum256([]byte(desc + poc + suite.address[0].String()))
+	hash := sha256.Sum256([]byte(desc + poc + suite.whiteHatAddr.String()))
 
 	msgSubmitFinding := &types.MsgSubmitFinding{
 		ProgramId:       pid,
 		FindingId:       fid,
 		Title:           "title",
 		FindingHash:     hex.EncodeToString(hash[:]),
-		OperatorAddress: suite.address[0].String(),
+		OperatorAddress: suite.whiteHatAddr.String(),
 		SeverityLevel:   types.Critical,
 		Detail:          "detail",
 	}
@@ -440,10 +443,23 @@ func (suite *KeeperTestSuite) InitSubmitFinding(pid, fid string) string {
 	return msgSubmitFinding.FindingId
 }
 
+func (suite *KeeperTestSuite) InitActivateFinding(fid string) string {
+	msgActivateFinding := &types.MsgActivateFinding{
+		FindingId:       fid,
+		OperatorAddress: suite.bountyAdminAddr.String(),
+	}
+
+	ctx := sdk.WrapSDKContext(suite.ctx)
+	_, err := suite.msgServer.ActivateFinding(ctx, msgActivateFinding)
+	suite.Require().NoError(err)
+
+	return msgActivateFinding.FindingId
+}
+
 func (suite *KeeperTestSuite) InitConfirmFinding(fid, fingerprint string) string {
 	msgConfirmFinding := &types.MsgConfirmFinding{
 		FindingId:       fid,
-		OperatorAddress: suite.address[0].String(),
+		OperatorAddress: suite.programAddr.String(),
 		Fingerprint:     fingerprint,
 	}
 
@@ -457,7 +473,7 @@ func (suite *KeeperTestSuite) InitConfirmFinding(fid, fingerprint string) string
 func (suite *KeeperTestSuite) InitConfirmFindingPaid(fid string) string {
 	msgConfirmFindingPaid := &types.MsgConfirmFindingPaid{
 		FindingId:       fid,
-		OperatorAddress: suite.address[0].String(),
+		OperatorAddress: suite.whiteHatAddr.String(),
 	}
 
 	ctx := sdk.WrapSDKContext(suite.ctx)

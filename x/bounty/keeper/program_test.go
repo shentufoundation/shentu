@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestSetGetProgram() {
 						ProgramId:    "1",
 						Name:         "name",
 						Detail:       "detail",
-						AdminAddress: suite.address[0].String(),
+						AdminAddress: suite.programAddr.String(),
 						Status:       1,
 					},
 				},
@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestOpenCloseProgram() {
 		ProgramId:    "1",
 		Name:         "name",
 		Detail:       "detail",
-		AdminAddress: suite.address[0].String(),
+		AdminAddress: suite.programAddr.String(),
 		Status:       types.ProgramStatusInactive,
 	}
 	suite.keeper.SetProgram(suite.ctx, program)
@@ -74,20 +74,20 @@ func (suite *KeeperTestSuite) TestOpenCloseProgram() {
 	suite.Require().Equal(true, isExist)
 	suite.Require().Equal(program.ProgramId, storedProgram.ProgramId)
 
-	isCert := suite.app.CertKeeper.IsBountyAdmin(suite.ctx, suite.address[3])
+	isCert := suite.app.CertKeeper.IsBountyAdmin(suite.ctx, suite.bountyAdminAddr)
 	suite.Require().True(isCert)
 
 	// normal addr open program
-	err := suite.keeper.ActivateProgram(suite.ctx, program.ProgramId, suite.address[1])
+	err := suite.keeper.ActivateProgram(suite.ctx, program.ProgramId, suite.normalAddr)
 	suite.Require().Error(err)
 	// certifier open program
-	err = suite.keeper.ActivateProgram(suite.ctx, program.ProgramId, suite.address[3])
+	err = suite.keeper.ActivateProgram(suite.ctx, program.ProgramId, suite.bountyAdminAddr)
 	suite.Require().NoError(err)
 
 	// normal addr close program
-	err = suite.keeper.CloseProgram(suite.ctx, program.ProgramId, suite.address[1])
+	err = suite.keeper.CloseProgram(suite.ctx, program.ProgramId, suite.normalAddr)
 	suite.Require().Error(err)
 	// admin close program
-	err = suite.keeper.CloseProgram(suite.ctx, program.ProgramId, suite.address[3])
+	err = suite.keeper.CloseProgram(suite.ctx, program.ProgramId, suite.programAddr)
 	suite.Require().NoError(err)
 }

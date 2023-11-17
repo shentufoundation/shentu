@@ -31,7 +31,7 @@ func NewTxCmd() *cobra.Command {
 		NewConfirmFindingCmd(),
 		NewConfirmFindingPaidCmd(),
 		NewCloseFindingCmd(),
-		NewReleaseFindingCmd(),
+		NewPublishFindingCmd(),
 	)
 
 	return bountyTxCmds
@@ -404,11 +404,11 @@ func NewCloseFindingCmd() *cobra.Command {
 	return cmd
 }
 
-func NewReleaseFindingCmd() *cobra.Command {
+func NewPublishFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "release-finding [finding id]",
+		Use:   "publish-finding [finding id]",
 		Args:  cobra.ExactArgs(1),
-		Short: "release the specific finding",
+		Short: "publish the specific finding",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -423,7 +423,7 @@ func NewReleaseFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgReleaseFinding(args[0], desc, poc, submitAddr)
+			msg := types.NewMsgPublishFinding(args[0], desc, poc, submitAddr)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

@@ -13,7 +13,7 @@ const (
 	EventTypeConfirmFinding         = "confirm_finding"
 	EventTypeConfirmFindingPaid     = "confirm_finding_paid"
 	EventTypeCloseFinding           = "close_finding"
-	EventTypeReleaseFinding         = "release_finding"
+	EventTypePublishFinding         = "publish_finding"
 
 	AttributeKeyProgramID = "program_id"
 	AttributeKeyFindingID = "finding_id"

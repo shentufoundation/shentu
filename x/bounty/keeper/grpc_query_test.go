@@ -166,7 +166,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 				suite.InitSubmitFinding(pid, "2")
 
 				ctx := sdk.WrapSDKContext(suite.ctx)
-				suite.msgServer.ReleaseFinding(ctx, types.NewMsgReleaseFinding("2", "desc", "poc", suite.address[0]))
+				suite.msgServer.PublishFinding(ctx, types.NewMsgPublishFinding("2", "desc", "poc", suite.address[0]))
 			},
 			true,
 		},
