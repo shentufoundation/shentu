@@ -35,6 +35,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.9.0] - 11-17-2023
+
+### New module
+* (x/bounty) [\#786](https://github.com/shentufoundation/shentu/pull/786) Add a `bounty` module.
+
+### certificate
+* (x/cert) [\#786](https://github.com/shentufoundation/shentu/pull/786) Add a `bountyadmin` certificate.
+
+### Only the address with the prefix 'shentu' is supported.
+* (bech32) [\#787](https://github.com/shentufoundation/shentu/pull/787) Disable old prefix address compatibility. 
+
 ## [v2.8.0] - 09-12-2023
 Version 2.8.0 changes the Bech32 address prefix to 'shentu'.
 
