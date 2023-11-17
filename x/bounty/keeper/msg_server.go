@@ -232,7 +232,7 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 		}
 		// check operator is program admin
 		if program.AdminAddress != msg.OperatorAddress {
-			return nil, types.ErrFindingSubmitterInvalid
+			return nil, types.ErrFindingOperatorNotAllowed
 		}
 		finding.PaymentHash = msg.PaymentHash
 
@@ -261,7 +261,7 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 
 	// check operator is whitehat
 	if finding.SubmitterAddress != msg.OperatorAddress {
-		return nil, types.ErrFindingSubmitterInvalid
+		return nil, types.ErrFindingOperatorNotAllowed
 	}
 	if len(msg.Title) > 0 {
 		finding.Title = msg.Title
@@ -482,11 +482,11 @@ func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFi
 	switch finding.Status {
 	case types.FindingStatusClosed:
 		if finding.SubmitterAddress != msg.OperatorAddress {
-			return nil, types.ErrFindingSubmitterInvalid
+			return nil, types.ErrFindingOperatorNotAllowed
 		}
 	case types.FindingStatusPaid:
 		if program.AdminAddress != msg.OperatorAddress {
-			return nil, types.ErrProgramCreatorInvalid
+			return nil, types.ErrProgramOperatorNotAllowed
 		}
 	default:
 		return nil, types.ErrFindingStatusInvalid

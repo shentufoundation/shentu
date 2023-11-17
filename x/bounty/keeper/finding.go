@@ -146,7 +146,7 @@ func (k Keeper) ConfirmFinding(ctx sdk.Context, msg *types.MsgConfirmFinding) (t
 
 	// only program admin can confirm finding
 	if program.AdminAddress != msg.OperatorAddress {
-		return finding, types.ErrProgramCreatorInvalid
+		return finding, types.ErrProgramOperatorNotAllowed
 	}
 
 	// fingerprint comparison

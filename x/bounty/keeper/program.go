@@ -89,13 +89,13 @@ func (k Keeper) CloseProgram(ctx sdk.Context, pid string, caller sdk.AccAddress)
 		if finding.Status == types.FindingStatusSubmitted ||
 			finding.Status == types.FindingStatusActive ||
 			finding.Status == types.FindingStatusConfirmed {
-			return types.ErrProgramExpired
+			return types.ErrProgramCloseNotAllowed
 		}
 	}
 
 	// Check the permissions. Only the admin of the program or bounty cert address can operate.
 	if program.AdminAddress != caller.String() && !k.certKeeper.IsBountyAdmin(ctx, caller) {
-		return types.ErrFindingOperatorNotAllowed
+		return types.ErrProgramOperatorNotAllowed
 	}
 
 	// Close the program and update its status in the store
