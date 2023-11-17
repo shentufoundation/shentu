@@ -213,13 +213,6 @@ func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 			},
 			true,
 		},
-		{
-			"valid request with submitter address",
-			func() {
-				req = &types.QueryFindingsRequest{ProgramId: pid, SubmitterAddress: suite.address[0].String()}
-			},
-			true,
-		},
 	}
 
 	for _, testCase := range testCases {

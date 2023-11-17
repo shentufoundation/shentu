@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -68,23 +69,25 @@ func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*t
 	var queryFindings types.Findings
 	ctx := sdk.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(k.storeKey)
-	programStore := prefix.NewStore(store, types.FindingKey)
+	if len(req.ProgramId) == 0 {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+	}
 
-	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		var finding types.Finding
-		if err := k.cdc.Unmarshal(value, &finding); err != nil {
-			return false, status.Error(codes.Internal, err.Error())
-		}
-		return true, nil
-	})
+	findingIds, err := k.GetPidFindingIDList(ctx, req.ProgramId)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, err
+	}
+
+	for _, findingId := range findingIds {
+		finding, found := k.GetFinding(ctx, findingId)
+		if !found {
+			return nil, types.ErrFindingNotExists
+		}
+		queryFindings = append(queryFindings, finding)
 	}
 
 	return &types.QueryFindingsResponse{
-		Findings:   queryFindings,
-		Pagination: pageRes,
+		Findings: queryFindings,
 	}, nil
 }
 

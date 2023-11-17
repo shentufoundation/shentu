@@ -8,7 +8,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -169,23 +168,15 @@ func GetCmdQueryFindings() *cobra.Command {
 		Short: "Query findings with optional filters",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query for a all paginated findings that match optional filters.
-
 Example:
-$ %s query bounty findings
 $ %s query bounty findings --program-id 1
-$ %s query bounty findings --submitter-address cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
-$ %s query bounty findings --page=1 --limit=100
 `,
-				version.AppName, version.AppName, version.AppName, version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// validate that the program-id is an uint
-			pid, _ := cmd.Flags().GetString(FlagProgramID)
-
-			submitterAddr, _ := cmd.Flags().GetString(FlagSubmitterAddress)
-			if len(submitterAddr) != 0 {
-				_ = sdk.MustAccAddressFromBech32(submitterAddr)
+			pid, err := cmd.Flags().GetString(FlagProgramID)
+			if err != nil {
+				return err
 			}
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -194,36 +185,18 @@ $ %s query bounty findings --page=1 --limit=100
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			res, err := queryClient.Findings(cmd.Context(), &types.QueryFindingsRequest{ProgramId: pid})
 			if err != nil {
 				return err
 			}
-
-			req := &types.QueryFindingsRequest{
-				SubmitterAddress: submitterAddr,
-				Pagination:       pageReq,
-			}
-			if len(pid) != 0 {
-				req.ProgramId = pid
-			}
-
-			res, err := queryClient.Findings(cmd.Context(), req)
-			if err != nil {
-				return err
-			}
-
 			if len(res.GetFindings()) == 0 {
 				return fmt.Errorf("no finding found")
 			}
-
 			return clientCtx.PrintProto(res)
-
 		},
 	}
 
-	cmd.Flags().String(FlagProgramID, "", "(optional) filter by programs find by program id")
-	cmd.Flags().String(FlagSubmitterAddress, "", "(optional) filter by programs find by submitter address")
-	flags.AddPaginationFlagsToCmd(cmd, "findings")
+	cmd.Flags().String(FlagProgramID, "", "filter by programs find by program id")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

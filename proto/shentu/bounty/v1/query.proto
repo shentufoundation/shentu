@@ -87,20 +87,11 @@ message QueryProgramResponse {
 message QueryFindingsRequest {
   // program_id defines the unique id of the program.
   string program_id = 1;
-
-  // submitter_address defines the find address for the finding.
-  string submitter_address = 2;
-
-  // pagination defines the pagination in the request.
-  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 // QueryFindingsResponse is the response type for the Query/Findings RPC method.
 message QueryFindingsResponse {
   repeated Finding findings = 1 [(gogoproto.nullable) = false];
-
-  // pagination defines the pagination in the response.
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryFindingRequest is the request type for the Query/Finding RPC method.
