@@ -1,0 +1,16 @@
+syntax = "proto3";
+package shentu.bounty.v1;
+
+import "gogoproto/gogo.proto";
+
+import "shentu/bounty/v1/bounty.proto";
+
+option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
+
+message GenesisState {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  repeated Program programs = 1 [(gogoproto.moretags) = "yaml:\"programs\"", (gogoproto.nullable) = false];
+  repeated Finding findings = 2 [(gogoproto.moretags) = "yaml:\"findings\"", (gogoproto.nullable) = false];
+}

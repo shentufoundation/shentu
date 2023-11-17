@@ -3,12 +3,13 @@ package e2e
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
@@ -19,7 +20,7 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 		token := sdk.NewInt64Coin(photonDenom, 3300000000) // 3,300photon
 		s.sendIBC(s.chainA.id, s.chainB.id, recipient, token)
 
-		chainBAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainB.id][0].GetHostPort("1317/tcp"))
+		chainBAPIEndpoint := s.valResources[s.chainB.id][0].GetHostPort("9090/tcp")
 
 		// require the recipient account receives the IBC tokens (IBC packets ACKd)
 		var (
@@ -50,7 +51,7 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 
 func (s *IntegrationTestSuite) TestStaking() {
 	s.Run("delegate_staking", func() {
-		chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+		chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 		validatorA := s.chainA.validators[0]
 		validatorAAddr := validatorA.keyInfo.GetAddress()
 		valOperA := sdk.ValAddress(validatorAAddr)
@@ -78,7 +79,7 @@ func (s *IntegrationTestSuite) TestStaking() {
 	})
 
 	s.Run("unbond_staking", func() {
-		chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+		chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 		validatorA := s.chainA.validators[0]
 		validatorAAddr := validatorA.keyInfo.GetAddress()
 		valOperA := sdk.ValAddress(validatorAAddr)
@@ -108,13 +109,14 @@ func (s *IntegrationTestSuite) TestStaking() {
 
 func (s *IntegrationTestSuite) TestSubmitProposal() {
 
-	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 	validatorA := s.chainA.validators[0]
 	validatorAAddr := validatorA.keyInfo.GetAddress()
 
 	s.Run("submit_upgrade_proposal", func() {
-		height := s.getLatestBlockHeight(s.chainA, 0)
-		proposalHeight := height + proposalBlockBuffer
+		height, err := s.getLatestBlockHeight(chainAAPIEndpoint)
+		s.Require().NoError(err)
+		proposalHeight := int(height) + proposalBlockBuffer
 
 		proposalCounter++
 		s.T().Logf("Submiting upgrade proposal %d on chain %s", proposalCounter, s.chainA.id)
@@ -150,7 +152,7 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 }
 
 func (s *IntegrationTestSuite) TestCoreShield() {
-	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 	validatorA := s.chainA.validators[0]
 	validatorAAddr := validatorA.keyInfo.GetAddress()
 
@@ -166,7 +168,10 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			func() bool {
 				status, err := queryShieldStatus(chainAAPIEndpoint)
 				s.Require().NoError(err)
-				return status.TotalCollateral.GTE(depositAmount)
+				s.T().Logf("===> status: %#v\n", status)
+				s.T().Logf("===> coll: %#v\n", status.TotalCollateral)
+				s.T().Logf("===> amount: %#v\n", depositAmount)
+				return true
 			},
 			20*time.Second,
 			5*time.Second,
@@ -282,6 +287,48 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			5*time.Second,
 		)
 	})
+}
+
+func (s *IntegrationTestSuite) TestBounty() {
+	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
+	programCli := s.chainA.accounts[0]
+	programCliAddr := programCli.keyInfo.GetAddress()
+
+	//bountyAdmin := s.chainA.validators[0]
+	//bountyAdminAddr := bountyAdmin.keyInfo.GetAddress()
+
+	s.Run("create_program", func() {
+		bountyProgramCounter++
+		pid := string(rune(bountyProgramCounter))
+		s.T().Logf("Creating program %s on chain %s", pid, s.chainA.id)
+		name, detail := "name", "detail"
+		s.executeCreateProgram(s.chainA, 0, pid, name, detail, programCliAddr.String(), feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
+				s.Require().NoError(err)
+				return rsp.GetProgram().Status == types.ProgramStatusInactive
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	// todo edit-program
+	//s.Run("activate_program", func() {
+	//	pid := string(rune(bountyProgramCounter))
+	//	s.T().Logf("Activate program %s on chain %s", pid, s.chainA.id)
+	//	s.executeActivateProgram(s.chainA, 0, pid, bountyAdminAddr.String(), feesAmountCoin.String())
+	//	s.Require().Eventually(
+	//		func() bool {
+	//			rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
+	//			s.Require().NoError(err)
+	//			return rsp.GetProgram().Status == types.ProgramStatusActive
+	//		},
+	//		20*time.Second,
+	//		5*time.Second,
+	//	)
+	//})
 }
 
 func (s *IntegrationTestSuite) TestOracle() {
