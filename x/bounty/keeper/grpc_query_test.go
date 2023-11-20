@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"context"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -191,50 +190,67 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 	queryClient := suite.queryClient
 
-	// create programs
-	pid := uuid.NewString()
+	pid, fid := uuid.NewString(), uuid.NewString()
 	suite.InitCreateProgram(pid)
 	suite.InitActivateProgram(pid)
-
-	var (
-		req *types.QueryFindingsRequest
-	)
+	suite.InitSubmitFinding(pid, fid)
+	suite.InitSubmitFinding(pid, uuid.NewString())
 
 	testCases := []struct {
-		msg      string
-		malleate func()
-		expPass  bool
+		msg          string
+		req          *types.QueryFindingsRequest
+		expResultLen int
+		expPass      bool
 	}{
 		{
-			"valid request",
-			func() {
-				req = &types.QueryFindingsRequest{ProgramId: pid}
-				suite.InitSubmitFinding(pid, "1")
-			},
+			"invalid request",
+			&types.QueryFindingsRequest{},
+			0,
+			false,
+		},
+		{
+			"valid request => piq and submitter address",
+			&types.QueryFindingsRequest{ProgramId: pid, SubmitterAddress: suite.whiteHatAddr.String()},
+			2,
 			true,
 		},
 		{
-			"valid request with submitter address",
-			func() {
-				req = &types.QueryFindingsRequest{ProgramId: pid, SubmitterAddress: suite.address[0].String()}
-			},
+			"valid request => piq",
+			&types.QueryFindingsRequest{ProgramId: pid},
+			2,
+			true,
+		},
+		{
+			"valid request => submitter address",
+			&types.QueryFindingsRequest{SubmitterAddress: suite.whiteHatAddr.String()},
+			2,
+			true,
+		},
+		{
+			"valid request => invalid pid",
+			&types.QueryFindingsRequest{ProgramId: "not exist"},
+			0,
+			true,
+		},
+		{
+			"valid request => invalid submitter address",
+			&types.QueryFindingsRequest{SubmitterAddress: suite.normalAddr.String()},
+			0,
 			true,
 		},
 	}
 
 	for _, testCase := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", testCase.msg), func() {
-			testCase.malleate()
-
-			findingRes, err := queryClient.Findings(context.Background(), req)
+			findingRes, err := queryClient.Findings(context.Background(), testCase.req)
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(len(findingRes.Findings), testCase.expResultLen)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(findingRes)
 			}
 		})
 	}
-
 }
