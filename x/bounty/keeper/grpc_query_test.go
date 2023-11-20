@@ -1,11 +1,11 @@
 package keeper_test
 
 import (
-	"context"
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/google/uuid"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -57,8 +57,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryProgram() {
 	for _, testCase := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", testCase.msg), func() {
 			testCase.malleate()
-
-			programRes, err := queryClient.Program(context.Background(), req)
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			programRes, err := queryClient.Program(ctx, req)
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
@@ -243,7 +243,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 
 	for _, testCase := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", testCase.msg), func() {
-			findingRes, err := queryClient.Findings(context.Background(), testCase.req)
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			findingRes, err := queryClient.Findings(ctx, testCase.req)
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
