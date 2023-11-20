@@ -100,8 +100,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 	for _, testCase := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", testCase.msg), func() {
 			testCase.malleate()
-
-			programRes, err := queryClient.Programs(context.Background(), req)
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			programRes, err := queryClient.Programs(ctx, req)
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
@@ -175,8 +175,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 	for _, testCase := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", testCase.msg), func() {
 			testCase.malleate()
-
-			findingRes, err := queryClient.Finding(context.Background(), req)
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			findingRes, err := queryClient.Finding(ctx, req)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 			} else {
