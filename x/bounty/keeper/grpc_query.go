@@ -68,6 +68,10 @@ func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*t
 	var queryFindings types.Findings
 	ctx := sdk.UnwrapSDKContext(c)
 
+	if len(req.ProgramId) == 0 && len(req.SubmitterAddress) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	store := ctx.KVStore(k.storeKey)
 	programStore := prefix.NewStore(store, types.FindingKey)
 
@@ -76,6 +80,23 @@ func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*t
 		if err := k.cdc.Unmarshal(value, &finding); err != nil {
 			return false, status.Error(codes.Internal, err.Error())
 		}
+
+		switch {
+		case len(req.ProgramId) != 0 && len(req.SubmitterAddress) != 0:
+			if finding.ProgramId == req.ProgramId && finding.SubmitterAddress == req.SubmitterAddress {
+				queryFindings = append(queryFindings, finding)
+			}
+		case len(req.ProgramId) != 0:
+			if finding.ProgramId == req.ProgramId {
+				queryFindings = append(queryFindings, finding)
+
+			}
+		case len(req.SubmitterAddress) != 0:
+			if finding.SubmitterAddress == req.SubmitterAddress {
+				queryFindings = append(queryFindings, finding)
+			}
+		}
+
 		return true, nil
 	})
 	if err != nil {
