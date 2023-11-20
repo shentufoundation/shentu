@@ -171,19 +171,24 @@ func GetCmdQueryFindings() *cobra.Command {
 			fmt.Sprintf(`Query for a all paginated findings that match optional filters.
 
 Example:
-$ %s query bounty findings
 $ %s query bounty findings --program-id 1
 $ %s query bounty findings --submitter-address cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 $ %s query bounty findings --page=1 --limit=100
 `,
-				version.AppName, version.AppName, version.AppName, version.AppName,
+				version.AppName, version.AppName, version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// validate that the program-id is an uint
-			pid, _ := cmd.Flags().GetString(FlagProgramID)
+			// validate that the program-id
+			pid, err := cmd.Flags().GetString(FlagProgramID)
+			if err != nil {
+				return err
+			}
 
-			submitterAddr, _ := cmd.Flags().GetString(FlagSubmitterAddress)
+			submitterAddr, err := cmd.Flags().GetString(FlagSubmitterAddress)
+			if err != nil {
+				return err
+			}
 			if len(submitterAddr) != 0 {
 				_ = sdk.MustAccAddressFromBech32(submitterAddr)
 			}
@@ -207,6 +212,9 @@ $ %s query bounty findings --page=1 --limit=100
 				req.ProgramId = pid
 			}
 
+			if len(req.ProgramId) == 0 && len(req.SubmitterAddress) == 0 {
+				return fmt.Errorf("invalid request")
+			}
 			res, err := queryClient.Findings(cmd.Context(), req)
 			if err != nil {
 				return err
