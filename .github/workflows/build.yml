@@ -39,7 +39,7 @@ jobs:
           cd app/shentud/cmd
           go build .
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: shentud ${{ matrix.targetos }} ${{ matrix.arch }}
           path: app/shentud/cmd/shentu
