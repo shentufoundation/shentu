@@ -167,7 +167,7 @@ func passAndVetoStakeResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass boo
 	}
 
 	// If there is not enough quorum of votes, the proposal fails.
-	percentVoting := th.totalVotingPower.Quo(k.stakingKeeper.TotalBondedTokens(ctx).ToDec())
+	percentVoting := th.totalVotingPower.Quo(sdk.NewDecFromInt(k.stakingKeeper.TotalBondedTokens(ctx)))
 	if percentVoting.LT(th.tallyParams.Quorum) {
 		return false, false
 	}
@@ -200,7 +200,7 @@ func passAndVetoStakeResultForShieldClaim(k Keeper, ctx sdk.Context, th TallyHel
 	}
 
 	// If there is not enough quorum of votes, the proposal fails.
-	percentVoting := th.totalVotingPower.Quo(totalBondedByCertifiedIdentities.ToDec())
+	percentVoting := th.totalVotingPower.Quo(sdk.NewDecFromInt(totalBondedByCertifiedIdentities))
 	if percentVoting.LT(th.tallyParams.Quorum) {
 		return false, false
 	}

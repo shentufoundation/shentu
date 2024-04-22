@@ -58,9 +58,9 @@ func (k msgServer) Unlock(goCtx context.Context, msg *types.MsgUnlock) (*types.M
 
 	// update vested coins
 	mvacc.VestedCoins = mvacc.VestedCoins.Add(msg.UnlockAmount...)
-	if mvacc.DelegatedVesting.IsAllGT(mvacc.OriginalVesting.Sub(mvacc.VestedCoins)) {
-		unlockedDelegated := mvacc.DelegatedVesting.Sub(mvacc.OriginalVesting.Sub(mvacc.VestedCoins))
-		mvacc.DelegatedVesting = mvacc.DelegatedVesting.Sub(unlockedDelegated)
+	if mvacc.DelegatedVesting.IsAllGT(mvacc.OriginalVesting.Sub(mvacc.VestedCoins...)) {
+		unlockedDelegated := mvacc.DelegatedVesting.Sub(mvacc.OriginalVesting.Sub(mvacc.VestedCoins...)...)
+		mvacc.DelegatedVesting = mvacc.DelegatedVesting.Sub(unlockedDelegated...)
 		mvacc.DelegatedFree = mvacc.DelegatedFree.Add(unlockedDelegated...)
 	}
 	k.ak.SetAccount(ctx, mvacc)

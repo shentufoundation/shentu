@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -22,7 +21,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/shentufoundation/shentu/v2/x/auth/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/auth/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/auth/keeper"
 	"github.com/shentufoundation/shentu/v2/x/auth/simulation"
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
@@ -65,12 +63,6 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 // ValidateGenesis performs genesis state validation for the auth module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return cosmosauth.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
-}
-
-// RegisterRESTRoutes registers the REST routes for the auth module.
-func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
-	rest.RegisterRoutes(ctx, rtr)
-	cosmosauth.AppModuleBasic{}.RegisterRESTRoutes(ctx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the auth module.
@@ -120,7 +112,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // Route returns the message routing key for the auth module.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+	return am.cosmosAppModule.Route()
 }
 
 // QuerierRoute returns the auth module's querier route name.

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"strings"
 	"testing"
 
@@ -10,7 +11,6 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = bankTypes.NewQueryClient(queryHelper)
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
-		err := sdksimapp.FundAccount(
+		err := testutil.FundAccount(
 			suite.app.BankKeeper,
 			suite.ctx,
 			acc,
@@ -297,7 +297,7 @@ func (suite *KeeperTestSuite) TestLockedSend() {
 				//LockedCoinsFromVesting returns all the coins that are not spendable (i.e. locked)
 				suite.Require().Equal(toAcc.LockedCoinsFromVesting(sendCoins), tc.args.lockedSendAmt)
 				//LockedCoins returns the set of coins that are  spendable plus any have vested
-				suite.Require().Equal(balances.Sub(toAcc.LockedCoins(suite.ctx.BlockTime())), tc.args.accBalance)
+				suite.Require().Equal(balances.Sub(toAcc.LockedCoins(suite.ctx.BlockTime())...), tc.args.accBalance)
 			} else {
 				suite.Require().NotEqual(balances, tc.args.accBalance)
 				suite.Require().Error(err)

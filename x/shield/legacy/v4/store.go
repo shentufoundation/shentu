@@ -203,7 +203,7 @@ func migrateStakeForShield(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	return nil
 }
 
-func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 
 	if err := migratePool(store, cdc); err != nil {

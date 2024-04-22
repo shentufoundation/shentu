@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -179,7 +180,7 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent)
 		suite.Require().NoError(err)
 		// add staking coins to depositor
-		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
+		suite.Require().NoError(testutil.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
 
 		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
 		votingPeriodActivated, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
@@ -258,7 +259,7 @@ func (suite *KeeperTestSuite) TestKeeper_DepositOperations() {
 		suite.Require().NoError(err)
 
 		// add staking coins to depositor
-		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
+		suite.Require().NoError(testutil.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
 
 		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
 		_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
@@ -397,7 +398,7 @@ func (suite *KeeperTestSuite) TestKeeper_Vote() {
 		suite.Require().NotNil(proposal)
 
 		// add staking coins to depositor
-		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
+		suite.Require().NoError(testutil.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
 
 		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
 		votingPeriodStatus, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)

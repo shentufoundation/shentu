@@ -2,9 +2,9 @@ package mint
 
 import (
 	"encoding/json"
+	types2 "github.com/shentufoundation/shentu/v2/x/mint/types"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -48,17 +48,12 @@ func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the mint module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(DefaultGenesisState())
+	return cdc.MustMarshalJSON(types2.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the mint module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return mint.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
-}
-
-// RegisterRESTRoutes registers the REST routes for the mint module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
-	mint.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the mint module.
@@ -125,13 +120,14 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	mint.InitGenesis(ctx, am.keeper.Keeper, am.authKeeper, &genesisState)
+
+	am.keeper.InitGenesis(ctx, am.authKeeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports genesis state data.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := mint.ExportGenesis(ctx, am.keeper.Keeper)
+	gs := am.keeper.ExportGenesis(ctx)
 	return cdc.MustMarshalJSON(gs)
 }
 

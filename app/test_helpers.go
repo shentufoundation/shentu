@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
@@ -63,9 +62,7 @@ func AddTestAddrs(app *ShentuApp, ctx sdk.Context, accNum int, accAmt sdk.Int) [
 
 	// fill all the addresses with some coins, set the loose pool tokens simultaneously
 	for _, addr := range testAddrs {
-		if err := FundAccount(app.BankKeeper, ctx, addr, initCoins); err != nil {
-			panic(err)
-		}
+		initAccountWithCoins(app, ctx, addr, initCoins)
 	}
 	return testAddrs
 }
@@ -76,10 +73,18 @@ func AddTestAddrsFromPubKeys(app *ShentuApp, ctx sdk.Context, pubKeys []cryptoty
 
 	// fill all the addresses with some coins, set the loose pool tokens simultaneously
 	for _, pubKey := range pubKeys {
-		//app.BankKeeper.SendCoins(ctx, ctx.)
-		if err := simapp.FundAccount(app.BankKeeper, ctx, sdk.AccAddress(pubKey.Address()), initCoins); err != nil {
-			panic(err)
-		}
+		initAccountWithCoins(app, ctx, sdk.AccAddress(pubKey.Address()), initCoins)
+	}
+}
+
+func initAccountWithCoins(app *ShentuApp, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
+	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins)
+	if err != nil {
+		panic(err)
+	}
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, coins)
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -110,12 +115,4 @@ func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 		panic(errors.Wrap(errors.ErrInvalidPubKey, "invalid pubkey size"))
 	}
 	return &ed25519.PubKey{Key: pkBytes}
-}
-
-func FundAccount(bankKeeper bankkeeper.Keeper, ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
-	if err := bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
-		return err
-	}
-
-	return bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
 }

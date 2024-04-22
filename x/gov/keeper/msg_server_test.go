@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"strings"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestVoteWeightedReq() {
 	inactiveCoins := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1)))
 
 	// add staking coins to depositor
-	suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, proposer, stakingCoins))
+	suite.Require().NoError(testutil.FundAccount(suite.app.BankKeeper, suite.ctx, proposer, stakingCoins))
 
 	proposalContent := govtypes.NewTextProposal("title0", "description0")
 	// active proposal

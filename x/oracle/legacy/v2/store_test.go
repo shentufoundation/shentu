@@ -23,7 +23,7 @@ import (
 func Test_MigrateTaskStore(t *testing.T) {
 	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	cdc := shentuapp.MakeEncodingConfig().Marshaler
+	cdc := shentuapp.MakeEncodingConfig().Codec
 
 	// mock old data
 	tasks := make(map[string]v2.Task)

@@ -2,6 +2,7 @@ package v3
 
 import (
 	"fmt"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -11,7 +12,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
-func MigrateAllTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+func MigrateAllTaskStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.TaskStoreKeyPrefix)
 
@@ -127,7 +128,7 @@ func MigrateTxTaskStore(task *types.TxTask, store store.KVStore, key []byte, cdc
 	return nil
 }
 
-func MigrateOperatorStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+func MigrateOperatorStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.OperatorStoreKeyPrefix)
 
@@ -155,7 +156,7 @@ func MigrateOperatorStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.Bina
 	return nil
 }
 
-func MigrateWithdrawStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+func MigrateWithdrawStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.WithdrawStoreKeyPrefix)
 
@@ -178,7 +179,7 @@ func MigrateWithdrawStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.Bina
 	return nil
 }
 
-func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	if err := MigrateAllTaskStore(ctx, storeKey, cdc); err != nil {
 		return err
 	}

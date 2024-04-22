@@ -34,15 +34,15 @@ var (
 
 // getAbi returns the abi at the given address.
 // NOTE: Emulates the unexported function in the module.
-func getAbi(ctx sdk.Context, key sdk.StoreKey, address crypto.Address) []byte {
+func getAbi(ctx sdk.Context, key storetypes.StoreKey, address crypto.Address) []byte {
 	return ctx.KVStore(key).Get(types.AbiStoreKey(address))
 }
 
-func getCode(ctx sdk.Context, key sdk.StoreKey, address crypto.Address) []byte {
+func getCode(ctx sdk.Context, key storetypes.StoreKey, address crypto.Address) []byte {
 	return ctx.KVStore(key).Get(types.CodeStoreKey(address))
 }
 
-func getAddressMeta(ctx sdk.Context, key sdk.StoreKey, address crypto.Address) []byte {
+func getAddressMeta(ctx sdk.Context, key storetypes.StoreKey, address crypto.Address) []byte {
 	return ctx.KVStore(key).Get(types.AddressMetaStoreKey(address))
 }
 

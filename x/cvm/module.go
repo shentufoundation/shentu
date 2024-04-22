@@ -9,7 +9,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
-	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -22,7 +21,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/cvm/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/cvm/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/cvm/keeper"
 	"github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 	"github.com/shentufoundation/shentu/v2/x/cvm/types"
@@ -67,11 +65,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
 	return data.Validate()
-}
-
-// RegisterRESTRoutes registers the REST routes for the cvm module.
-func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.

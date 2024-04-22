@@ -7,7 +7,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
-	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -60,11 +59,6 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 // ValidateGenesis performs genesis state validation for the slashing module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return slashing.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
-}
-
-// RegisterRESTRoutes registers the REST routes for the slashing module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
-	slashing.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the slashig module.

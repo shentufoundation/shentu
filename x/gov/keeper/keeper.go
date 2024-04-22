@@ -3,6 +3,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -30,7 +31,7 @@ type Keeper struct {
 	ShieldKeeper types.ShieldKeeper
 
 	// the (unexposed) keys used to access the stores from the Context
-	storeKey sdk.StoreKey
+	storeKey storetypes.StoreKey
 
 	// codec for binary encoding/decoding
 	cdc codec.BinaryCodec
@@ -45,7 +46,7 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
+	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
 	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper, shieldKeeper types.ShieldKeeper,
 	authKeeper govtypes.AccountKeeper, router govtypes.Router,
 ) Keeper {

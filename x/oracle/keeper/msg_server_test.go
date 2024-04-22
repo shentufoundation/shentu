@@ -25,7 +25,7 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	DepositCollateral(ctx, ok, addrs[2])
 
 	taskParsms := ok.GetTaskParams(ctx)
-	taskParsms.ShortcutQuorum = sdk.NewInt(1).ToDec()
+	taskParsms.ShortcutQuorum = sdk.NewDecFromInt(sdk.NewInt(1))
 	ok.SetTaskParams(ctx, taskParsms)
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 1)}
@@ -65,7 +65,7 @@ func TestMsgServer_pending(t *testing.T) {
 	DepositCollateral(ctx, ok, addrs[1])
 
 	taskParsms := ok.GetTaskParams(ctx)
-	taskParsms.ShortcutQuorum = sdk.NewInt(1).ToDec()
+	taskParsms.ShortcutQuorum = sdk.NewDecFromInt(sdk.NewInt(1))
 	ok.SetTaskParams(ctx, taskParsms)
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}

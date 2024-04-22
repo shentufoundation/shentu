@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
 	"github.com/tendermint/tendermint/crypto"
 
@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	coins := sdk.Coins{sdk.NewInt64Coin("uctk", 80000*1e6)}
-	suite.Require().NoError(sdksimapp.FundModuleAccount(suite.app.BankKeeper, suite.ctx, "mint", coins))
+	suite.Require().NoError(testutil.FundModuleAccount(suite.app.BankKeeper, suite.ctx, "mint", coins))
 }
 
 func (suite *KeeperTestSuite) TestKeeper_SendToCommunityPool() {

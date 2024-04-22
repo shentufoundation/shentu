@@ -9,7 +9,7 @@ import (
 // MigrateStore performs migration of votes. Specifically, it performs:
 // - Conversion of votes from custom type to Cosmos SDK type
 // nolint
-func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, govtypes.VotesKeyPrefix)
 

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -20,12 +19,11 @@ import (
 	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
 	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	v040 "github.com/cosmos/cosmos-sdk/x/bank/legacy/v040"
+	v040 "github.com/cosmos/cosmos-sdk/x/bank/migrations/v042"
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bank/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/bank/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bank/simulation"
 	"github.com/shentufoundation/shentu/v2/x/bank/types"
@@ -60,12 +58,6 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 // ValidateGenesis performs genesis state validation for the bank module.
 func (am AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return sdkbank.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
-}
-
-// RegisterRESTRoutes registers the REST routes for the bank module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
-	rest.RegisterRoutes(cliCtx, route)
-	sdkbank.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the bank module.
@@ -131,8 +123,9 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 // Route returns the message routing key for the bank module.
+// TODO check
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(banktypes.RouterKey, NewHandler(am.keeper))
+	return am.cosmosAppModule.Route()
 }
 
 // QuerierRoute returns the bank module's querier route name.

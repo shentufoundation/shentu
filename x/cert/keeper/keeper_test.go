@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"reflect"
 	"strings"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	// suite.queryClient = types.NewQueryClient(queryHelper)
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
-		err := sdksimapp.FundAccount(
+		err := testutil.FundAccount(
 			suite.app.BankKeeper,
 			suite.ctx,
 			acc,

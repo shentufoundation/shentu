@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -19,7 +18,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/shield/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/shield/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/shield/keeper"
 	"github.com/shentufoundation/shentu/v2/x/shield/simulation"
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
@@ -69,11 +67,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
 	return types.ValidateGenesis(data)
-}
-
-// RegisterRESTRoutes registers the REST routes for the shield module.
-func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the shield module.
@@ -172,11 +165,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 4 }
-
-// BeginBlock returns the begin blocker for the shield module.
-func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
-	BeginBlock(ctx, rbb, am.keeper)
-}
 
 // EndBlock returns the end blocker for the shield module.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {

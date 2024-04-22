@@ -330,8 +330,8 @@ func (k Keeper) TryShortcut(ctx sdk.Context, task types.TaskI) {
 	}
 
 	taskParams := k.GetTaskParams(ctx)
-	if respondedCollateral.ToDec().
-		Quo(totalCollateral[0].Amount.ToDec()).
+	if sdk.NewDecFromInt(respondedCollateral).
+		Quo(sdk.NewDecFromInt(totalCollateral[0].Amount)).
 		GTE(taskParams.ShortcutQuorum) {
 		k.SetShortcutTasks(ctx, task.GetID())
 		k.DeleteFromClosingTaskIDs(ctx, task)
@@ -648,7 +648,7 @@ func (k Keeper) RefundBounty(ctx sdk.Context, task types.TaskI) error {
 	}
 
 	bounties := task.GetBounty()
-	leftBounty := bounties.Sub(totalReward)
+	leftBounty := bounties.Sub(totalReward...)
 	if leftBounty != nil && leftBounty.IsAllPositive() {
 		oracleAddress := k.accountKeeper.GetModuleAddress(types.ModuleName)
 		spendableCoins := k.bankKeeper.SpendableCoins(ctx, oracleAddress)

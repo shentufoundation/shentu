@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,7 +15,7 @@ import (
 
 // Keeper implements the shield keeper.
 type Keeper struct {
-	storeKey   sdk.StoreKey
+	storeKey   storetypes.StoreKey
 	cdc        codec.BinaryCodec
 	ak         types.AccountKeeper
 	bk         types.BankKeeper
@@ -24,7 +25,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a shield keeper.
-func NewKeeper(cdc codec.BinaryCodec, shieldStoreKey sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
+func NewKeeper(cdc codec.BinaryCodec, shieldStoreKey storetypes.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
 	sk types.StakingKeeper, gk types.GovKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		storeKey:   shieldStoreKey,

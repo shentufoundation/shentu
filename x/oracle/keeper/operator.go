@@ -154,7 +154,7 @@ func (k Keeper) ReduceCollateral(ctx sdk.Context, address sdk.AccAddress, decrem
 	if err != nil {
 		return err
 	}
-	operator.Collateral = operator.Collateral.Sub(decrement)
+	operator.Collateral = operator.Collateral.Sub(decrement...)
 	if k.IsBelowMinCollateral(ctx, operator.Collateral) {
 		return types.ErrNoEnoughCollateral
 	}
