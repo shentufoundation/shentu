@@ -81,7 +81,7 @@ func TestViewQuery(t *testing.T) {
 	require.Nil(t, err2)
 	require.NotNil(t, newContractAddress)
 
-	contAddr, err := sdk.AccAddressFromHex(hex.EncodeToString(newContractAddress))
+	contAddr, err := sdk.AccAddressFromHexUnsafe(hex.EncodeToString(newContractAddress))
 	require.Nil(t, err)
 	path := []string{"code", contAddr.String()}
 
@@ -140,7 +140,7 @@ func TestQueryMeta(t *testing.T) {
 	err = cache.Sync(state)
 	require.Nil(t, err)
 
-	metaAddr, err := sdk.AccAddressFromHex(hex.EncodeToString(addr.Bytes()))
+	metaAddr, err := sdk.AccAddressFromHexUnsafe(hex.EncodeToString(addr.Bytes()))
 	require.Nil(t, err)
 	path := []string{"address-meta", metaAddr.String()}
 	bz, err := querier(ctx, path, query)

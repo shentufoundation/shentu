@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"math/rand"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -37,14 +39,14 @@ var (
 
 // AppModuleBasic is the app module basics object.
 type AppModuleBasic struct {
-	cdc              codec.Codec
-	proposalHandlers []govclient.ProposalHandler // proposal handlers which live in governance cli and rest
+	cdc                    codec.Codec
+	legacyProposalHandlers []govclient.ProposalHandler // proposal handlers which live in governance cli and rest
 }
 
 // NewAppModuleBasic creates a new AppModuleBasic object.
-func NewAppModuleBasic(proposalHandlers ...govclient.ProposalHandler) AppModuleBasic {
+func NewAppModuleBasic(legacyProposalHandlers []govclient.ProposalHandler) AppModuleBasic {
 	return AppModuleBasic{
-		proposalHandlers: proposalHandlers,
+		legacyProposalHandlers: legacyProposalHandlers,
 	}
 }
 
@@ -55,7 +57,8 @@ func (AppModuleBasic) Name() string {
 
 // RegisterLegacyAminoCodec registers the gov module's types for the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	govtypes.RegisterLegacyAminoCodec(cdc)
+	v1beta1.RegisterLegacyAminoCodec(cdc)
+	v1.RegisterLegacyAminoCodec(cdc)
 }
 
 // DefaultGenesis returns the default genesis state.
@@ -95,7 +98,8 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
 func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	govtypes.RegisterInterfaces(registry)
+	v1.RegisterInterfaces(registry)
+	v1beta1.RegisterInterfaces(registry)
 }
 
 // AppModule is the main ctk module app type.
@@ -129,7 +133,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // Route returns the message routing key for the governance module.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(govtypes.RouterKey, NewHandler(am.keeper))
+	return sdk.Route{}
 }
 
 // QuerierRoute returns the governance module's querier route name.

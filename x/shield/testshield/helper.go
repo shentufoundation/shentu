@@ -2,13 +2,13 @@ package testshield
 
 import (
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
 
 	"github.com/shentufoundation/shentu/v2/x/shield"
@@ -21,7 +21,7 @@ import (
 type Helper struct {
 	t  *testing.T
 	h  sdk.Handler
-	ph govtypes.Handler
+	ph v1beta1.Handler
 	k  keeper.Keeper
 
 	ctx   sdk.Context
@@ -90,7 +90,7 @@ func (sh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
 }
 
 // HandleProposal calls shield proposal handler on a given proposal.
-func (sh *Helper) HandleProposal(content govtypes.Content, ok bool) {
+func (sh *Helper) HandleProposal(content v1beta1.Content, ok bool) {
 	err := sh.ph(sh.ctx, content)
 	if ok {
 		require.NoError(sh.t, err)

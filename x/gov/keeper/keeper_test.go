@@ -270,9 +270,9 @@ func (suite *KeeperTestSuite) TestKeeper_DepositOperations() {
 		}
 
 		if tc.testRefund {
-			suite.app.GovKeeper.RefundDeposits(suite.ctx, proposal.ProposalId)
+			suite.app.GovKeeper.RefundAndDeleteDeposits(suite.ctx, proposal.ProposalId)
 		} else {
-			suite.app.GovKeeper.DeleteDeposits(suite.ctx, proposal.ProposalId)
+			suite.app.GovKeeper.DeleteAndBurnDeposits(suite.ctx, proposal.ProposalId)
 		}
 
 		if tc.shouldPass {

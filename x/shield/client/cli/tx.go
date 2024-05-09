@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"strconv"
 	"strings"
 
@@ -13,8 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -103,7 +102,7 @@ Where proposal.json contains:
 			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss,
 				proposal.PurchaseID, proposal.Evidence, proposal.Description, from)
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			msg, err := v1beta1.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err != nil {
 				return err
 			}

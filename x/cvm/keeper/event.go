@@ -26,12 +26,12 @@ func (es *EventSink) Call(call *exec.CallEvent, exception *errors.Exception) err
 		return nil
 	}
 
-	caller, err := sdk.AccAddressFromHex(call.CallData.Caller.String())
+	caller, err := sdk.AccAddressFromHexUnsafe(call.CallData.Caller.String())
 	if err != nil {
 		return err
 	}
 
-	callee, err := sdk.AccAddressFromHex(call.CallData.Callee.String())
+	callee, err := sdk.AccAddressFromHexUnsafe(call.CallData.Callee.String())
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (es *EventSink) Log(log *exec.LogEvent) error {
 		topicsString += topic.String()
 	}
 
-	b32addr, err := sdk.AccAddressFromHex(log.Address.String())
+	b32addr, err := sdk.AccAddressFromHexUnsafe(log.Address.String())
 	if err != nil {
 		panic("address data in CVM is corrupted")
 	}

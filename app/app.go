@@ -2,6 +2,7 @@
 package app
 
 import (
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	"io"
 	"net/http"
 	"os"
@@ -147,14 +148,14 @@ var (
 		distr.AppModuleBasic{},
 		feegrant.AppModuleBasic{},
 		gov.NewAppModuleBasic(
-			paramsclient.ProposalHandler,
-			distrclient.ProposalHandler,
-			upgradeclient.ProposalHandler,
-			upgradeclient.CancelProposalHandler,
-			certclient.ProposalHandler,
-			shieldclient.ProposalHandler,
-			ibcclientclient.UpdateClientProposalHandler,
-			ibcclientclient.UpgradeProposalHandler,
+			[]govclient.ProposalHandler{paramsclient.ProposalHandler, distrclient.ProposalHandler,
+				upgradeclient.LegacyProposalHandler,
+				upgradeclient.LegacyCancelProposalHandler,
+				certclient.ProposalHandler,
+				shieldclient.ProposalHandler,
+				ibcclientclient.UpdateClientProposalHandler,
+				ibcclientclient.UpgradeProposalHandler,
+			},
 		),
 		params.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -395,6 +396,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec,
 		homePath,
 		bApp,
+		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
 	app.ShieldKeeper = shieldkeeper.NewKeeper(
 		appCodec,

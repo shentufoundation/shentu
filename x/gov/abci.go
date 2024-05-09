@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
@@ -15,38 +16,37 @@ import (
 func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 	logger := k.Logger(ctx)
 
-	k.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal govtypes.Proposal) bool {
-		k.DeleteProposal(ctx, proposal.ProposalId)
-		k.RefundDeposits(ctx, proposal.ProposalId)
+	k.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal v1.Proposal) bool {
+		k.DeleteProposal(ctx, proposal.Id)
+		k.RefundAndDeleteDeposits(ctx, proposal.Id)
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				govtypes.EventTypeInactiveProposal,
-				sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
+				sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
 				sdk.NewAttribute(govtypes.AttributeKeyProposalResult, govtypes.AttributeValueProposalDropped),
 			),
 		)
 
 		logger.Info(
 			"proposal did not meet minimum deposit; deleted",
-			"proposal", proposal.ProposalId,
-			"title", proposal.GetTitle(),
-			"min_deposit", k.GetDepositParams(ctx).MinDeposit.String(),
-			"total_deposit", proposal.TotalDeposit.String(),
+			"proposal", proposal.Id,
+			"min_deposit", sdk.NewCoins(k.GetDepositParams(ctx).MinDeposit...).String(),
+			"total_deposit", sdk.NewCoins(proposal.TotalDeposit...).String(),
 		)
 
 		return false
 	})
 }
 
-func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Proposal) {
+func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal v1.Proposal) {
 	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
 		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalId, c.PoolId, c.Loss)
 	}
 }
 
-func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Proposal) {
+func updateAbstain(ctx sdk.Context, k keeper.Keeper, v1 govtypes.Proposal) {
 	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
 		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		proposer, err := sdk.AccAddressFromBech32(c.Proposer)
@@ -58,11 +58,11 @@ func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Proposal)
 	}
 }
 
-func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Proposal) bool {
+func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal v1.Proposal) bool {
 	var (
 		tagValue, logMsg string
 		pass, veto       bool
-		tallyResults     govtypes.TallyResult
+		tallyResults     v1.TallyResult
 	)
 	logger := k.Logger(ctx)
 
@@ -82,10 +82,10 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypes.P
 	}
 
 	if veto {
-		k.DeleteDeposits(ctx, proposal.ProposalId)
+		k.DeleteAndBurnDeposits(ctx, proposal.ProposalId)
 		updateVeto(ctx, k, proposal)
 	} else {
-		k.RefundDeposits(ctx, proposal.ProposalId)
+		k.RefundAndDeleteDeposits(ctx, proposal.ProposalId)
 		if !pass {
 			updateAbstain(ctx, k, proposal)
 		}
