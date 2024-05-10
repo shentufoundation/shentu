@@ -2,11 +2,11 @@
 // source: shentu/gov/v1alpha1/query.proto
 
 /*
-Package types is a reverse proxy.
+Package v1alpha1 is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package types
+package v1alpha1
 
 import (
 	"context"

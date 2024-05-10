@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/common"
 )
@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) TestVoteWeightedReq() {
 
 	proposalContent := govtypes.NewTextProposal("title0", "description0")
 	// active proposal
-	msg, err := govtypes.NewMsgSubmitProposal(
+	msg, err := govtypesv1.NewMsgSubmitProposal(
 		proposalContent,
 		minDeposit,
 		proposer,

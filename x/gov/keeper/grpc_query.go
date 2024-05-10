@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
@@ -23,22 +23,22 @@ func (k Keeper) CertVoted(c context.Context, req *types.QueryCertVotedRequest) (
 }
 
 // Params queries all params
-func (k Keeper) Params(c context.Context, req *govtypes.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k Keeper) Params(c context.Context, req *govtypesv1.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
 	switch req.ParamsType {
-	case govtypes.ParamDeposit:
+	case govtypesv1.ParamDeposit:
 		depositParmas := k.GetDepositParams(ctx)
 		return &types.QueryParamsResponse{DepositParams: depositParmas}, nil
 
-	case govtypes.ParamVoting:
+	case govtypesv1.ParamVoting:
 		votingParmas := k.GetVotingParams(ctx)
 		return &types.QueryParamsResponse{VotingParams: votingParmas}, nil
 
-	case govtypes.ParamTallying:
+	case govtypesv1.ParamTallying:
 		tallyParams := k.GetTallyParams(ctx)
 		return &types.QueryParamsResponse{TallyParams: tallyParams}, nil
 

@@ -5,7 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	v046 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v046"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
@@ -22,7 +24,7 @@ func (k Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 	}
 
 	// check if proposal is still depositable or if proposer is council member
-	if proposal.Status != govtypes.StatusDepositPeriod {
+	if proposal.Status != govtypesv1.StatusDepositPeriod {
 		return false, sdkerrors.Wrap(govtypes.ErrAlreadyActiveProposal, fmt.Sprint(proposalID))
 	}
 
@@ -33,13 +35,17 @@ func (k Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 	}
 
 	// update proposal
-	proposal.TotalDeposit = proposal.TotalDeposit.Add(depositAmount...)
+	proposal.TotalDeposit = sdk.NewCoins(proposal.TotalDeposit...).Add(depositAmount...)
 	k.SetProposal(ctx, proposal)
 
 	// check if deposit has provided sufficient total funds to transition the proposal into the voting period
 	activatedVotingPeriod := false
-	if proposal.Status == govtypes.StatusDepositPeriod && proposal.TotalDeposit.IsAllGTE(k.GetDepositParams(ctx).MinDeposit) ||
-		proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
+	if err != nil {
+		return false, err
+	}
+	if proposal.Status == govtypesv1.StatusDepositPeriod && sdk.NewCoins(proposal.TotalDeposit...).IsAllGTE(k.GetDepositParams(ctx).MinDeposit) ||
+		legacyProposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
 		k.ActivateVotingPeriod(ctx, proposal)
 		activatedVotingPeriod = true
 	}
@@ -63,9 +69,9 @@ func (k Keeper) upsertDeposit(ctx sdk.Context, proposalID uint64, depositorAddr 
 	// add or update deposit object
 	deposit, found := k.GetDeposit(ctx, proposalID, depositorAddr)
 	if found {
-		deposit.Amount = deposit.Amount.Add(depositAmount...)
+		deposit.Amount = sdk.NewCoins(deposit.Amount...).Add(depositAmount...)
 	} else {
-		deposit = govtypes.NewDeposit(proposalID, depositorAddr, depositAmount)
+		deposit = govtypesv1.NewDeposit(proposalID, depositorAddr, depositAmount)
 	}
 
 	k.SetDeposit(ctx, deposit)

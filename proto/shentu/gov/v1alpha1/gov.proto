@@ -4,7 +4,7 @@ package shentu.gov.v1alpha1;
 import "gogoproto/gogo.proto";
 import "cosmos/gov/v1beta1/gov.proto";
 
-option go_package = "github.com/shentufoundation/shentu/x/gov/types";
+option go_package = "github.com/shentufoundation/shentu/x/gov/types/v1alpha1";
 option (gogoproto.goproto_stringer_all) = false;
 option (gogoproto.stringer_all)         = false;
 option (gogoproto.goproto_getters_all)  = false;

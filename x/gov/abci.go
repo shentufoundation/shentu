@@ -5,8 +5,9 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	v046 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v046"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
@@ -16,7 +17,7 @@ import (
 func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 	logger := k.Logger(ctx)
 
-	k.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal v1.Proposal) bool {
+	k.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal govtypesv1.Proposal) bool {
 		k.DeleteProposal(ctx, proposal.Id)
 		k.RefundAndDeleteDeposits(ctx, proposal.Id)
 
@@ -39,16 +40,24 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 	})
 }
 
-func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal v1.Proposal) {
-	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
+func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) {
+	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
+	if err != nil {
+		return
+	}
+	if legacyProposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+		c := legacyProposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalId, c.PoolId, c.Loss)
 	}
 }
 
-func updateAbstain(ctx sdk.Context, k keeper.Keeper, v1 govtypes.Proposal) {
-	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
+func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) {
+	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
+	if err != nil {
+		return
+	}
+	if legacyProposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+		c := legacyProposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		proposer, err := sdk.AccAddressFromBech32(c.Proposer)
 		if err != nil {
 			panic(err)
@@ -58,22 +67,22 @@ func updateAbstain(ctx sdk.Context, k keeper.Keeper, v1 govtypes.Proposal) {
 	}
 }
 
-func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal v1.Proposal) bool {
+func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) bool {
 	var (
 		tagValue, logMsg string
 		pass, veto       bool
-		tallyResults     v1.TallyResult
+		tallyResults     govtypesv1.TallyResult
 	)
 	logger := k.Logger(ctx)
 
-	if k.HasSecurityVoting(proposal) && !k.GetCertifierVoted(ctx, proposal.ProposalId) {
+	if k.HasSecurityVoting(proposal) && !k.GetCertifierVoted(ctx, proposal.Id) {
 		var endVoting bool
 		pass, endVoting, tallyResults = keeper.SecurityTally(ctx, k, proposal)
 		if !endVoting {
 			// Skip the rest of this iteration, because the proposal needs to go
 			// through the validator voting period now.
-			k.SetCertifierVoted(ctx, proposal.ProposalId)
-			k.DeleteAllVotes(ctx, proposal.ProposalId)
+			k.SetCertifierVoted(ctx, proposal.Id)
+			k.DeleteAllVotes(ctx, proposal.Id)
 			k.ActivateVotingPeriod(ctx, proposal)
 			return false
 		}
@@ -82,10 +91,10 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal v1.Proposa
 	}
 
 	if veto {
-		k.DeleteAndBurnDeposits(ctx, proposal.ProposalId)
+		k.DeleteAndBurnDeposits(ctx, proposal.Id)
 		updateVeto(ctx, k, proposal)
 	} else {
-		k.RefundAndDeleteDeposits(ctx, proposal.ProposalId)
+		k.RefundAndDeleteDeposits(ctx, proposal.Id)
 		if !pass {
 			updateAbstain(ctx, k, proposal)
 		}
@@ -99,19 +108,19 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal v1.Proposa
 		// the error message is logged.
 		err := handler(cacheCtx, proposal.GetContent())
 		if err == nil {
-			proposal.Status = govtypes.StatusPassed
+			proposal.Status = govtypesv1.StatusPassed
 			tagValue = govtypes.AttributeValueProposalPassed
 			logMsg = "passed"
 
 			// write state to the underlying multi-store
 			writeCache()
 		} else {
-			proposal.Status = govtypes.StatusFailed
+			proposal.Status = govtypesv1.StatusFailed
 			tagValue = govtypes.AttributeValueProposalFailed
 			logMsg = fmt.Sprintf("passed, but failed on execution: %s", err)
 		}
 	} else {
-		proposal.Status = govtypes.StatusRejected
+		proposal.Status = govtypesv1.StatusRejected
 		tagValue = govtypes.AttributeValueProposalRejected
 		logMsg = "rejected"
 	}
@@ -119,30 +128,29 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal v1.Proposa
 	proposal.FinalTallyResult = tallyResults
 
 	k.SetProposal(ctx, proposal)
-	k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
+	k.RemoveFromActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
 
 	logger.Info(
 		"proposal tallied",
-		"proposal", proposal.ProposalId,
-		"title", proposal.GetTitle(),
+		"proposal", proposal.Id,
 		"result", logMsg,
 	)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			govtypes.EventTypeActiveProposal,
-			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
+			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
 			sdk.NewAttribute(govtypes.AttributeKeyProposalResult, tagValue),
 		),
 	)
 	return false
 }
 
-func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Proposal) bool {
+func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) bool {
 	var (
 		tagValue, logMsg string
 		pass             bool
-		tallyResults     govtypes.TallyResult
+		tallyResults     govtypesv1.TallyResult
 	)
 	logger := k.Logger(ctx)
 
@@ -151,7 +159,7 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Pro
 		return false
 	}
 	// Only process proposals in the security voting period.
-	if k.HasSecurityVoting(proposal) && k.GetCertifierVoted(ctx, proposal.ProposalId) {
+	if k.HasSecurityVoting(proposal) && k.GetCertifierVoted(ctx, proposal.Id) {
 		return false
 	}
 
@@ -172,14 +180,14 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Pro
 		// the error message is logged.
 		err := handler(cacheCtx, proposal.GetContent())
 		if err == nil {
-			proposal.Status = govtypes.StatusPassed
+			proposal.Status = govtypesv1.StatusPassed
 			tagValue = govtypes.AttributeValueProposalPassed
 			logMsg = "passed"
 
 			// write state to the underlying multi-store
 			writeCache()
 		} else {
-			proposal.Status = govtypes.StatusFailed
+			proposal.Status = govtypesv1.StatusFailed
 			tagValue = govtypes.AttributeValueProposalFailed
 			logMsg = fmt.Sprintf("passed, but failed on execution: %s", err)
 		}
@@ -187,26 +195,25 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Pro
 		proposal.FinalTallyResult = tallyResults
 
 		k.SetProposal(ctx, proposal)
-		k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
+		k.RemoveFromActiveProposalQueue(ctx, proposal.Id, proposal.VotingEndTime)
 
 		logger.Info(
 			"proposal tallied",
-			"proposal", proposal.ProposalId,
-			"title", proposal.GetTitle(),
+			"proposal", proposal.Id,
 			"result", logMsg,
 		)
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				govtypes.EventTypeActiveProposal,
-				sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
+				sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
 				sdk.NewAttribute(govtypes.AttributeKeyProposalResult, tagValue),
 			),
 		)
 	} else {
 		// Activate validator voting period
-		k.SetCertifierVoted(ctx, proposal.ProposalId)
-		k.DeleteAllVotes(ctx, proposal.ProposalId)
+		k.SetCertifierVoted(ctx, proposal.Id)
+		k.DeleteAllVotes(ctx, proposal.Id)
 		k.ActivateVotingPeriod(ctx, proposal)
 	}
 	return false
@@ -220,13 +227,13 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 	// fetch active proposals whose voting periods have ended (are passed the
 	// block time)
-	k.IterateActiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal govtypes.Proposal) bool {
+	k.IterateActiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal govtypesv1.Proposal) bool {
 		return processActiveProposal(ctx, k, proposal)
 	})
 
 	// Iterate over all active proposals, regardless of end time, so that
 	// security voting can end as soon as a passing threshold is met.
-	k.IterateActiveProposalsQueue(ctx, time.Unix(common.MaxTimestamp, 0), func(proposal govtypes.Proposal) bool {
+	k.IterateActiveProposalsQueue(ctx, time.Unix(common.MaxTimestamp, 0), func(proposal govtypesv1.Proposal) bool {
 		return processSecurityVote(ctx, k, proposal)
 	})
 }

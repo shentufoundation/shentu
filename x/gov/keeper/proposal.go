@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"fmt"
+	v046 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v046"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -13,26 +15,28 @@ import (
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
-func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govtypes.Proposal) {
-	proposal.VotingStartTime = ctx.BlockHeader().Time
+func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govtypesv1.Proposal) {
+	startTime := ctx.BlockHeader().Time
+	proposal.VotingStartTime = &startTime
 	votingPeriod := k.GetVotingParams(ctx).VotingPeriod
 	oldVotingEndTime := proposal.VotingEndTime
-	proposal.VotingEndTime = proposal.VotingStartTime.Add(votingPeriod)
+	endTime := proposal.VotingStartTime.Add(*votingPeriod)
+	proposal.VotingEndTime = &endTime
 	oldDepositEndTime := proposal.DepositEndTime
 
 	// Default case: for plain text proposals, community pool spend proposals;
 	// and second round of software upgrade, certifier update and shield claim
 	// proposals.
-	if k.GetCertifierVoted(ctx, proposal.ProposalId) {
-		k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalId, oldVotingEndTime)
+	if k.GetCertifierVoted(ctx, proposal.Id) {
+		k.RemoveFromActiveProposalQueue(ctx, proposal.Id, *oldVotingEndTime)
 	} else {
-		proposal.DepositEndTime = ctx.BlockHeader().Time
+		proposal.DepositEndTime = &endTime
 	}
-	proposal.Status = govtypes.StatusVotingPeriod
+	proposal.Status = govtypesv1.StatusVotingPeriod
 
 	k.SetProposal(ctx, proposal)
-	k.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalId, oldDepositEndTime)
-	k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
+	k.RemoveFromInactiveProposalQueue(ctx, proposal.Id, *oldDepositEndTime)
+	k.InsertActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
 
 }
 
@@ -81,39 +85,83 @@ func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) sdk.Int {
 }
 
 // SubmitProposal creates a new proposal with given content.
-func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content) (govtypes.Proposal, error) {
-	if !k.router.HasRoute(content.ProposalRoute()) {
-		return govtypes.Proposal{}, sdkerrors.Wrap(govtypes.ErrNoProposalHandlerExists, content.ProposalRoute())
+func (k Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, metadata string) (govtypesv1.Proposal, error) {
+	err := k.assertMetadataLength(metadata)
+	if err != nil {
+		return govtypesv1.Proposal{}, err
+	}
+
+	// Will hold a comma-separated string of all Msg type URLs.
+	msgsStr := ""
+
+	// Loop through all messages and confirm that each has a handler and the gov module account
+	// as the only signer
+	for _, msg := range messages {
+		msgsStr += fmt.Sprintf(",%s", sdk.MsgTypeURL(msg))
+
+		// perform a basic validation of the message
+		if err := msg.ValidateBasic(); err != nil {
+			return govtypesv1.Proposal{}, sdkerrors.Wrap(govtypes.ErrInvalidProposalMsg, err.Error())
+		}
+
+		signers := msg.GetSigners()
+		if len(signers) != 1 {
+			return govtypesv1.Proposal{}, govtypes.ErrInvalidSigner
+		}
+
+		// assert that the governance module account is the only signer of the messages
+		if !signers[0].Equals(k.GetGovernanceAccount(ctx).GetAddress()) {
+			return govtypesv1.Proposal{}, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, signers[0].String())
+		}
+
+		// use the msg service router to see that there is a valid route for that message.
+		handler := k.router.Handler(msg)
+		if handler == nil {
+			return govtypesv1.Proposal{}, sdkerrors.Wrap(govtypes.ErrUnroutableProposalMsg, sdk.MsgTypeURL(msg))
+		}
+
+		// Only if it's a MsgExecLegacyContent do we try to execute the
+		// proposal in a cached context.
+		// For other Msgs, we do not verify the proposal messages any further.
+		// They may fail upon execution.
+		// ref: https://github.com/cosmos/cosmos-sdk/pull/10868#discussion_r784872842
+		if msg, ok := msg.(*govtypesv1.MsgExecLegacyContent); ok {
+			cacheCtx, _ := ctx.CacheContext()
+			if _, err := handler(cacheCtx, msg); err != nil {
+				return govtypesv1.Proposal{}, sdkerrors.Wrap(govtypes.ErrNoProposalHandlerExists, err.Error())
+			}
+		}
+
 	}
 
 	proposalID, err := k.GetProposalID(ctx)
 	if err != nil {
-		return govtypes.Proposal{}, err
+		return govtypesv1.Proposal{}, err
 	}
+	//
+	//if c, ok := content.(*shieldtypes.ShieldClaimProposal); ok {
+	//	c.ProposalId = proposalID
+	//}
 
-	if c, ok := content.(*shieldtypes.ShieldClaimProposal); ok {
-		c.ProposalId = proposalID
-	}
-
-	// Execute the proposal content in a cache-wrapped context to validate the
-	// actual parameter changes before the proposal proceeds through the
-	// governance process. State is not persisted.
-	cacheCtx, _ := ctx.CacheContext()
-	handler := k.router.GetRoute(content.ProposalRoute())
-	if err := handler(cacheCtx, content); err != nil {
-		return govtypes.Proposal{}, sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, err.Error())
-	}
+	//// Execute the proposal content in a cache-wrapped context to validate the
+	//// actual parameter changes before the proposal proceeds through the
+	//// governance process. State is not persisted.
+	//cacheCtx, _ := ctx.CacheContext()
+	//handler := k.router.GetRoute(content.ProposalRoute())
+	//if err := handler(cacheCtx, content); err != nil {
+	//	return govtypes.Proposal{}, sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, err.Error())
+	//}
 
 	submitTime := ctx.BlockHeader().Time
 	depositPeriod := k.GetDepositParams(ctx).MaxDepositPeriod
 
-	proposal, err := govtypes.NewProposal(content, proposalID, submitTime, submitTime.Add(depositPeriod))
+	proposal, err := govtypesv1.NewProposal(messages, proposalID, metadata, submitTime, submitTime.Add(*depositPeriod))
 	if err != nil {
-		return govtypes.Proposal{}, err
+		return govtypesv1.Proposal{}, err
 	}
 
 	k.SetProposal(ctx, proposal)
-	k.InsertInactiveProposalQueue(ctx, proposalID, proposal.DepositEndTime)
+	k.InsertInactiveProposalQueue(ctx, proposalID, *proposal.DepositEndTime)
 	k.SetProposalID(ctx, proposalID+1)
 
 	// called right after a proposal is submitted
@@ -129,8 +177,12 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content) (govty
 	return proposal, nil
 }
 
-func (k Keeper) HasSecurityVoting(p govtypes.Proposal) bool {
-	switch p.GetContent().(type) {
+func (k Keeper) HasSecurityVoting(p govtypesv1.Proposal) bool {
+	legacyProposal, err := v046.ConvertToLegacyProposal(p)
+	if err != nil {
+		return false
+	}
+	switch legacyProposal.GetContent().(type) {
 	case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal, *shieldtypes.ShieldClaimProposal:
 		return true
 	default:
@@ -139,13 +191,26 @@ func (k Keeper) HasSecurityVoting(p govtypes.Proposal) bool {
 }
 
 // ActivateVotingPeriodCustom switches proposals to voting period for customization.
-func (k Keeper) ActivateVotingPeriodCustom(ctx sdk.Context, proposal govtypes.Proposal, addr sdk.AccAddress) bool {
-	if !k.IsCertifier(ctx, addr) && proposal.ProposalType() != shieldtypes.ProposalTypeShieldClaim {
+func (k Keeper) ActivateVotingPeriodCustom(ctx sdk.Context, proposal govtypesv1.Proposal, addr sdk.AccAddress) bool {
+	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
+	if err != nil {
+		return false
+	}
+	if !k.IsCertifier(ctx, addr) && legacyProposal.ProposalType() != shieldtypes.ProposalTypeShieldClaim {
 		return false
 	}
 	if k.IsCertifier(ctx, addr) && k.HasSecurityVoting(proposal) {
-		k.SetCertifierVoted(ctx, proposal.ProposalId)
+		k.SetCertifierVoted(ctx, proposal.Id)
 	}
 	k.ActivateVotingPeriod(ctx, proposal)
 	return true
+}
+
+// assertMetadataLength returns an error if given metadata length
+// is greater than a pre-defined maxMetadataLen.
+func (k Keeper) assertMetadataLength(metadata string) error {
+	if metadata != "" && uint64(len(metadata)) > k.config.MaxMetadataLen {
+		return govtypes.ErrMetadataTooLong.Wrapf("got metadata with length %d", len(metadata))
+	}
+	return nil
 }
