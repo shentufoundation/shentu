@@ -1,12 +1,11 @@
-package types
+package v1
 
 import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/shentufoundation/shentu/v2/common"
 )
 
@@ -15,19 +14,21 @@ func DefaultGenesisState() *GenesisState {
 	minDepositTokens := sdk.TokensFromConsensusPower(512, sdk.DefaultPowerReduction)
 
 	// quorum, threshold, and veto threshold params
-	defaultTally := govTypes.NewTallyParams(sdk.NewDecWithPrec(334, 3), sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(334, 3))
-	certifierUpdateSecurityVoteTally := govTypes.NewTallyParams(sdk.NewDecWithPrec(334, 3), sdk.NewDecWithPrec(667, 3), sdk.NewDecWithPrec(334, 3))
-	certifierUpdateStakeVoteTally := govTypes.NewTallyParams(sdk.NewDecWithPrec(334, 3), sdk.NewDecWithPrec(9, 1), sdk.NewDecWithPrec(334, 3))
+	defaultTally := govtypesv1.NewTallyParams(sdk.NewDecWithPrec(334, 3), sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(334, 3))
+	certifierUpdateSecurityVoteTally := govtypesv1.NewTallyParams(sdk.NewDecWithPrec(334, 3), sdk.NewDecWithPrec(667, 3), sdk.NewDecWithPrec(334, 3))
+	certifierUpdateStakeVoteTally := govtypesv1.NewTallyParams(sdk.NewDecWithPrec(334, 3), sdk.NewDecWithPrec(9, 1), sdk.NewDecWithPrec(334, 3))
 
+	defaultPeriod := govtypesv1.DefaultPeriod
+	votingParams := govtypesv1.DefaultVotingParams()
 	return &GenesisState{
-		StartingProposalId: govTypes.DefaultStartingProposalID,
-		DepositParams: govTypes.DepositParams{
+		StartingProposalId: govtypesv1.DefaultStartingProposalID,
+		DepositParams: &govtypesv1.DepositParams{
 			MinDeposit:       sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)},
-			MaxDepositPeriod: govTypes.DefaultPeriod,
+			MaxDepositPeriod: &defaultPeriod,
 		},
-		VotingParams: govTypes.DefaultVotingParams(),
-		TallyParams:  defaultTally,
-		CustomParams: CustomParams{
+		VotingParams: &votingParams,
+		TallyParams:  &defaultTally,
+		CustomParams: &CustomParams{
 			CertifierUpdateSecurityVoteTally: &certifierUpdateSecurityVoteTally,
 			CertifierUpdateStakeVoteTally:    &certifierUpdateStakeVoteTally,
 		},
@@ -48,10 +49,10 @@ func ValidateGenesis(data *GenesisState) error {
 	if err != nil {
 		return err
 	}
-
-	if !data.DepositParams.MinDeposit.IsValid() {
+	err = validateDepositParams(data.DepositParams.MinDeposit)
+	if err != nil {
 		return fmt.Errorf("governance deposit amount must be a valid sdk.Coins amount, is %s",
-			data.DepositParams.MinDeposit.String())
+			data.DepositParams.MinDeposit)
 	}
 
 	return nil

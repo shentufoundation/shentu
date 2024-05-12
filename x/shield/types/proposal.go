@@ -7,7 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -17,11 +17,11 @@ const (
 )
 
 // Assert ShieldClaimProposal implements govTypes.Content at compile-time.
-var _ govTypes.Content = ShieldClaimProposal{}
+var _ govtypesv1beta1.Content = ShieldClaimProposal{}
 
 func init() {
-	govTypes.RegisterProposalType(ProposalTypeShieldClaim)
-	govTypes.RegisterProposalTypeCodec(ShieldClaimProposal{}, "shield/ShieldClaimProposal")
+	govtypesv1beta1.RegisterProposalType(ProposalTypeShieldClaim)
+	//govTypes.RegisterProposalTypeCodec(ShieldClaimProposal{}, "shield/ShieldClaimProposal")
 }
 
 // NewShieldClaimProposal creates a new shield claim proposal.

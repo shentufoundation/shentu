@@ -101,31 +101,31 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1
 	}
 
 	if pass {
-		handler := k.Router().GetRoute(proposal.ProposalRoute())
-		cacheCtx, writeCache := ctx.CacheContext()
-		// The proposal handler may execute state mutating logic depending on the
-		// proposal content. If the handler fails, no state mutation is written and
-		// the error message is logged.
-		err := handler(cacheCtx, proposal.GetContent())
-		if err == nil {
-			proposal.Status = govtypesv1.StatusPassed
-			tagValue = govtypes.AttributeValueProposalPassed
-			logMsg = "passed"
-
-			// write state to the underlying multi-store
-			writeCache()
-		} else {
-			proposal.Status = govtypesv1.StatusFailed
-			tagValue = govtypes.AttributeValueProposalFailed
-			logMsg = fmt.Sprintf("passed, but failed on execution: %s", err)
-		}
+		//handler := k.Router().GetRoute(proposal.ProposalRoute())
+		//cacheCtx, writeCache := ctx.CacheContext()
+		//// The proposal handler may execute state mutating logic depending on the
+		//// proposal content. If the handler fails, no state mutation is written and
+		//// the error message is logged.
+		//err := handler(cacheCtx, proposal.GetContent())
+		//if err == nil {
+		//	proposal.Status = govtypesv1.StatusPassed
+		//	tagValue = govtypes.AttributeValueProposalPassed
+		//	logMsg = "passed"
+		//
+		//	// write state to the underlying multi-store
+		//	writeCache()
+		//} else {
+		//	proposal.Status = govtypesv1.StatusFailed
+		//	tagValue = govtypes.AttributeValueProposalFailed
+		//	logMsg = fmt.Sprintf("passed, but failed on execution: %s", err)
+		//}
 	} else {
 		proposal.Status = govtypesv1.StatusRejected
 		tagValue = govtypes.AttributeValueProposalRejected
 		logMsg = "rejected"
 	}
 
-	proposal.FinalTallyResult = tallyResults
+	proposal.FinalTallyResult = &tallyResults
 
 	k.SetProposal(ctx, proposal)
 	k.RemoveFromActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
@@ -172,30 +172,30 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.P
 	// Else: the proposal passed the certifier voting period.
 
 	if endVoting {
-		handler := k.Router().GetRoute(proposal.ProposalRoute())
-		cacheCtx, writeCache := ctx.CacheContext()
+		//handler := k.Router().GetRoute(proposal.ProposalRoute())
+		//cacheCtx, writeCache := ctx.CacheContext()
+		//
+		//// The proposal handler may execute state mutating logic depending on the
+		//// proposal content. If the handler fails, no state mutation is written and
+		//// the error message is logged.
+		//err := handler(cacheCtx, proposal.GetContent())
+		//if err == nil {
+		//	proposal.Status = govtypesv1.StatusPassed
+		//	tagValue = govtypes.AttributeValueProposalPassed
+		//	logMsg = "passed"
+		//
+		//	// write state to the underlying multi-store
+		//	writeCache()
+		//} else {
+		//proposal.Status = govtypesv1.StatusFailed
+		//tagValue = govtypes.AttributeValueProposalFailed
+		//logMsg = fmt.Sprintf("passed, but failed on execution: %s", err)
+		//}
 
-		// The proposal handler may execute state mutating logic depending on the
-		// proposal content. If the handler fails, no state mutation is written and
-		// the error message is logged.
-		err := handler(cacheCtx, proposal.GetContent())
-		if err == nil {
-			proposal.Status = govtypesv1.StatusPassed
-			tagValue = govtypes.AttributeValueProposalPassed
-			logMsg = "passed"
-
-			// write state to the underlying multi-store
-			writeCache()
-		} else {
-			proposal.Status = govtypesv1.StatusFailed
-			tagValue = govtypes.AttributeValueProposalFailed
-			logMsg = fmt.Sprintf("passed, but failed on execution: %s", err)
-		}
-
-		proposal.FinalTallyResult = tallyResults
+		proposal.FinalTallyResult = &tallyResults
 
 		k.SetProposal(ctx, proposal)
-		k.RemoveFromActiveProposalQueue(ctx, proposal.Id, proposal.VotingEndTime)
+		k.RemoveFromActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
 
 		logger.Info(
 			"proposal tallied",

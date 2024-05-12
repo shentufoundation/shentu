@@ -2,8 +2,7 @@
 package app
 
 import (
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"io"
 	"net/http"
 	"os"
@@ -56,7 +55,9 @@ import (
 	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	oldgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	sdkminttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
@@ -70,21 +71,21 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ica "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts"
-	icahost "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host"
-	icahostkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/keeper"
-	icahosttypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v4/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v4/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v4/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v4/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v4/modules/core/keeper"
+	ica "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts"
+	icahost "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host"
+	icahostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
+	icahosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v6/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v6/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 
 	appparams "github.com/shentufoundation/shentu/v2/app/params"
 	"github.com/shentufoundation/shentu/v2/common"
@@ -105,7 +106,6 @@ import (
 	distr "github.com/shentufoundation/shentu/v2/x/distribution"
 	"github.com/shentufoundation/shentu/v2/x/gov"
 	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
 	"github.com/shentufoundation/shentu/v2/x/mint"
 	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle"
@@ -433,15 +433,15 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
-	govRouter := oldgovtypes.NewRouter()
-	govRouter.AddRoute(sdkgovtypes.RouterKey, oldgovtypes.ProposalHandler).
+	govRouter := govtypesv1beta1.NewRouter()
+	govRouter.AddRoute(sdkgovtypes.RouterKey, govtypesv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.ShieldKeeper)).
 		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.CertKeeper))
-
+	govConfig := sdkgovtypes.DefaultConfig()
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[sdkgovtypes.StoreKey],
@@ -452,6 +452,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.ShieldKeeper,
 		app.AccountKeeper,
 		govRouter,
+		app.MsgServiceRouter(),
+		govConfig,
 	)
 
 	// Create Transfer Keepers
@@ -466,6 +468,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey],
 		app.GetSubspace(icahosttypes.SubModuleName),
+		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
@@ -831,7 +834,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(sdkminttypes.ModuleName)
 	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
-	paramsKeeper.Subspace(sdkgovtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	paramsKeeper.Subspace(sdkgovtypes.ModuleName).WithKeyTable(govtypesv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)

@@ -72,11 +72,11 @@ message QueryCertVotedResponse {
 // QueryParamsResponse is the response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // voting_params defines the parameters related to voting.
-  cosmos.gov.v1.VotingParams voting_params = 1 [(gogoproto.nullable) = false];
+  cosmos.gov.v1.VotingParams voting_params = 1;
   // deposit_params defines the parameters related to deposit.
-  cosmos.gov.v1.DepositParams deposit_params = 2 [(gogoproto.nullable) = false];
+  cosmos.gov.v1.DepositParams deposit_params = 2;
   // tally_params defines the parameters related to tally.
-  cosmos.gov.v1.TallyParams tally_params = 3 [(gogoproto.nullable) = false];
+  cosmos.gov.v1.TallyParams tally_params = 3;
   // custom_params defines the parameters related to custom.
-  CustomParams custom_params = 4 [(gogoproto.nullable) = false];
+  CustomParams custom_params = 4;
 }

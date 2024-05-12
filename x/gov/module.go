@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"math/rand"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -24,11 +22,13 @@ import (
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
 var (
@@ -63,28 +63,29 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // DefaultGenesis returns the default genesis state.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	return cdc.MustMarshalJSON(typesv1.DefaultGenesisState())
 }
 
 // ValidateGenesis validates the module genesis.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var data types.GenesisState
+	var data typesv1.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", govtypes.ModuleName, err)
 	}
 
-	return types.ValidateGenesis(&data)
+	return typesv1.ValidateGenesis(&data)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runtime.ServeMux) {
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(ctx))
+	typesv1.RegisterQueryHandlerClient(context.Background(), mux, typesv1.NewQueryClient(ctx))
 }
 
 // GetTxCmd gets the root tx command of this module.
+
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	proposalCLIHandlers := make([]*cobra.Command, 0, len(a.proposalHandlers))
-	for _, proposalHandler := range a.proposalHandlers {
+	proposalCLIHandlers := make([]*cobra.Command, 0, len(a.legacyProposalHandlers))
+	for _, proposalHandler := range a.legacyProposalHandlers {
 		proposalCLIHandlers = append(proposalCLIHandlers, proposalHandler.CLIHandler())
 	}
 
@@ -148,8 +149,8 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	govtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	//govtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	typesv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)
@@ -165,7 +166,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // InitGenesis performs genesis initialization for the governance module.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
+	var genesisState typesv1.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, am.accountKeeper, am.bankKeeper, genesisState)
 	return []abci.ValidatorUpdate{}

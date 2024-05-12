@@ -1,11 +1,11 @@
 package types
 
 import (
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -49,15 +49,15 @@ type StakingKeeper interface {
 	InsertUBDQueue(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation, completionTime time.Time)
 	SetDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
 	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (stakingtypes.Delegation, bool)
-	BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
-	AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
+	BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error
+	AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error
 	UBDQueueIterator(ctx sdk.Context, timestamp time.Time) sdk.Iterator
 	RemoveValidatorTokensAndShares(ctx sdk.Context, validator stakingtypes.Validator, sharesToRemove sdk.Dec) (valOut stakingtypes.Validator, removedTokens sdk.Int)
 	RemoveUBDQueue(ctx sdk.Context, timestamp time.Time)
 	GetRedelegations(ctx sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) (redelegations []stakingtypes.Redelegation)
 	SetValidator(ctx sdk.Context, validator stakingtypes.Validator)
 	DeleteValidatorByPowerIndex(ctx sdk.Context, validator stakingtypes.Validator)
-	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
+	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) error
 	RemoveValidator(ctx sdk.Context, address sdk.ValAddress)
 
 	BondDenom(sdk.Context) string
@@ -81,5 +81,5 @@ type BankKeeper interface {
 
 // GovKeeper defines the expected gov keeper.
 type GovKeeper interface {
-	GetVotingParams(ctx sdk.Context) govtypes.VotingParams
+	GetVotingParams(ctx sdk.Context) govtypesv1.VotingParams
 }

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	"strconv"
 	"strings"
 
@@ -15,8 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govUtils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
 // Proposal flags
@@ -75,7 +77,7 @@ $ %[1]s query gov proposal 1
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := typesv1.NewQueryClient(cliCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -86,7 +88,7 @@ $ %[1]s query gov proposal 1
 			// query the proposal
 			res, err := queryClient.Proposal(
 				cmd.Context(),
-				&govtypes.QueryProposalRequest{ProposalId: proposalID},
+				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return err
@@ -121,7 +123,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 			bechVoterAddr := viper.GetString(flagVoter)
 			strProposalStatus := viper.GetString(flagStatus)
 
-			var proposalStatus govtypes.ProposalStatus
+			var proposalStatus govtypesv1.ProposalStatus
 			var err error
 			if bechDepositorAddr != "" {
 				_, err = sdk.AccAddressFromBech32(bechDepositorAddr)
@@ -138,7 +140,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 			}
 
 			if strProposalStatus != "" {
-				proposalStatus, err = govtypes.ProposalStatusFromString(govUtils.NormalizeProposalStatus(strProposalStatus))
+				proposalStatus, err = govtypesv1.ProposalStatusFromString(govUtils.NormalizeProposalStatus(strProposalStatus))
 				if err != nil {
 					return err
 				}
@@ -148,7 +150,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := typesv1.NewQueryClient(cliCtx)
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
@@ -157,7 +159,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 
 			res, err := queryClient.Proposals(
 				cmd.Context(),
-				&govtypes.QueryProposalsRequest{
+				&govtypesv1.QueryProposalsRequest{
 					ProposalStatus: proposalStatus,
 					Voter:          bechVoterAddr,
 					Depositor:      bechDepositorAddr,
@@ -207,7 +209,7 @@ $ %s query gov vote 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := typesv1.NewQueryClient(clientCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -219,7 +221,7 @@ $ %s query gov vote 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 			ctx := cmd.Context()
 			_, err = queryClient.Proposal(
 				ctx,
-				&govtypes.QueryProposalRequest{ProposalId: proposalID},
+				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
@@ -232,7 +234,7 @@ $ %s query gov vote 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 
 			res, err := queryClient.Vote(
 				ctx,
-				&govtypes.QueryVoteRequest{ProposalId: proposalID, Voter: args[1]},
+				&govtypesv1.QueryVoteRequest{ProposalId: proposalID, Voter: args[1]},
 			)
 			if err != nil {
 				return err
@@ -240,19 +242,19 @@ $ %s query gov vote 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 
 			vote := res.GetVote()
 			if vote.Empty() {
-				params := govtypes.NewQueryVoteParams(proposalID, voterAddr)
+				params := govtypesv1.NewQueryVoteParams(proposalID, voterAddr)
 				resByTxQuery, err := govUtils.QueryVoteByTxQuery(clientCtx, params)
 
 				if err != nil {
 					return err
 				}
 
-				if err := clientCtx.Codec.UnmarshalJSON(resByTxQuery, &vote); err != nil {
+				if err := clientCtx.Codec.UnmarshalJSON(resByTxQuery, vote); err != nil {
 					return err
 				}
 			}
 
-			return clientCtx.PrintProto(&res.Vote)
+			return clientCtx.PrintProto(res.Vote)
 		},
 	}
 
@@ -282,7 +284,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := typesv1.NewQueryClient(cliCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -293,7 +295,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 			// check to see if the proposal is in the store
 			proposalRes, err := queryClient.Proposal(
 				cmd.Context(),
-				&govtypes.QueryProposalRequest{ProposalId: proposalID},
+				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
@@ -301,17 +303,17 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 
 			// TODO Query tx depending on proposal status?
 			propStatus := proposalRes.GetProposal().Status
-			if !(propStatus == govtypes.StatusVotingPeriod || propStatus == govtypes.StatusDepositPeriod) {
+			if !(propStatus == govtypesv1.StatusVotingPeriod || propStatus == govtypesv1.StatusDepositPeriod) {
 				page, _ := cmd.Flags().GetInt(flags.FlagPage)
 				limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
 
-				params := govtypes.NewQueryProposalVotesParams(proposalID, page, limit)
+				params := govtypesv1.NewQueryProposalVotesParams(proposalID, page, limit)
 				resByTxQuery, err := govUtils.QueryVotesByTxQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
 
-				var votes govtypes.Votes
+				var votes govtypesv1.Votes
 				// TODO migrate to use JSONCodec (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &votes)
@@ -325,7 +327,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 
 			res, err := queryClient.Votes(
 				cmd.Context(),
-				&govtypes.QueryVotesRequest{ProposalId: proposalID, Pagination: pageReq},
+				&govtypesv1.QueryVotesRequest{ProposalId: proposalID, Pagination: pageReq},
 			)
 
 			if err != nil {
@@ -363,7 +365,7 @@ $ %s query gov deposit 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := typesv1.NewQueryClient(clientCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -375,7 +377,7 @@ $ %s query gov deposit 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 			ctx := cmd.Context()
 			proposalRes, err := queryClient.Proposal(
 				ctx,
-				&govtypes.QueryProposalRequest{ProposalId: proposalID},
+				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
@@ -386,10 +388,10 @@ $ %s query gov deposit 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 				return err
 			}
 
-			var deposit govtypes.Deposit
+			var deposit govtypesv1.Deposit
 			propStatus := proposalRes.Proposal.Status
-			if !(propStatus == govtypes.StatusVotingPeriod || propStatus == govtypes.StatusDepositPeriod) {
-				params := govtypes.NewQueryDepositParams(proposalID, depositorAddr)
+			if !(propStatus == govtypesv1.StatusVotingPeriod || propStatus == govtypesv1.StatusDepositPeriod) {
+				params := govtypesv1.NewQueryDepositParams(proposalID, depositorAddr)
 				resByTxQuery, err := govUtils.QueryDepositByTxQuery(clientCtx, params)
 				if err != nil {
 					return err
@@ -400,13 +402,13 @@ $ %s query gov deposit 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 
 			res, err := queryClient.Deposit(
 				ctx,
-				&govtypes.QueryDepositRequest{ProposalId: proposalID, Depositor: args[1]},
+				&govtypesv1.QueryDepositRequest{ProposalId: proposalID, Depositor: args[1]},
 			)
 			if err != nil {
 				return err
 			}
 
-			return clientCtx.PrintProto(&res.Deposit)
+			return clientCtx.PrintProto(res.Deposit)
 		},
 	}
 
@@ -436,7 +438,7 @@ $ %[1]s query gov deposits 1
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := typesv1.NewQueryClient(cliCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -447,21 +449,21 @@ $ %[1]s query gov deposits 1
 			// check to see if the proposal is in the store
 			proposalRes, err := queryClient.Proposal(
 				cmd.Context(),
-				&govtypes.QueryProposalRequest{ProposalId: proposalID},
+				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
 
 			propStatus := proposalRes.GetProposal().Status
-			if !(propStatus == govtypes.StatusVotingPeriod || propStatus == govtypes.StatusDepositPeriod) {
-				params := govtypes.NewQueryProposalParams(proposalID)
+			if !(propStatus == govtypesv1.StatusVotingPeriod || propStatus == govtypesv1.StatusDepositPeriod) {
+				params := govtypesv1.NewQueryProposalParams(proposalID)
 				resByTxQuery, err := govUtils.QueryDepositsByTxQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
 
-				var dep govtypes.Deposits
+				var dep govtypesv1.Deposits
 				// TODO migrate to use JSONCodec (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &dep)
@@ -476,7 +478,7 @@ $ %[1]s query gov deposits 1
 
 			res, err := queryClient.Deposits(
 				cmd.Context(),
-				&govtypes.QueryDepositsRequest{ProposalId: proposalID, Pagination: pageReq},
+				&govtypesv1.QueryDepositsRequest{ProposalId: proposalID, Pagination: pageReq},
 			)
 
 			if err != nil {
@@ -514,7 +516,7 @@ $ %s query gov tally 1
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := typesv1.NewQueryClient(clientCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -526,7 +528,7 @@ $ %s query gov tally 1
 			ctx := cmd.Context()
 			_, err = queryClient.Proposal(
 				ctx,
-				&govtypes.QueryProposalRequest{ProposalId: proposalID},
+				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
@@ -535,13 +537,13 @@ $ %s query gov tally 1
 			// Query store
 			res, err := queryClient.TallyResult(
 				ctx,
-				&govtypes.QueryTallyResultRequest{ProposalId: proposalID},
+				&govtypesv1.QueryTallyResultRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return err
 			}
 
-			return clientCtx.PrintProto(&res.Tally)
+			return clientCtx.PrintProto(res.Tally)
 		},
 	}
 
@@ -570,12 +572,12 @@ $ %s query gov params
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := typesv1.NewQueryClient(cliCtx)
 
 			// Query store for all 3 params
 			votingRes, err := queryClient.Params(
 				cmd.Context(),
-				&govtypes.QueryParamsRequest{ParamsType: "voting"},
+				&govtypesv1.QueryParamsRequest{ParamsType: "voting"},
 			)
 			if err != nil {
 				return err
@@ -583,7 +585,7 @@ $ %s query gov params
 
 			tallyRes, err := queryClient.Params(
 				cmd.Context(),
-				&govtypes.QueryParamsRequest{ParamsType: "tallying"},
+				&govtypesv1.QueryParamsRequest{ParamsType: "tallying"},
 			)
 			if err != nil {
 				return err
@@ -591,7 +593,7 @@ $ %s query gov params
 
 			depositRes, err := queryClient.Params(
 				cmd.Context(),
-				&govtypes.QueryParamsRequest{ParamsType: "deposit"},
+				&govtypesv1.QueryParamsRequest{ParamsType: "deposit"},
 			)
 			if err != nil {
 				return err
@@ -599,13 +601,13 @@ $ %s query gov params
 
 			customRes, err := queryClient.Params(
 				cmd.Context(),
-				&govtypes.QueryParamsRequest{ParamsType: "custom"},
+				&govtypesv1.QueryParamsRequest{ParamsType: "custom"},
 			)
 			if err != nil {
 				return err
 			}
 
-			res := &types.QueryParamsResponse{
+			res := &typesv1.QueryParamsResponse{
 				VotingParams:  votingRes.GetVotingParams(),
 				DepositParams: depositRes.GetDepositParams(),
 				TallyParams:   tallyRes.GetTallyParams(),
@@ -643,12 +645,12 @@ $ %[1]s query gov param deposit
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := typesv1.NewQueryClient(cliCtx)
 
 			// Query store
 			res, err := queryClient.Params(
 				cmd.Context(),
-				&govtypes.QueryParamsRequest{ParamsType: args[0]},
+				&govtypesv1.QueryParamsRequest{ParamsType: args[0]},
 			)
 			if err != nil {
 				return err
@@ -656,13 +658,13 @@ $ %[1]s query gov param deposit
 
 			var out fmt.Stringer
 			switch args[0] {
-			case govtypes.ParamVoting:
+			case govtypesv1.ParamVoting:
 				out = res.GetVotingParams()
-			case govtypes.ParamTallying:
+			case govtypesv1.ParamTallying:
 				out = res.GetTallyParams()
-			case govtypes.ParamDeposit:
+			case govtypesv1.ParamDeposit:
 				out = res.GetDepositParams()
-			case types.ParamCustom:
+			case typesv1.ParamCustom:
 				out = res.GetCustomParams()
 			default:
 				return fmt.Errorf("argument must be one of (voting|tallying|deposit), was %s", args[0])

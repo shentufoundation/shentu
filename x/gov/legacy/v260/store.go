@@ -2,12 +2,15 @@ package v260
 
 import (
 	"encoding/json"
-
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes2 "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	"github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
 // MigrateProposalStore performs migration of ProposalKey.Specifically, it performs:
@@ -17,7 +20,7 @@ import (
 // nolint
 func MigrateProposalStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, govtypes.ProposalsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, govtypes2.ProposalsKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -55,7 +58,7 @@ func MigrateProposalStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc cod
 		if err != nil {
 			return err
 		}
-		store.Set(govtypes.ProposalKey(newProposal.ProposalId), bz)
+		store.Set(govtypes2.ProposalKey(newProposal.ProposalId), bz)
 	}
 
 	return nil
@@ -67,8 +70,8 @@ func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) error {
 		oldTallyParams TallyParams
 	)
 
-	paramSubspace.Get(ctx, govtypes.ParamStoreKeyDepositParams, &depositParams)
-	tallyParamsBytes := paramSubspace.GetRaw(ctx, govtypes.ParamStoreKeyTallyParams)
+	paramSubspace.Get(ctx, govtypesv1.ParamStoreKeyDepositParams, &depositParams)
+	tallyParamsBytes := paramSubspace.GetRaw(ctx, govtypesv1.ParamStoreKeyTallyParams)
 	if err := json.Unmarshal(tallyParamsBytes, &oldTallyParams); err != nil {
 		return err
 	}
@@ -96,9 +99,9 @@ func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) error {
 	}
 
 	// set migrate params
-	paramSubspace.Set(ctx, govtypes.ParamStoreKeyDepositParams, &depositParams)
-	paramSubspace.Set(ctx, govtypes.ParamStoreKeyTallyParams, &tallyParams)
-	paramSubspace.Set(ctx, types.ParamStoreKeyCustomParams, &customParams)
+	paramSubspace.Set(ctx, govtypesv1.ParamStoreKeyDepositParams, &depositParams)
+	paramSubspace.Set(ctx, govtypesv1.ParamStoreKeyTallyParams, &tallyParams)
+	paramSubspace.Set(ctx, v1.ParamStoreKeyCustomParams, &customParams)
 
 	return nil
 }

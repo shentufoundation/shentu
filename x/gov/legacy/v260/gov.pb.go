@@ -8,7 +8,7 @@ import (
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
-	types1 "github.com/cosmos/cosmos-sdk/x/gov/types"
+	types1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"

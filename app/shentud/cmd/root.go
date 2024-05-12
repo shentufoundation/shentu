@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	tmcmds "github.com/tendermint/tendermint/cmd/cometbft/commands"
+	tmcmds "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"

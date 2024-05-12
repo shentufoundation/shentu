@@ -2,8 +2,10 @@ package v220
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // MigrateStore performs migration of votes. Specifically, it performs:
@@ -20,7 +22,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 			return err
 		}
 
-		newVote := govtypes.Vote{ProposalId: oldVote.ProposalId, Voter: oldVote.Voter, Option: oldVote.Option}
+		newVote := govtypesv1beta1.Vote{ProposalId: oldVote.ProposalId, Voter: oldVote.Voter, Option: oldVote.Option}
 		bz, err := cdc.Marshal(&newVote)
 		if err != nil {
 			return err
