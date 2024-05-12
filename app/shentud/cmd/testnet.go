@@ -276,7 +276,6 @@ func InitTestnet(
 			sdk.NewCoin(common.MicroCTKDenom, valTokens),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
 			stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
-			sdk.OneInt(),
 		)
 
 		txBuilder := clientCtx.TxConfig.NewTxBuilder()

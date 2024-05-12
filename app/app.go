@@ -421,7 +421,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		stakingtypes.NewMultiStakingHooks(
 			app.DistrKeeper.Hooks(),
 			app.SlashingKeeper.Hooks(),
-			app.ShieldKeeper.Hooks(),
+			//app.ShieldKeeper.Hooks(),
 		),
 	)
 
