@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -19,7 +18,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/oracle/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle/simulation"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -69,11 +67,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
 	return types.ValidateGenesis(gs)
-}
-
-// RegisterRESTRoutes registers the REST routes for the oracle module.
-func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the oracle module.

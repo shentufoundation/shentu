@@ -17,7 +17,7 @@ func DefaultGenesisState() *types.GenesisState {
 			sdk.NewDecWithPrec(14, 2), // max inflation rate
 			sdk.NewDecWithPrec(4, 2),  // min inflation rate
 			sdk.NewDecWithPrec(67, 2), // target staked coin percentage
-			common.BlocksPerYear,      // blocks per year, 5 second block time
+			common.BlocksPerYear,      // blocks per year, 5 seconds block time
 		),
 	}
 }

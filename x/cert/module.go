@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -19,7 +18,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/cert/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
 	"github.com/shentufoundation/shentu/v2/x/cert/simulation"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
@@ -65,11 +63,6 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 // ValidateGenesis performs genesis state validation for the cert module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return types.ValidateGenesis(bz)
-}
-
-// RegisterRESTRoutes registers the REST routes for the cert module.
-func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the cert module.

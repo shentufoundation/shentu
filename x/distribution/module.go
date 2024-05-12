@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -63,11 +62,6 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 // ValidateGenesis performs genesis state validation for the distribution module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return distribution.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
-}
-
-// RegisterRESTRoutes registers the REST routes for the distribution module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
-	distribution.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.

@@ -44,7 +44,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	shieldBlockRewardRatio := k.GetShieldRatio(ctx)
 	SPPCoin := k.GetPoolMint(ctx, shieldBlockRewardRatio, remainderCoin)
 	SPPCoins := sdk.NewCoins(SPPCoin)
-	collectedFeesCoins := mintedCoins.Sub(communityPoolCoins).Sub(SPPCoins)
+	collectedFeesCoins := mintedCoins.Sub(communityPoolCoins...).Sub(SPPCoins...)
 
 	// send the minted coins to the fee collector account
 	if err := k.AddCollectedFees(ctx, collectedFeesCoins); err != nil {

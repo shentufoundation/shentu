@@ -91,7 +91,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
 		}
 
-		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()).Sub(collateral))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()).Sub(collateral...))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateOperator, err.Error()), nil, err
 		}
@@ -99,7 +99,8 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 		msg := types.NewMsgCreateOperator(operator.Address, collateral, operator.Address, "an operator")
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -113,7 +114,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -171,7 +172,7 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		}
 		stdOperator.Collateral = stdOperator.Collateral.Add(collateralIncrement...)
 
-		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()).Sub(collateralIncrement))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()).Sub(collateralIncrement...))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgAddCollateral, err.Error()), nil, err
 		}
@@ -179,7 +180,8 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		msg := types.NewMsgAddCollateral(operatorAddr, collateralIncrement)
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -193,7 +195,7 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -224,7 +226,7 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AccountKeeper, bk typ
 		if collateralDecrement.Empty() {
 			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: empty collateral increment, skip this tx", "", false, nil), nil, nil
 		}
-		newCollateral := operator.Collateral.Sub(collateralDecrement)
+		newCollateral := operator.Collateral.Sub(collateralDecrement...)
 		if newCollateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
 			return simtypes.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
@@ -244,7 +246,8 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AccountKeeper, bk typ
 		msg := types.NewMsgReduceCollateral(operatorAddr, collateralDecrement)
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -258,7 +261,7 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AccountKeeper, bk typ
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -298,7 +301,8 @@ func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 		msg := types.NewMsgRemoveOperator(operatorAddr, operatorAddr)
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -312,7 +316,7 @@ func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -352,7 +356,8 @@ func SimulateMsgWithdrawReward(k keeper.Keeper, ak types.AccountKeeper, bk types
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -366,7 +371,7 @@ func SimulateMsgWithdrawReward(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -398,13 +403,14 @@ func SimulateMsgCreateTask(ak types.AccountKeeper, k keeper.Keeper, bk types.Ban
 
 		msg := types.NewMsgCreateTask(contract, function, bounty, description, creator.Address, int64(wait), time.Duration(0))
 
-		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()).Sub(bounty))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()).Sub(bounty...))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -418,7 +424,7 @@ func SimulateMsgCreateTask(ak types.AccountKeeper, k keeper.Keeper, bk types.Ban
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -463,7 +469,8 @@ func SimulateMsgTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -477,7 +484,7 @@ func SimulateMsgTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -499,7 +506,8 @@ func SimulateMsgDeleteTask(ak types.AccountKeeper, bk types.BankKeeper, contract
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -513,7 +521,7 @@ func SimulateMsgDeleteTask(ak types.AccountKeeper, bk types.BankKeeper, contract
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -537,13 +545,14 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 
 		msg := types.NewMsgCreateTxTask(creator.Address, businessChainID, businessTx, bounty, validTime)
 
-		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()).Sub(bounty))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()).Sub(bounty...))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -557,7 +566,7 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			if types.ErrTaskNotClosed.Is(err) {
 				return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
@@ -646,7 +655,8 @@ func SimulateMsgTxTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -659,7 +669,7 @@ func SimulateMsgTxTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			if types.ErrTaskClosed.Is(err) || types.ErrDuplicateResponse.Is(err) {
 				return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, nil
@@ -682,7 +692,8 @@ func SimulateMsgDeleteTxTask(ak types.AccountKeeper, bk types.BankKeeper, txHash
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -696,7 +707,7 @@ func SimulateMsgDeleteTxTask(ak types.AccountKeeper, bk types.BankKeeper, txHash
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			if types.ErrNotFinished.Is(err) || types.ErrNotCreator.Is(err) {
 				return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil

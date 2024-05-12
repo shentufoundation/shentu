@@ -87,7 +87,8 @@ func SimulateMsgCertifyPlatform(ak types.AccountKeeper, bk types.BankKeeper, k k
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -101,7 +102,7 @@ func SimulateMsgCertifyPlatform(ak types.AccountKeeper, bk types.BankKeeper, k k
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -143,7 +144,8 @@ func SimulateMsgIssueCertificates(ak types.AccountKeeper, bk types.BankKeeper, k
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -157,7 +159,7 @@ func SimulateMsgIssueCertificates(ak types.AccountKeeper, bk types.BankKeeper, k
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}

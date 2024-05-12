@@ -56,10 +56,10 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 	// Secure the updated loss ratio from each provider to cover total claimed.
 	providers := k.GetAllProviders(ctx)
-	claimedRatio := totalSecureAmt.ToDec().Quo(totalCollateral.ToDec())
+	claimedRatio := sdk.NewDecFromInt(totalSecureAmt).Quo(sdk.NewDecFromInt(totalCollateral))
 	remaining := totalSecureAmt
 	for i := range providers {
-		secureAmt := sdk.MinInt(providers[i].Collateral.ToDec().Mul(claimedRatio).TruncateInt(), remaining)
+		secureAmt := sdk.MinInt(sdk.NewDecFromInt(providers[i].Collateral).Mul(claimedRatio).TruncateInt(), remaining)
 
 		// Require each provider to secure one more unit, if possible,
 		// so that the last provider does not have to cover combined
@@ -251,8 +251,8 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)
 	totalPayout := amount.AmountOf(bondDenom)
-	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
-	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
+	purchaseRatio := sdk.NewDecFromInt(totalPurchased).Quo(sdk.NewDecFromInt(totalCollateral))
+	payoutRatio := sdk.NewDecFromInt(totalPayout).Quo(sdk.NewDecFromInt(totalCollateral))
 	for _, provider := range k.GetAllProviders(ctx) {
 		if !totalPayout.IsPositive() {
 			break
@@ -263,11 +263,11 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 			panic(err)
 		}
 
-		purchased := provider.Collateral.ToDec().Mul(purchaseRatio).TruncateInt()
+		purchased := sdk.NewDecFromInt(provider.Collateral).Mul(purchaseRatio).TruncateInt()
 		if purchased.GT(totalPurchased) {
 			purchased = totalPurchased
 		}
-		payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
+		payout := sdk.NewDecFromInt(provider.Collateral).Mul(payoutRatio).TruncateInt()
 		if payout.GT(totalPayout) {
 			payout = totalPayout
 		}
@@ -466,7 +466,7 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 	totalDelAmount := provider.DelegationBonded
 
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
-	payoutRatio := payout.ToDec().Quo(totalDelAmount.ToDec())
+	payoutRatio := sdk.NewDecFromInt(payout).Quo(sdk.NewDecFromInt(totalDelAmount))
 	remaining := payout
 	for i := range delegations {
 		if !remaining.IsPositive() {
@@ -621,13 +621,13 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 		originalDelegatedVesting := vacc.GetDelegatedVesting()
 		vacc.TrackUndelegation(amt)
 		updatedDelegatedVesting := vacc.GetDelegatedVesting()
-		updateAmt := originalDelegatedVesting.Sub(updatedDelegatedVesting)
+		updateAmt := originalDelegatedVesting.Sub(updatedDelegatedVesting...)
 		if mvacc, ok := delAcc.(*vesting.ManualVestingAccount); ok {
 			var unlockAmt sdk.Coins
-			if mvacc.OriginalVesting.Sub(mvacc.VestedCoins).IsAllGT(updateAmt) {
+			if mvacc.OriginalVesting.Sub(mvacc.VestedCoins...).IsAllGT(updateAmt) {
 				unlockAmt = updateAmt
 			} else {
-				unlockAmt = mvacc.OriginalVesting.Sub(mvacc.VestedCoins)
+				unlockAmt = mvacc.OriginalVesting.Sub(mvacc.VestedCoins...)
 			}
 			mvacc.VestedCoins = mvacc.VestedCoins.Add(unlockAmt...)
 		}

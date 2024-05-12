@@ -118,7 +118,9 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	// Check pool shield limit.
 	poolParams := k.GetPoolParams(ctx)
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
-	maxShield := sdk.MinInt(pool.ShieldLimit, totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt())
+	// TODO check again
+	//maxShield := sdk.MinInt(pool.ShieldLimit, totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt())
+	maxShield := sdk.MinInt(pool.ShieldLimit, sdk.NewDecFromInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed)).Mul(poolParams.PoolShieldLimit).TruncateInt())
 	if shieldAmt.Add(pool.Shield).GT(maxShield) {
 		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
 	}
@@ -174,7 +176,9 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	serviceFees := sdk.NewCoins()
 	stakingCoins := sdk.NewCoins()
 	if !staking {
-		serviceFees = sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
+		// TODO check again
+		//serviceFees = sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
+		serviceFees = sdk.NewCoins(sdk.NewCoin(bondDenom, sdk.NewDecFromInt(shield.AmountOf(bondDenom)).Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
 	} else {
 		// stake to the staking purchase pool
 		stakingAmt := k.GetShieldStakingRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt()

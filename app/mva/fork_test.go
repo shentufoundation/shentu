@@ -1,6 +1,7 @@
 package mva_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -127,7 +127,7 @@ func (suite *ForkTestSuite) SetupTest() {
 
 	for _, pk := range pk {
 		acc := toAddr(pk)
-		err := sdksimapp.FundAccount(
+		err := testutil.FundAccount(
 			suite.app.BankKeeper,
 			suite.ctx,
 			acc,

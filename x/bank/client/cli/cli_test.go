@@ -34,9 +34,11 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.cfg.AccountTokens = sdk.NewInt(100_000_000_000)
 	s.cfg.StakingTokens = sdk.NewInt(100_000_000_000)
 
-	s.network = network.New(s.T(), s.cfg)
+	var err error
+	s.network, err = network.New(s.T(), s.T().TempDir(), s.cfg)
+	s.Require().NoError(err)
 
-	_, err := s.network.WaitForHeight(1)
+	_, err = s.network.WaitForHeight(1)
 	s.Require().NoError(err)
 }
 
@@ -107,7 +109,7 @@ func (s *IntegrationTestSuite) TestLockedSendTx() {
 			} else {
 				out, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, tc.args)
 				s.Require().NoError(err, out.String())
-				s.Require().NoError(clientCtx.JSONCodec.UnmarshalJSON(out.Bytes(), tc.respType), out.String())
+				s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), tc.respType), out.String())
 
 				txResp := tc.respType.(*sdk.TxResponse)
 				s.Require().Equal(tc.expectedCode, txResp.Code, out.String())

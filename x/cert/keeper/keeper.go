@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
@@ -12,14 +13,14 @@ import (
 
 // Keeper manages certifier & security council related logics.
 type Keeper struct {
-	storeKey       sdk.StoreKey
+	storeKey       storetypes.StoreKey
 	cdc            codec.BinaryCodec
 	slashingKeeper types.SlashingKeeper
 	stakingKeeper  types.StakingKeeper
 }
 
 // NewKeeper creates a new instance of the certifier keeper.
-func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, slashingKeeper types.SlashingKeeper, stakingKeeper types.StakingKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, slashingKeeper types.SlashingKeeper, stakingKeeper types.StakingKeeper) Keeper {
 	return Keeper{
 		cdc:            cdc,
 		storeKey:       storeKey,

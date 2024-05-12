@@ -4,12 +4,13 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
-func MigrateTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+func MigrateTaskStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 	expireHeightMap := make(map[int64]bool)
 	iterator := sdk.KVStorePrefixIterator(store, types.TaskStoreKeyPrefix)

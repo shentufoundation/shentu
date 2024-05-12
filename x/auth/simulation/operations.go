@@ -48,9 +48,9 @@ func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Oper
 			var unlockAmount sdk.Coins
 			var err error
 			if simtypes.RandIntBetween(r, 0, 100) < 50 {
-				unlockAmount = mvacc.OriginalVesting.Sub(mvacc.VestedCoins)
+				unlockAmount = mvacc.OriginalVesting.Sub(mvacc.VestedCoins...)
 			} else {
-				unlockAmount, err = simutil.RandomReasonableFees(r, ctx, mvacc.OriginalVesting.Sub(mvacc.VestedCoins))
+				unlockAmount, err = simutil.RandomReasonableFees(r, ctx, mvacc.OriginalVesting.Sub(mvacc.VestedCoins...))
 				if err != nil {
 					return simtypes.NoOpMsg(authtypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 				}
@@ -63,7 +63,8 @@ func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Oper
 
 			msg := types.NewMsgUnlock(acc.Address, acc.Address, unlockAmount)
 			txGen := simappparams.MakeTestEncodingConfig().TxConfig
-			tx, err := helpers.GenTx(
+			tx, err := helpers.GenSignedMockTx(
+				r,
 				txGen,
 				[]sdk.Msg{msg},
 				fees,
@@ -77,7 +78,7 @@ func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Oper
 				return simtypes.NoOpMsg(authtypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}
 
-			_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+			_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 			if err != nil {
 				return simtypes.NoOpMsg(authtypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}

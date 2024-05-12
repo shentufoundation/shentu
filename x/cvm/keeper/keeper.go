@@ -4,6 +4,7 @@ package keeper
 import (
 	"bytes"
 	gobin "encoding/binary"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"math/big"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -34,7 +35,7 @@ const TransactionGasLimit = uint64(5000000)
 // Keeper implements SDK Keeper.
 type Keeper struct {
 	cdc        codec.BinaryCodec
-	key        sdk.StoreKey
+	key        storetypes.StoreKey
 	ak         types.AccountKeeper
 	bk         types.BankKeeper
 	dk         types.DistributionKeeper
@@ -45,7 +46,7 @@ type Keeper struct {
 
 // NewKeeper creates a new instance of the CVM keeper.
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
+	cdc codec.BinaryCodec, key storetypes.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
 	dk types.DistributionKeeper, ck types.CertKeeper, sk types.StakingKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:        cdc,

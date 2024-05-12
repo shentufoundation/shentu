@@ -3,6 +3,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -21,7 +22,7 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new Keeper.
-func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, ak types.AccountKeeper, cvmk types.CVMKeeper, paramSpace paramsTypes.Subspace,
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ak types.AccountKeeper, cvmk types.CVMKeeper, paramSpace paramsTypes.Subspace,
 	blockedAddrs map[string]bool) Keeper {
 	bk := bankKeeper.NewBaseKeeper(cdc, storeKey, ak, paramSpace, blockedAddrs)
 	return Keeper{

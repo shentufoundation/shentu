@@ -137,7 +137,8 @@ func SimulateSubmitProposal(
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -157,7 +158,7 @@ func SimulateSubmitProposal(
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, err
 		}
@@ -253,7 +254,8 @@ func SimulateMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k keeper
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -267,7 +269,7 @@ func SimulateMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k keeper
 			return simtypes.NoOpMsg(govtypes.ModuleName, msg.Type(), "unable to generate mock tx"), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, err
 		}
@@ -313,7 +315,8 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -327,7 +330,7 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 			return simtypes.NoOpMsg(govtypes.ModuleName, msg.Type(), "unable to generate mock tx"), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, err
 		}
@@ -368,7 +371,8 @@ func SimulateMsgDeposit(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k kee
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -382,7 +386,7 @@ func SimulateMsgDeposit(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k kee
 			return simtypes.NoOpMsg(govtypes.ModuleName, msg.Type(), "unable to generate mock tx"), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, err
 		}

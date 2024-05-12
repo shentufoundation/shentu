@@ -6,7 +6,7 @@ import (
 	"github.com/gogo/protobuf/grpc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v043 "github.com/cosmos/cosmos-sdk/x/auth/legacy/v043"
+	v043 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v043"
 	sdktypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 

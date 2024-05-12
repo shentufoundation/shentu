@@ -1,22 +1,22 @@
 package keeper
 
 import (
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"time"
 
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 type Keeper struct {
 	keeper.Keeper
-	storeKey sdk.StoreKey
+	storeKey storetypes.StoreKey
 }
 
-func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper, paramstore paramtypes.Subspace) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, ak types.AccountKeeper, bk types.BankKeeper, paramstore paramtypes.Subspace) Keeper {
 	return Keeper{
 		Keeper:   keeper.NewKeeper(cdc, key, ak, bk, paramstore),
 		storeKey: key,

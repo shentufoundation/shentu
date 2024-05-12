@@ -15,7 +15,7 @@ import (
 // - ProposalKey changed from SmallEndian to BigEndian
 // - Delete old proposal data and add new proposal data
 // nolint
-func MigrateProposalStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+func MigrateProposalStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, govtypes.ProposalsKeyPrefix)
 

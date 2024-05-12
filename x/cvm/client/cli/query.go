@@ -288,7 +288,7 @@ func GetCmdAddressTranslate() *cobra.Command {
 					fmt.Println(errorMsg)
 					return errors.New("address needs to be 1-255 bytes")
 				}
-				accAddr, err := sdk.AccAddressFromHex(addr)
+				accAddr, err := sdk.AccAddressFromHexUnsafe(addr)
 				if err != nil {
 					fmt.Println(errorMsg)
 					return err

@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v043 "github.com/cosmos/cosmos-sdk/x/gov/legacy/v043"
+	v043 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v043"
 
 	v220 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v220"
 	v260 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v260"

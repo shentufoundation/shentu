@@ -69,7 +69,8 @@ func DeployContract(caller sim.Account, contractCode string, contractAbi string,
 	}
 
 	txGen := simappparams.MakeTestEncodingConfig().TxConfig
-	tx, err := helpers.GenTx(
+	tx, err := helpers.GenSignedMockTx(
+		r,
 		txGen,
 		[]sdk.Msg{&msg},
 		fees,
@@ -83,7 +84,7 @@ func DeployContract(caller sim.Account, contractCode string, contractAbi string,
 		return msg, nil, err
 	}
 
-	_, res, err := app.Deliver(txGen.TxEncoder(), tx)
+	_, res, err := app.SimDeliver(txGen.TxEncoder(), tx)
 	if err != nil {
 		return msg, nil, err
 	}
@@ -153,7 +154,8 @@ func CallFunction(caller sim.Account, prefix string, input string, contractAddr 
 	}
 
 	txGen := simappparams.MakeTestEncodingConfig().TxConfig
-	tx, err := helpers.GenTx(
+	tx, err := helpers.GenSignedMockTx(
+		r,
 		txGen,
 		[]sdk.Msg{&msg},
 		fees,
@@ -167,7 +169,7 @@ func CallFunction(caller sim.Account, prefix string, input string, contractAddr 
 		return msg, nil, err
 	}
 
-	_, res, err := app.Deliver(txGen.TxEncoder(), tx)
+	_, res, err := app.SimDeliver(txGen.TxEncoder(), tx)
 	if err != nil {
 		return msg, nil, err
 	}
