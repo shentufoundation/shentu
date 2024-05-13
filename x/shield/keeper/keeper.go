@@ -3,11 +3,11 @@ package keeper
 import (
 	"encoding/binary"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
@@ -78,7 +78,7 @@ func (k Keeper) BondDenom(ctx sdk.Context) string {
 }
 
 // GetVotingParams returns gov keeper's voting params.
-func (k Keeper) GetVotingParams(ctx sdk.Context) govtypes.VotingParams {
+func (k Keeper) GetVotingParams(ctx sdk.Context) govtypesv1.VotingParams {
 	return k.gk.GetVotingParams(ctx)
 }
 

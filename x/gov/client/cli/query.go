@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	"strconv"
 	"strings"
 
@@ -697,7 +696,7 @@ $ %[1]s query gov cert-voted 1
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := typesv1.NewQueryClient(cliCtx)
 
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
 
@@ -708,7 +707,7 @@ $ %[1]s query gov cert-voted 1
 			// Query store
 			res, err := queryClient.CertVoted(
 				cmd.Context(),
-				&types.QueryCertVotedRequest{ProposalId: proposalID},
+				&typesv1.QueryCertVotedRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return err

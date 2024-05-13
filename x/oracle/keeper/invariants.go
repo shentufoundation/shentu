@@ -111,7 +111,7 @@ func FundInvariant(k Keeper) sdk.Invariant {
 		if !totalCollateral.IsEqual(sumCollateral) {
 			broken = true
 		}
-		if !moduleBalance.Sub(totalCollateral).
+		if !moduleBalance.Sub(totalCollateral...).
 			IsAllGTE(sumReward.Add(sumPendingBounty...)) {
 			broken = true
 		}

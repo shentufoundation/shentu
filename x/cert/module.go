@@ -109,7 +109,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 
 // Route returns the module's route key.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.moduleKeeper))
+	return sdk.Route{}
 }
 
 // QuerierRoute returns the module querier route name.

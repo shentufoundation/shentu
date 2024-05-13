@@ -52,7 +52,7 @@ func (mva ManualVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins {
 
 // Returns the total number of vesting coins. If no coins are vesting, nil is returned.
 func (mva ManualVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
-	return mva.OriginalVesting.Sub(mva.GetVestedCoins(blockTime))
+	return mva.OriginalVesting.Sub(mva.GetVestedCoins(blockTime)...)
 }
 
 // LockedCoins returns the set of coins that are not spendable.

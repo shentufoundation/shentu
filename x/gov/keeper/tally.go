@@ -78,9 +78,9 @@ func Tally(ctx sdk.Context, k Keeper, proposal govtypesv1.Proposal) (pass bool, 
 	case *certtypes.CertifierUpdateProposal:
 		talls := customParams.CertifierUpdateStakeVoteTally
 		tp = govtypesv1.TallyParams{
-			Quorum:        talls.Quorum.String(),
-			Threshold:     talls.Threshold.String(),
-			VetoThreshold: talls.VetoThreshold.String(),
+			Quorum:        talls.Quorum,
+			Threshold:     talls.Threshold,
+			VetoThreshold: talls.VetoThreshold,
 		}
 	default:
 		tp = tallyParams
@@ -302,9 +302,9 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal govtypesv1.Proposal) (boo
 	th := TallyHelper{
 		totalHeadCounts,
 		govtypesv1.TallyParams{
-			Quorum:        ctally.Quorum.String(),
-			Threshold:     ctally.Threshold.String(),
-			VetoThreshold: ctally.VetoThreshold.String(),
+			Quorum:        ctally.Quorum,
+			Threshold:     ctally.Threshold,
+			VetoThreshold: ctally.VetoThreshold,
 		},
 		results,
 	}

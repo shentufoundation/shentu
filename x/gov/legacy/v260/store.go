@@ -11,6 +11,7 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	"github.com/shentufoundation/shentu/v2/x/gov/types/v1"
+	typesv1alpha1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1alpha1"
 )
 
 // MigrateProposalStore performs migration of ProposalKey.Specifically, it performs:
@@ -93,7 +94,7 @@ func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) error {
 		stakeVoteTally.Threshold,
 		stakeVoteTally.VetoThreshold,
 	)
-	customParams := types.CustomParams{
+	customParams := typesv1alpha1.CustomParams{
 		CertifierUpdateSecurityVoteTally: &certifierUpdateSecurityVoteTally,
 		CertifierUpdateStakeVoteTally:    &certifierUpdateStakeVoteTally,
 	}
