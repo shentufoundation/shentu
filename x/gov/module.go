@@ -22,7 +22,7 @@ import (
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
@@ -58,7 +58,7 @@ func (AppModuleBasic) Name() string {
 // RegisterLegacyAminoCodec registers the gov module's types for the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	v1beta1.RegisterLegacyAminoCodec(cdc)
-	v1.RegisterLegacyAminoCodec(cdc)
+	govtypesv1.RegisterLegacyAminoCodec(cdc)
 }
 
 // DefaultGenesis returns the default genesis state.
@@ -99,7 +99,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
 func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	v1.RegisterInterfaces(registry)
+	govtypesv1.RegisterInterfaces(registry)
 	v1beta1.RegisterInterfaces(registry)
 }
 
@@ -149,7 +149,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	//govtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	govtypesv1.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	typesv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper)

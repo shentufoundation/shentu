@@ -351,13 +351,11 @@ require (
 //replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 replace (
-	// Use cosmos keyring
-	github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
-
 	github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.2 // indirect
 
+	// Use cosmos keyring
+	github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	//github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.4-0.20221025141727-ec09eae77376
 	github.com/cosmos/ledger-cosmos-go => github.com/cosmos/ledger-cosmos-go v0.11.2-0.20220719170349-e736b9afa7d1
 
 	// Fix upstream GHSA-h395-qcrw-5vmq vulnerability.

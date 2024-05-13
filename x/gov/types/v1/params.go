@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -153,5 +153,5 @@ func validateVotingParams(i interface{}) error {
 
 // CertVotesKey gets the first part of the cert votes key based on the proposalID
 func CertVotesKey(proposalID uint64) []byte {
-	return append(CertVotesKeyPrefix, govTypes.GetProposalIDBytes(proposalID)...)
+	return append(CertVotesKeyPrefix, govtypes.GetProposalIDBytes(proposalID)...)
 }

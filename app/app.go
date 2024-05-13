@@ -2,7 +2,6 @@
 package app
 
 import (
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"io"
 	"net/http"
 	"os"
@@ -108,6 +107,7 @@ import (
 	distr "github.com/shentufoundation/shentu/v2/x/distribution"
 	"github.com/shentufoundation/shentu/v2/x/gov"
 	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	govtypesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 	"github.com/shentufoundation/shentu/v2/x/mint"
 	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle"

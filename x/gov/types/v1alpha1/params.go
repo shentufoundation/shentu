@@ -6,8 +6,9 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -22,15 +23,15 @@ var (
 // ParamKeyTable is the key declaration for parameters.
 func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable(
-		params.NewParamSetPair(govtypesv1.ParamStoreKeyDepositParams, govTypes.DepositParams{}, validateDepositParams),
-		params.NewParamSetPair(govtypesv1.ParamStoreKeyVotingParams, govTypes.VotingParams{}, validateVotingParams),
-		params.NewParamSetPair(govtypesv1.ParamStoreKeyTallyParams, govTypes.TallyParams{}, validateTally),
+		params.NewParamSetPair(govtypesv1.ParamStoreKeyDepositParams, govtypesv1beta1.DepositParams{}, validateDepositParams),
+		params.NewParamSetPair(govtypesv1.ParamStoreKeyVotingParams, govtypesv1beta1.VotingParams{}, validateVotingParams),
+		params.NewParamSetPair(govtypesv1.ParamStoreKeyTallyParams, govtypesv1beta1.TallyParams{}, validateTally),
 		params.NewParamSetPair(ParamStoreKeyCustomParams, CustomParams{}, validateCustomParams),
 	)
 }
 
 func validateDepositParams(i interface{}) error {
-	v, ok := i.(govTypes.DepositParams)
+	v, ok := i.(govtypesv1beta1.DepositParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -47,10 +48,10 @@ func validateDepositParams(i interface{}) error {
 
 // Params returns all the governance params
 type Params struct {
-	VotingParams  govTypes.VotingParams  `json:"voting_params" yaml:"voting_params"`
-	TallyParams   govTypes.TallyParams   `json:"tally_params" yaml:"tally_params"`
-	DepositParams govTypes.DepositParams `json:"deposit_params" yaml:"deposit_parmas"`
-	CustomParams  CustomParams           `json:"custom_params" yaml:"custom_params"`
+	VotingParams  govtypesv1beta1.VotingParams  `json:"voting_params" yaml:"voting_params"`
+	TallyParams   govtypesv1beta1.TallyParams   `json:"tally_params" yaml:"tally_params"`
+	DepositParams govtypesv1beta1.DepositParams `json:"deposit_params" yaml:"deposit_parmas"`
+	CustomParams  CustomParams                  `json:"custom_params" yaml:"custom_params"`
 }
 
 func (gp Params) String() string {
@@ -60,7 +61,7 @@ func (gp Params) String() string {
 }
 
 // NewParams returns a Params structs including voting, deposit and tally params
-func NewParams(vp govTypes.VotingParams, tp govTypes.TallyParams, dp govTypes.DepositParams, cp CustomParams) Params {
+func NewParams(vp govtypesv1beta1.VotingParams, tp govtypesv1beta1.TallyParams, dp govtypesv1beta1.DepositParams, cp CustomParams) Params {
 	return Params{
 		VotingParams:  vp,
 		DepositParams: dp,
@@ -70,7 +71,7 @@ func NewParams(vp govTypes.VotingParams, tp govTypes.TallyParams, dp govTypes.De
 }
 
 func validateTally(i interface{}) error {
-	v, ok := i.(govTypes.TallyParams)
+	v, ok := i.(govtypesv1beta1.TallyParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -102,7 +103,7 @@ func validateCustomParams(i interface{}) error {
 	return nil
 }
 
-func validateTallyParams(tallyParams govTypes.TallyParams) error {
+func validateTallyParams(tallyParams govtypesv1beta1.TallyParams) error {
 	if tallyParams.Quorum.IsNegative() {
 		return fmt.Errorf("quorom cannot be negative: %s", tallyParams.Quorum)
 	}
@@ -126,7 +127,7 @@ func validateTallyParams(tallyParams govTypes.TallyParams) error {
 }
 
 func validateVotingParams(i interface{}) error {
-	v, ok := i.(govTypes.VotingParams)
+	v, ok := i.(govtypesv1beta1.VotingParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -138,7 +139,7 @@ func validateVotingParams(i interface{}) error {
 	return nil
 }
 
-//// CertVotesKey gets the first part of the cert votes key based on the proposalID
-//func CertVotesKey(proposalID uint64) []byte {
-//	return append(CertVotesKeyPrefix, govTypes.GetProposalIDBytes(proposalID)...)
-//}
+// CertVotesKey gets the first part of the cert votes key based on the proposalID
+func CertVotesKey(proposalID uint64) []byte {
+	return append(CertVotesKeyPrefix, govtypes.GetProposalIDBytes(proposalID)...)
+}
