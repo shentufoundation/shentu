@@ -89,7 +89,6 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
 
 	appparams "github.com/shentufoundation/shentu/v2/app/params"
-	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/auth"
 	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bank"
@@ -318,8 +317,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.GetSubspace(authtypes.ModuleName),
 		authtypes.ProtoBaseAccount,
 		maccPerms,
-		//sdk.GetConfig().GetBech32AccountAddrPrefix(),
-		common.Bech32MainPrefix,
+		sdk.GetConfig().GetBech32AccountAddrPrefix(),
+		//common.Bech32MainPrefix,
 	)
 	app.BankKeeper = bankkeeper.NewKeeper(
 		appCodec,

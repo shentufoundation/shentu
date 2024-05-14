@@ -19,10 +19,10 @@ import (
 // Helper is a structure which wraps the staking handler
 // and provides methods useful in tests
 type Helper struct {
-	t  *testing.T
-	h  sdk.Handler
-	ph v1beta1.Handler
-	k  keeper.Keeper
+	t       *testing.T
+	msgSrvr types.MsgServer
+	ph      v1beta1.Handler
+	k       keeper.Keeper
 
 	ctx   sdk.Context
 	denom string
@@ -30,19 +30,23 @@ type Helper struct {
 
 // NewHelper creates staking Handler wrapper for tests
 func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper, denom string) *Helper {
-	return &Helper{t, shield.NewHandler(k), shield.NewShieldClaimProposalHandler(k), k, ctx, denom}
+	return &Helper{t, keeper.NewMsgServerImpl(k), shield.NewShieldClaimProposalHandler(k), k, ctx, denom}
 }
 
 func (sh *Helper) DepositCollateral(addr sdk.AccAddress, amount int64, ok bool) {
 	coins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, amount))
 	msg := types.NewMsgDepositCollateral(addr, coins)
-	sh.Handle(msg, ok)
+	res, err := sh.msgSrvr.DepositCollateral(sdk.WrapSDKContext(sh.ctx), msg)
+	require.NoError(sh.t, err)
+	require.NotNil(sh.t, res)
 }
 
 func (sh *Helper) WithdrawCollateral(addr sdk.AccAddress, amount int64, ok bool) {
 	coins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, amount))
 	msg := types.NewMsgWithdrawCollateral(addr, coins)
-	sh.Handle(msg, ok)
+	res, err := sh.msgSrvr.WithdrawCollateral(sdk.WrapSDKContext(sh.ctx), msg)
+	require.NoError(sh.t, err)
+	require.NotNil(sh.t, res)
 }
 
 func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, deposit, shield, shieldLimit int64, sponsor, description string) {
@@ -50,13 +54,17 @@ func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, deposit, shield, 
 	depositCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, deposit))
 	limit := sdk.NewInt(shieldLimit)
 	msg := types.NewMsgCreatePool(addr, shieldCoins, depositCoins, sponsor, sponsorAddr, description, limit)
-	sh.Handle(msg, true)
+	res, err := sh.msgSrvr.CreatePool(sdk.WrapSDKContext(sh.ctx), msg)
+	require.NoError(sh.t, err)
+	require.NotNil(sh.t, res)
 }
 
 func (sh *Helper) PurchaseShield(purchaser sdk.AccAddress, shield int64, poolID uint64, ok bool) {
 	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
 	msg := types.NewMsgPurchaseShield(poolID, shieldCoins, "test_purchase", purchaser)
-	sh.Handle(msg, ok)
+	res, err := sh.msgSrvr.PurchaseShield(sdk.WrapSDKContext(sh.ctx), msg)
+	require.NoError(sh.t, err)
+	require.NotNil(sh.t, res)
 }
 
 func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) {
@@ -67,26 +75,15 @@ func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolI
 
 func (sh *Helper) WithdrawReimbursement(purchaser sdk.AccAddress, proposalID uint64, ok bool) {
 	msg := types.NewMsgWithdrawReimbursement(proposalID, purchaser)
-	sh.Handle(msg, ok)
+	res, err := sh.msgSrvr.WithdrawReimbursement(sdk.WrapSDKContext(sh.ctx), msg)
+	require.NoError(sh.t, err)
+	require.NotNil(sh.t, res)
 }
 
 // TurnBlock updates context and calls endblocker.
 func (sh *Helper) TurnBlock(ctx sdk.Context) {
 	sh.ctx = ctx
 	shield.EndBlocker(sh.ctx, sh.k)
-}
-
-// Handle calls shield handler on a given message
-func (sh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
-	res, err := sh.h(sh.ctx, msg)
-	if ok {
-		require.NoError(sh.t, err)
-		require.NotNil(sh.t, res)
-	} else {
-		require.Error(sh.t, err)
-		require.Nil(sh.t, res)
-	}
-	return res
 }
 
 // HandleProposal calls shield proposal handler on a given proposal.
@@ -111,13 +108,17 @@ func (sh *Helper) UpdatePool(poolID uint64, fromAddr sdk.AccAddress, serviceFee,
 	serviceFeeCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, serviceFee))
 	limit := sdk.NewInt(shieldLimit)
 	msg := types.NewMsgUpdatePool(fromAddr, shieldCoins, serviceFeeCoins, poolID, desc, limit)
-	sh.Handle(msg, true)
+	res, err := sh.msgSrvr.UpdatePool(sdk.WrapSDKContext(sh.ctx), msg)
+	require.NoError(sh.t, err)
+	require.NotNil(sh.t, res)
 }
 
 func (sh *Helper) StakeForShield(poolID uint64, shield int64, desc string, from sdk.AccAddress) {
 	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
 	msg := types.NewMsgStakeForShield(poolID, shieldCoins, desc, from)
-	sh.Handle(msg, true)
+	res, err := sh.msgSrvr.StakeForShield(sdk.WrapSDKContext(sh.ctx), msg)
+	require.NoError(sh.t, err)
+	require.NotNil(sh.t, res)
 }
 
 func (sh *Helper) DecCoinsI64(amt int64) sdk.DecCoins {

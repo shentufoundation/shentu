@@ -105,7 +105,7 @@ func NewAppModule(k keeper.Keeper, bk types.BankKeeper) AppModule {
 
 // Route returns the module's route key.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+	return sdk.Route{}
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
@@ -133,11 +133,6 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
 	return cdc.MustMarshalJSON(gs)
-}
-
-// NewHandler returns a new module handler.
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
 }
 
 // LegacyQuerierHandler returns a new querier module handler.

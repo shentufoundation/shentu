@@ -290,7 +290,7 @@ func TestClaimProposal(t *testing.T) {
 	// verify that the withdrawal and unbonding have been delayed
 	// about 19e9 must be secured (two of three withdraws & ubds are delayed)
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
-	delayedWithdrawEnd := ctx.BlockTime().Add(app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2)
+	delayedWithdrawEnd := ctx.BlockTime().Add(*app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2)
 	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(25e9)))
 	require.True(t, withdraws[0].CompletionTime.Equal(withdraw1End)) //25e9 not delayed
 	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(10e9)))
