@@ -23,7 +23,7 @@ import (
 	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
@@ -57,7 +57,7 @@ func (AppModuleBasic) Name() string {
 
 // RegisterLegacyAminoCodec registers the gov module's types for the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	v1beta1.RegisterLegacyAminoCodec(cdc)
+	govtypesv1beta1.RegisterLegacyAminoCodec(cdc)
 	govtypesv1.RegisterLegacyAminoCodec(cdc)
 }
 
@@ -99,8 +99,8 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
 func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	govtypesv1beta1.RegisterInterfaces(registry)
 	govtypesv1.RegisterInterfaces(registry)
-	v1beta1.RegisterInterfaces(registry)
 }
 
 // AppModule is the main ctk module app type.

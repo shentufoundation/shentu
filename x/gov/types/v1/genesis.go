@@ -21,10 +21,11 @@ func DefaultGenesisState() *GenesisState {
 
 	defaultPeriod := govtypesv1.DefaultPeriod
 	votingParams := govtypesv1.DefaultVotingParams()
+
 	return &GenesisState{
 		StartingProposalId: govtypesv1.DefaultStartingProposalID,
 		DepositParams: &govtypesv1.DepositParams{
-			MinDeposit:       sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)},
+			MinDeposit:       sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)),
 			MaxDepositPeriod: &defaultPeriod,
 		},
 		VotingParams: &votingParams,
@@ -42,15 +43,15 @@ func ValidateGenesis(data *GenesisState) error {
 	if err != nil {
 		return err
 	}
-	err = validateTallyParams(*data.CustomParams.CertifierUpdateStakeVoteTally)
+	err = validateTallyParams(data.CustomParams.CertifierUpdateStakeVoteTally)
 	if err != nil {
 		return err
 	}
-	err = validateTallyParams(*data.CustomParams.CertifierUpdateSecurityVoteTally)
+	err = validateTallyParams(data.CustomParams.CertifierUpdateSecurityVoteTally)
 	if err != nil {
 		return err
 	}
-	err = validateDepositParams(data.DepositParams.MinDeposit)
+	err = validateDepositParams(data.DepositParams)
 	if err != nil {
 		return fmt.Errorf("governance deposit amount must be a valid sdk.Coins amount, is %s",
 			data.DepositParams.MinDeposit)
