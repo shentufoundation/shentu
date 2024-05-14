@@ -8,5 +8,5 @@ import (
 
 var (
 	// shield claim proposal handler
-	ProposalHandler = govclient.NewProposalHandler(cli.GetCmdSubmitProposal)
+	LegacyProposalHandler = govclient.NewProposalHandler(cli.GetCmdSubmitProposal)
 )
