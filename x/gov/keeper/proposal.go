@@ -138,19 +138,6 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, metadata str
 	if err != nil {
 		return govtypesv1.Proposal{}, err
 	}
-	//
-	//if c, ok := content.(*shieldtypes.ShieldClaimProposal); ok {
-	//	c.ProposalId = proposalID
-	//}
-
-	//// Execute the proposal content in a cache-wrapped context to validate the
-	//// actual parameter changes before the proposal proceeds through the
-	//// governance process. State is not persisted.
-	//cacheCtx, _ := ctx.CacheContext()
-	//handler := k.router.GetRoute(content.ProposalRoute())
-	//if err := handler(cacheCtx, content); err != nil {
-	//	return govtypes.Proposal{}, sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, err.Error())
-	//}
 
 	submitTime := ctx.BlockHeader().Time
 	depositPeriod := k.GetDepositParams(ctx).MaxDepositPeriod
@@ -171,6 +158,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, metadata str
 		sdk.NewEvent(
 			govtypes.EventTypeSubmitProposal,
 			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
+			sdk.NewAttribute(govtypes.AttributeKeyProposalMessages, msgsStr),
 		),
 	)
 

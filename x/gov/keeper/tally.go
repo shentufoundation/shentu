@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v046 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v046"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -13,7 +14,7 @@ import (
 // validatorGovInfo used for tallying
 type validatorGovInfo struct {
 	Address             sdk.ValAddress                 // address of the validator operator
-	BondedTokens        sdk.Int                        // power of a Validator
+	BondedTokens        math.Int                       // power of a Validator
 	DelegatorShares     sdk.Dec                        // total outstanding delegator shares
 	DelegatorDeductions sdk.Dec                        // delegator deductions from validator's delegators voting independently
 	Vote                govtypesv1.WeightedVoteOptions // vote of the validator
@@ -76,12 +77,7 @@ func Tally(ctx sdk.Context, k Keeper, proposal govtypesv1.Proposal) (pass bool, 
 	}
 	switch legacyProposal.GetContent().(type) {
 	case *certtypes.CertifierUpdateProposal:
-		talls := customParams.CertifierUpdateStakeVoteTally
-		tp = govtypesv1.TallyParams{
-			Quorum:        talls.Quorum,
-			Threshold:     talls.Threshold,
-			VetoThreshold: talls.VetoThreshold,
-		}
+		tp = *customParams.CertifierUpdateStakeVoteTally
 	default:
 		tp = tallyParams
 	}

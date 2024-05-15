@@ -149,8 +149,13 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	govtypesv1.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	msgServer := keeper.NewMsgServerImpl(am.keeper)
+	govtypesv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
+	govtypesv1beta1.RegisterMsgServer(cfg.MsgServer(), keeper.NewLegacyMsgServerImpl(am.accountKeeper.GetModuleAddress(govtypes.ModuleName).String(), msgServer))
+
 	typesv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	//legacyQueryServer := keeper.NewLegacyQueryServer(am.keeper)
+	//v1beta1.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
 
 	m := keeper.NewMigrator(am.keeper)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)

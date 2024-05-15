@@ -5,8 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
@@ -18,10 +16,6 @@ type CertKeeper interface {
 	HasCertifierAlias(ctx sdk.Context, alias string) bool
 	IsCertified(ctx sdk.Context, content string, certType string) bool
 	GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress
-}
-
-type UpgradeKeeper interface {
-	ValidatePlan(ctx sdk.Context, plan upgradetypes.Plan) error
 }
 
 type ShieldKeeper interface {

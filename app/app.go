@@ -126,9 +126,6 @@ import (
 const (
 	// AppName specifies the global application name.
 	AppName = "Shentu"
-
-	// DefaultKeyPass for shentud node daemon.
-	DefaultKeyPass = "12345678"
 )
 
 var (
