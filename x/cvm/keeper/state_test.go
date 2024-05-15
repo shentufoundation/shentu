@@ -22,7 +22,7 @@ import (
 )
 
 func TestState_NewState(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
@@ -38,7 +38,7 @@ func TestState_NewState(t *testing.T) {
 }
 
 func TestState_UpdateAccount(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	bondDenom := app.StakingKeeper.BondDenom(ctx)
 
@@ -82,7 +82,7 @@ func TestState_UpdateAccount(t *testing.T) {
 }
 
 func TestState_RemoveAccount(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper

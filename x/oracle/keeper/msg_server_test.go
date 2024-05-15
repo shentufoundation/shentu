@@ -144,7 +144,7 @@ func PassBlocks(ctx sdk.Context, ok keeper.Keeper, t require.TestingT, n int64, 
 }
 
 func DoInit(t *testing.T) (sdk.Context, keeper.Keeper, types.MsgServer, []sdk.AccAddress) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper

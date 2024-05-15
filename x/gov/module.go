@@ -82,7 +82,6 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runti
 }
 
 // GetTxCmd gets the root tx command of this module.
-
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	proposalCLIHandlers := make([]*cobra.Command, 0, len(a.legacyProposalHandlers))
 	for _, proposalHandler := range a.legacyProposalHandlers {
@@ -197,7 +196,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 // AppModuleSimulation functions
 
 // GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 

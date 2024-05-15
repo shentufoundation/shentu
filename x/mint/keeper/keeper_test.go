@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+
+	"github.com/tendermint/tendermint/crypto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
-
-	"github.com/tendermint/tendermint/crypto"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 )
@@ -23,7 +23,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.app = shentuapp.Setup(false)
+	suite.app = shentuapp.Setup(suite.T(), false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	coins := sdk.Coins{sdk.NewInt64Coin("uctk", 80000*1e6)}
 	suite.Require().NoError(testutil.FundModuleAccount(suite.app.BankKeeper, suite.ctx, "mint", coins))

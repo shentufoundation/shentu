@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
@@ -14,6 +13,7 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	"github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 

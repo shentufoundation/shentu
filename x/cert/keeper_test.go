@@ -18,7 +18,7 @@ import (
 
 func Test_GetNewCertificateID(t *testing.T) {
 	t.Run("Testing GetNewCertificateID", func(t *testing.T) {
-		app := shentuapp.Setup(false)
+		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
 
@@ -90,7 +90,7 @@ func randomString(length int) string {
 
 func Test_IterationByCertifier(t *testing.T) {
 	t.Run("Testing certifier-based iteration", func(t *testing.T) {
-		app := shentuapp.Setup(false)
+		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := shentuapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
 		for _, addr := range addrs {
@@ -126,7 +126,7 @@ func Test_IterationByCertifier(t *testing.T) {
 
 func Test_CertificateQueries(t *testing.T) {
 	t.Run("Testing various queries on certifications", func(t *testing.T) {
-		app := shentuapp.Setup(false)
+		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := shentuapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
 		for _, addr := range addrs {
@@ -211,7 +211,7 @@ func Test_CertificateQueries(t *testing.T) {
 
 func Test_IsCertified(t *testing.T) {
 	t.Run("Testing the function IsCertified", func(t *testing.T) {
-		app := shentuapp.Setup(false)
+		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
 		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))

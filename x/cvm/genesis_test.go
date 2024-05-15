@@ -24,7 +24,7 @@ func NewGasMeter(limit uint64) sdk.GasMeter {
 }
 
 func TestExportGenesis(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(10000))
 	k := app.CVMKeeper
@@ -35,7 +35,7 @@ func TestExportGenesis(t *testing.T) {
 	_, _ = k.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 	exported := cvm.ExportGenesis(ctx, k)
 
-	app2 := shentuapp.Setup(false)
+	app2 := shentuapp.Setup(t, false)
 	ctx2 := app2.BaseApp.NewContext(false, tmproto.Header{})
 	k2 := app2.CVMKeeper
 
