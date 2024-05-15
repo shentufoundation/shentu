@@ -101,24 +101,46 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1
 	}
 
 	if pass {
-		//handler := k.Router().GetRoute(proposal.ProposalRoute())
-		//cacheCtx, writeCache := ctx.CacheContext()
-		//// The proposal handler may execute state mutating logic depending on the
-		//// proposal content. If the handler fails, no state mutation is written and
-		//// the error message is logged.
-		//err := handler(cacheCtx, proposal.GetContent())
-		//if err == nil {
-		//	proposal.Status = govtypesv1.StatusPassed
-		//	tagValue = govtypes.AttributeValueProposalPassed
-		//	logMsg = "passed"
-		//
-		//	// write state to the underlying multi-store
-		//	writeCache()
-		//} else {
-		//	proposal.Status = govtypesv1.StatusFailed
-		//	tagValue = govtypes.AttributeValueProposalFailed
-		//	logMsg = fmt.Sprintf("passed, but failed on execution: %s", err)
-		//}
+		var (
+			idx    int
+			events sdk.Events
+			msg    sdk.Msg
+		)
+
+		// attempt to execute all messages within the passed proposal
+		// Messages may mutate state thus we use a cached context. If one of
+		// the handlers fails, no state mutation is written and the error
+		// message is logged.
+		cacheCtx, writeCache := ctx.CacheContext()
+		messages, err := proposal.GetMsgs()
+		if err == nil {
+			for idx, msg = range messages {
+				handler := k.Router().Handler(msg)
+
+				var res *sdk.Result
+				res, err = handler(cacheCtx, msg)
+				if err != nil {
+					break
+				}
+
+				events = append(events, res.GetEvents()...)
+			}
+		}
+
+		// `err == nil` when all handlers passed.
+		// Or else, `idx` and `err` are populated with the msg index and error.
+		if err == nil {
+			proposal.Status = govtypesv1.StatusPassed
+			tagValue = govtypes.AttributeValueProposalPassed
+			logMsg = "passed"
+
+			// write state to the underlying multi-store
+			writeCache()
+		} else {
+			proposal.Status = govtypesv1.StatusFailed
+			tagValue = govtypes.AttributeValueProposalFailed
+			logMsg = fmt.Sprintf("passed, but msg %d (%s) failed on execution: %s", idx, sdk.MsgTypeURL(msg), err)
+		}
 	} else {
 		proposal.Status = govtypesv1.StatusRejected
 		tagValue = govtypes.AttributeValueProposalRejected
@@ -172,25 +194,40 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.P
 	// Else: the proposal passed the certifier voting period.
 
 	if endVoting {
-		//handler := k.Router().GetRoute(proposal.ProposalRoute())
-		//cacheCtx, writeCache := ctx.CacheContext()
-		//
-		//// The proposal handler may execute state mutating logic depending on the
-		//// proposal content. If the handler fails, no state mutation is written and
-		//// the error message is logged.
-		//err := handler(cacheCtx, proposal.GetContent())
-		//if err == nil {
-		//	proposal.Status = govtypesv1.StatusPassed
-		//	tagValue = govtypes.AttributeValueProposalPassed
-		//	logMsg = "passed"
-		//
-		//	// write state to the underlying multi-store
-		//	writeCache()
-		//} else {
-		//proposal.Status = govtypesv1.StatusFailed
-		//tagValue = govtypes.AttributeValueProposalFailed
-		//logMsg = fmt.Sprintf("passed, but failed on execution: %s", err)
-		//}
+		var (
+			idx    int
+			events sdk.Events
+			msg    sdk.Msg
+		)
+
+		cacheCtx, writeCache := ctx.CacheContext()
+		messages, err := proposal.GetMsgs()
+		if err == nil {
+			for idx, msg = range messages {
+				handler := k.Router().Handler(msg)
+
+				var res *sdk.Result
+				res, err = handler(cacheCtx, msg)
+				if err != nil {
+					break
+				}
+
+				events = append(events, res.GetEvents()...)
+			}
+		}
+
+		if err == nil {
+			proposal.Status = govtypesv1.StatusPassed
+			tagValue = govtypes.AttributeValueProposalPassed
+			logMsg = "passed"
+
+			// write state to the underlying multi-store
+			writeCache()
+		} else {
+			proposal.Status = govtypesv1.StatusFailed
+			tagValue = govtypes.AttributeValueProposalFailed
+			logMsg = fmt.Sprintf("passed, but msg %d (%s) failed on execution: %s", idx, sdk.MsgTypeURL(msg), err)
+		}
 
 		proposal.FinalTallyResult = &tallyResults
 
