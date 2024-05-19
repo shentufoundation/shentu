@@ -2,6 +2,7 @@
 package types
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -18,8 +19,8 @@ type AccountKeeper interface {
 
 // StakingKeeper defines the expected staking keeper.
 type StakingKeeper interface {
-	StakingTokenSupply(ctx sdk.Context) sdk.Int
-	TotalBondedTokens(ctx sdk.Context) sdk.Int
+	StakingTokenSupply(ctx sdk.Context) math.Int
+	TotalBondedTokens(ctx sdk.Context) math.Int
 	BondedRatio(ctx sdk.Context) sdk.Dec
 	BondDenom(ctx sdk.Context) string
 }
@@ -39,7 +40,7 @@ type DistributionKeeper interface {
 }
 
 type ShieldKeeper interface {
-	GetGlobalShieldStakingPool(ctx sdk.Context) sdk.Int
+	GetGlobalShieldStakingPool(ctx sdk.Context) math.Int
 	FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 	GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec
 }

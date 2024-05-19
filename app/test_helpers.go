@@ -2,11 +2,9 @@ package app
 
 import (
 	"bytes"
-	"cosmossdk.io/math"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/shentufoundation/shentu/v2/common"
 	"strconv"
 	"testing"
 	"time"
@@ -19,6 +17,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	"cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -35,6 +34,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/shentufoundation/shentu/v2/app/params"
+	"github.com/shentufoundation/shentu/v2/common"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
@@ -287,7 +287,7 @@ func AddTestAddrsIncremental(app *ShentuApp, ctx sdk.Context, accNum int, accAmt
 }
 
 // AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
-func AddTestAddrsFromPubKeys(app *ShentuApp, ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdk.Int) {
+func AddTestAddrsFromPubKeys(app *ShentuApp, ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt math.Int) {
 	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
 
 	// fill all the addresses with some coins, set the loose pool tokens simultaneously

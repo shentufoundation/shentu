@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -519,7 +520,7 @@ func (k Keeper) Aggregate(ctx sdk.Context, taskID []byte) error {
 }
 
 // TotalValidTaskCollateral calculates the total amount of valid collateral of a task.
-func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.TaskI) sdk.Int {
+func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.TaskI) math.Int {
 	taskParams := k.GetTaskParams(ctx)
 	totalValidTaskCollateral := sdk.NewInt(0)
 	responses := task.GetResponses()

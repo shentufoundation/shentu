@@ -3,6 +3,7 @@ package keeper
 import (
 	"math/rand"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -21,10 +22,10 @@ func RandomValidator(r *rand.Rand, k Keeper, ctx sdk.Context) (staking.Validator
 }
 
 // RandomDelegation returns a random delegation info given access to the keeper and ctx.
-func RandomDelegation(r *rand.Rand, k Keeper, ctx sdk.Context) (sdk.AccAddress, sdk.Int, bool) {
+func RandomDelegation(r *rand.Rand, k Keeper, ctx sdk.Context) (sdk.AccAddress, math.Int, bool) {
 	val, ok := RandomValidator(r, k, ctx)
 	if !ok {
-		return nil, sdk.Int{}, false
+		return nil, math.Int{}, false
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(val.OperatorAddress)

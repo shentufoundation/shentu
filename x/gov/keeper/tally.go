@@ -112,7 +112,7 @@ func newResults() map[govtypesv1.VoteOption]sdk.Dec {
 	}
 }
 
-func newValidatorGovInfo(address sdk.ValAddress, bondedTokens sdk.Int, delegatorShares,
+func newValidatorGovInfo(address sdk.ValAddress, bondedTokens math.Int, delegatorShares,
 	delegatorDeductions sdk.Dec, vote govtypesv1.WeightedVoteOptions) *validatorGovInfo {
 	return &validatorGovInfo{
 		Address:             address,

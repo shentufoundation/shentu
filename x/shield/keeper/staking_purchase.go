@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	"encoding/binary"
 	"fmt"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
-func (k Keeper) GetGlobalShieldStakingPool(ctx sdk.Context) (pool sdk.Int) {
+func (k Keeper) GetGlobalShieldStakingPool(ctx sdk.Context) (pool math.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetGlobalStakeForShieldPoolKey())
 	if bz == nil {
@@ -22,13 +23,13 @@ func (k Keeper) GetGlobalShieldStakingPool(ctx sdk.Context) (pool sdk.Int) {
 	return ip.Int
 }
 
-func (k Keeper) SetGlobalShieldStakingPool(ctx sdk.Context, value sdk.Int) {
+func (k Keeper) SetGlobalShieldStakingPool(ctx sdk.Context, value math.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: value})
 	store.Set(types.GetGlobalStakeForShieldPoolKey(), bz)
 }
 
-func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) sdk.Int {
+func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) math.Int {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetOriginalStakingKey(purchaseID))
 	if bz == nil {
@@ -40,7 +41,7 @@ func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) sdk.Int {
 	return ip.Int
 }
 
-func (k Keeper) SetOriginalStaking(ctx sdk.Context, purchaseID uint64, amount sdk.Int) {
+func (k Keeper) SetOriginalStaking(ctx sdk.Context, purchaseID uint64, amount math.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: amount})
 	store.Set(types.GetOriginalStakingKey(purchaseID), bz)
@@ -62,7 +63,7 @@ func (k Keeper) SetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 	store.Set(types.GetStakeForShieldKey(poolID, purchaser), bz)
 }
 
-func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, stakingAmt sdk.Int) error {
+func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, stakingAmt math.Int) error {
 	stakingCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), stakingAmt))
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
 		return err
@@ -83,7 +84,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	return nil
 }
 
-func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) error {
+func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount math.Int) error {
 	sp, found := k.GetStakeForShield(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound

@@ -3,11 +3,12 @@ package types
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // NewPool creates a new project pool.
-func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shieldLimit sdk.Int, shield sdk.Int) Pool {
+func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shieldLimit math.Int, shield math.Int) Pool {
 	return Pool{
 		Id:          id,
 		Description: description,
@@ -31,7 +32,7 @@ func NewProvider(addr sdk.AccAddress) Provider {
 }
 
 // NewPurchase creates a new purchase object.
-func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, description string, shield sdk.Int, serviceFees sdk.DecCoins) Purchase {
+func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, description string, shield math.Int, serviceFees sdk.DecCoins) Purchase {
 	return Purchase{
 		PurchaseId:        purchaseID,
 		ProtectionEndTime: protectionEndTime,
@@ -52,7 +53,7 @@ func NewPurchaseList(poolID uint64, purchaser sdk.AccAddress, purchases []Purcha
 }
 
 // NewWithdraw creates a new withdraw object.
-func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) Withdraw {
+func NewWithdraw(addr sdk.AccAddress, amount math.Int, completionTime time.Time) Withdraw {
 	return Withdraw{
 		Address:        addr.String(),
 		Amount:         amount,
@@ -60,7 +61,7 @@ func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) 
 	}
 }
 
-func NewShieldStaking(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) ShieldStaking {
+func NewShieldStaking(poolID uint64, purchaser sdk.AccAddress, amount math.Int) ShieldStaking {
 	return ShieldStaking{
 		PoolId:            poolID,
 		Purchaser:         purchaser.String(),

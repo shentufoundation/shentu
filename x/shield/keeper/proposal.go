@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
@@ -94,7 +95,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 // SecureFromProvider secures the specified amount of collaterals from
 // the provider for the duration. If necessary, it extends withdrawing
 // collaterals and, if exist, their linked unbondings as well.
-func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amount sdk.Int, duration time.Duration) {
+func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amount math.Int, duration time.Duration) {
 	providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
 	if err != nil {
 		panic(err)
@@ -308,7 +309,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 }
 
 // UpdateProviderCollateralForPayout updates a provider's collateral and withdraws according to the payout.
-func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) error {
+func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout math.Int) error {
 	provider, found := k.GetProvider(ctx, providerAddr)
 	if !found {
 		return types.ErrProviderNotFound
@@ -390,7 +391,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 }
 
 // MakePayoutByProviderDelegations undelegates the provider's delegations and transfers tokens from the staking module account to the shield module account.
-func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) error {
+func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout math.Int) error {
 	provider, found := k.GetProvider(ctx, providerAddr)
 	if !found {
 		return types.ErrProviderNotFound
@@ -458,7 +459,7 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 }
 
 // PayFromDelegation reduce provider's delegations and transfer tokens to the shield module account.
-func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payout sdk.Int) {
+func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payout math.Int) {
 	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
 		panic(types.ErrProviderNotFound)
@@ -478,7 +479,7 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 			panic("validator is not found")
 		}
 		delAmount := val.TokensFromShares(delegations[i].GetShares()).TruncateInt()
-		var ubdAmount sdk.Int
+		var ubdAmount math.Int
 		if i == len(delegations)-1 {
 			ubdAmount = remaining
 		} else {
@@ -506,7 +507,7 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 }
 
 // PayFromUnbondings reduce provider's unbonding delegations and transfer tokens to the shield module account.
-func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation, payout sdk.Int) {
+func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation, payout math.Int) {
 	delAddr, err := sdk.AccAddressFromBech32(ubd.DelegatorAddress)
 	if err != nil {
 		panic(err)

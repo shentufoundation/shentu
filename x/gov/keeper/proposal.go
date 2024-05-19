@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -47,7 +48,7 @@ func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
 }
 
 // TotalBondedByCertifiedIdentities calculates the amount of total bonded stakes by certified identities.
-func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) sdk.Int {
+func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) math.Int {
 	bonded := sdk.ZeroInt()
 	for _, identity := range k.CertKeeper.GetCertifiedIdentities(ctx) {
 		k.stakingKeeper.IterateDelegations(ctx, identity, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {

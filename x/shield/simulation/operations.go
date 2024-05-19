@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"strings"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -711,7 +712,7 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, b
 	}
 }
 
-func computeMaxShield(pool types.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield sdk.Int, poolParams types.PoolParams) sdk.Int {
+func computeMaxShield(pool types.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield math.Int, poolParams types.PoolParams) math.Int {
 	poolLimit := pool.ShieldLimit.Sub(pool.Shield)
 	// TODO check again
 	globalLimit := sdk.MinInt(sdk.NewDecFromInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed)).Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
