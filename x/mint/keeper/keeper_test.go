@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 	"testing"
 	"time"
 
@@ -13,10 +11,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/common"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // shared setup
@@ -97,7 +97,6 @@ func (suite *KeeperTestSuite) TestKeeper_SendToShieldRewards() {
 		} else {
 			initalMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, common.MicroCTKDenom)
 			shieldBalance1 := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte(shieldtypes.ModuleName))), common.MicroCTKDenom)
-			suite.T().Log(shieldBalance1)
 			err := suite.app.MintKeeper.SendToShieldRewards(suite.ctx, tc.coins)
 			suite.Require().NoError(err)
 			deductedMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, common.MicroCTKDenom)

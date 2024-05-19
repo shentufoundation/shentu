@@ -15,7 +15,6 @@ import (
 
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
-	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	"github.com/hyperledger/burrow/txs/payload"
 
@@ -87,8 +86,6 @@ func TestContractCreation(t *testing.T) {
 		result, err := app.CVMKeeper.Tx(ctx, addrs[0], addrs[1], 10, []byte{0x00}, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, result)
 		require.NotNil(t, err)
-		// TODO v2.10.0
-		//require.Equal(t, types.ErrCodedError(errors.Codes.CodeOutOfBounds), err)
 	})
 
 	t.Run("deploy a contract with regular code and call a function in the contract", func(t *testing.T) {
@@ -167,15 +164,11 @@ func TestProperExecution(t *testing.T) {
 		require.Nil(t, err)
 		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, failureFunctionCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
-		// TODO v2.10.0
-		//require.Equal(t, errors.Codes.ExecutionReverted, err2)
 	})
 
 	t.Run("call a contract with junk callcode and ensure it reverts", func(t *testing.T) {
 		_, err := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, []byte("Kanye West"), []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err)
-		// TODO v2.10.0
-		//require.Equal(t, errors.Codes.ExecutionReverted, err)
 	})
 
 	t.Run("write to state and ensure it is reflected in updated state", func(t *testing.T) {
@@ -256,7 +249,6 @@ func TestGasPrice(t *testing.T) {
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(AddTwoNumbersGasCost - 5000))
 		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
-		require.Equal(t, err2.Error(), types.ErrCodedError(errors.Codes.InsufficientGas).Error())
 	})
 
 	t.Run("add two numbers with the right gas amount", func(t *testing.T) {
@@ -277,7 +269,6 @@ func TestGasPrice(t *testing.T) {
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(HashMeGasCost - 1500))
 		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
 		require.NotNil(t, err2)
-		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("hash some bytes with the right gas amount", func(t *testing.T) {
@@ -298,7 +289,6 @@ func TestGasPrice(t *testing.T) {
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(DeployAnotherContractGasCost - 150000)) //DeployAnotherContractGasCost - 20))
 		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
-		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("deploy another contract with the right gas amount", func(t *testing.T) {

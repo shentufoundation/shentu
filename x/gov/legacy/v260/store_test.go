@@ -22,7 +22,7 @@ import (
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/common"
 	v260 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v260"
-	v1alpha1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1alpha1"
+	"github.com/shentufoundation/shentu/v2/x/gov/types/v1alpha1"
 )
 
 func Test_MigrateProposalStore(t *testing.T) {
