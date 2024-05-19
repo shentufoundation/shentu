@@ -6,9 +6,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	sdkerrors "cosmossdk.io/errors"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/shentufoundation/shentu/v2/common"

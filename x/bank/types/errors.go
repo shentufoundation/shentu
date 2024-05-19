@@ -1,7 +1,7 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "cosmossdk.io/errors"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

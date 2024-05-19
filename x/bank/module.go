@@ -123,9 +123,8 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 // Route returns the message routing key for the bank module.
-// TODO check
 func (am AppModule) Route() sdk.Route {
-	return am.cosmosAppModule.Route()
+	return sdk.Route{}
 }
 
 // QuerierRoute returns the bank module's querier route name.

@@ -112,7 +112,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // Route returns the message routing key for the auth module.
 func (am AppModule) Route() sdk.Route {
-	return am.cosmosAppModule.Route()
+	return sdk.Route{}
 }
 
 // QuerierRoute returns the auth module's querier route name.

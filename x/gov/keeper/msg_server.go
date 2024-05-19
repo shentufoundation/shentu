@@ -2,11 +2,9 @@ package keeper
 
 import (
 	"context"
+	sdkerrors "cosmossdk.io/errors"
 	"fmt"
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -193,7 +191,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypesv1.MsgDeposit) (*
 func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, content govtypesv1beta1.Content) error {
 	if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
 		c := content.(*shieldtypes.ShieldClaimProposal)
-		lockPeriod := time.Duration(*k.GetVotingParams(ctx).VotingPeriod) * 2
+		lockPeriod := *k.GetVotingParams(ctx).VotingPeriod * 2
 		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
 		if err != nil {
 			return err

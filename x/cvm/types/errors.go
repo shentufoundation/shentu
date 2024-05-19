@@ -1,7 +1,8 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	//sdkerrors "cosmossdk.io/errors"
+	sdkerrors "cosmossdk.io/errors"
 
 	"github.com/hyperledger/burrow/execution/errors"
 )

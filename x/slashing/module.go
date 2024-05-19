@@ -104,7 +104,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // Route returns the message routing key for the slashing module.
 func (am AppModule) Route() sdk.Route {
-	return am.cosmosAppModule.Route()
+	return sdk.Route{}
 }
 
 // QuerierRoute returns the slashing module's querier route name.

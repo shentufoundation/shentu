@@ -268,8 +268,7 @@ func passAndVetoSecurityResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass 
 		return true
 	}
 
-	// If there are not enough "yes" votes, proposal fails.
-	return false
+	return th.results[govtypesv1.OptionYes].Quo(th.totalVotingPower).GT(threshold)
 }
 
 // SecurityTally only gets called if the proposal is a software upgrade or

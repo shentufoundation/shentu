@@ -3,12 +3,12 @@ package e2e
 import (
 	"context"
 	"fmt"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 func (s *IntegrationTestSuite) executeSubmitUpgradeProposal(c *chain, valIdx, upgradeHeight int, submitterAddr, proposalName, fees string) {
@@ -95,13 +95,13 @@ func (s *IntegrationTestSuite) executeVoteProposal(c *chain, valIdx int, submitt
 	s.T().Logf("%s successfully vote proposal %d %s", submitterAddr, proposalId, vote)
 }
 
-func queryProposal(endpoint string, proposalID int) (*sdkgovtypes.QueryProposalResponse, error) {
-	grpcReq := &sdkgovtypes.QueryProposalRequest{
+func queryProposal(endpoint string, proposalID int) (*govtypesv1.QueryProposalResponse, error) {
+	grpcReq := &govtypesv1.QueryProposalRequest{
 		ProposalId: uint64(proposalID),
 	}
 	conn, err := connectGrpc(endpoint)
 	defer conn.Close()
-	client := govtypes.NewQueryClient(conn)
+	client := govtypesv1.NewQueryClient(conn)
 
 	grpcRsp, err := client.Proposal(context.Background(), grpcReq)
 	if err != nil {
