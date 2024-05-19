@@ -3,8 +3,8 @@ package types
 import (
 	"encoding/json"
 
-	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/txs/payload"

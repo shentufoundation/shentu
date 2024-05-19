@@ -1,9 +1,9 @@
 package cert
 
 import (
-	sdkerrors "cosmossdk.io/errors"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"

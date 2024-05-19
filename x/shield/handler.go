@@ -4,8 +4,8 @@ import (
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"strconv"
 
-	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/shentufoundation/shentu/v2/x/shield/keeper"
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )

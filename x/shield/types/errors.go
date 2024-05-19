@@ -1,6 +1,6 @@
 package types
 
-import sdkerrors "cosmossdk.io/errors"
+import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 // Error Code Enums
 
