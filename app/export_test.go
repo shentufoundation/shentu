@@ -10,10 +10,10 @@ func TestExportAppStateAndValidators(t *testing.T) {
 		name          string
 		forZeroHeight bool
 	}{
-		//{
-		//	"for zero height",
-		//	true,
-		//},
+		{
+			"for zero height",
+			true,
+		},
 		{
 			"for non-zero height",
 			false,
