@@ -157,9 +157,9 @@ func (am AppModule) EndBlock(ctx sdk.Context, reb abci.RequestEndBlock) []abci.V
 
 // AppModuleSimulation functions
 
-// WeightedOperations returns staking operations for use in simulations.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.keeper.Keeper)
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+	sdksimulation.RandomizedGenState(simState)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
@@ -168,17 +168,16 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 }
 
 // RandomizedParams returns functions that generate params for the module.
-func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return []simtypes.ParamChange{}
-	//return stakingSim.ParamChanges(r)
-}
-
-// GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	sdksimulation.RandomizedGenState(simState)
+func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return sdksimulation.ParamChanges(r)
 }
 
 // RegisterStoreDecoder registers a decoder for this module.
-func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[stakingtypes.StoreKey] = sdksimulation.NewDecodeStore(am.cdc)
+}
+
+// WeightedOperations returns staking operations for use in simulations.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.keeper.Keeper)
 }
