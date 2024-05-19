@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	"math/rand"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -78,7 +79,14 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runtime.ServeMux) {
-	typesv1.RegisterQueryHandlerClient(context.Background(), mux, typesv1.NewQueryClient(ctx))
+	err := typesv1.RegisterQueryHandlerClient(context.Background(), mux, typesv1.NewQueryClient(ctx))
+	if err != nil {
+		panic(err)
+	}
+	if err := govtypesv1beta1.RegisterQueryHandlerClient(context.Background(), mux, govtypesv1beta1.NewQueryClient(ctx)); err != nil {
+		panic(err)
+	}
+
 }
 
 // GetTxCmd gets the root tx command of this module.
@@ -153,8 +161,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	govtypesv1beta1.RegisterMsgServer(cfg.MsgServer(), keeper.NewLegacyMsgServerImpl(am.accountKeeper.GetModuleAddress(govtypes.ModuleName).String(), msgServer))
 
 	typesv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-	//legacyQueryServer := keeper.NewLegacyQueryServer(am.keeper)
-	//v1beta1.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
+	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
+	govtypesv1beta1.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
 
 	m := keeper.NewMigrator(am.keeper)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)

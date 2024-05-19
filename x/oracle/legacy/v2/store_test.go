@@ -21,7 +21,7 @@ import (
 )
 
 func Test_MigrateTaskStore(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cdc := shentuapp.MakeEncodingConfig().Codec
 
@@ -94,7 +94,7 @@ func TaskStoreKey(contract, function string) []byte {
 }
 
 func Test_MigrateTaskParams(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	ok := app.OracleKeeper
 	oracleSubspace := app.GetSubspace(oracletypes.ModuleName)

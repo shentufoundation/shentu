@@ -2,16 +2,16 @@ package v260
 
 import (
 	"encoding/json"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes2 "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
-	"github.com/shentufoundation/shentu/v2/x/gov/types/v1"
-	typesv1alpha1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1alpha1"
+	v1alpha1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1alpha1"
 )
 
 // MigrateProposalStore performs migration of ProposalKey.Specifically, it performs:
@@ -21,7 +21,7 @@ import (
 // nolint
 func MigrateProposalStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, govtypes2.ProposalsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, govtypes.ProposalsKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -29,7 +29,7 @@ func MigrateProposalStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc cod
 		if err := cdc.Unmarshal(iterator.Value(), &oldProposal); err != nil {
 			return err
 		}
-		newProposal := govtypes.Proposal{
+		newProposal := govtypesv1beta1.Proposal{
 			ProposalId:       oldProposal.ProposalId,
 			Content:          oldProposal.Content,
 			FinalTallyResult: oldProposal.FinalTallyResult,
@@ -43,15 +43,15 @@ func MigrateProposalStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc cod
 		switch oldProposal.Status {
 		case StatusCertifierVotingPeriod:
 		case StatusValidatorVotingPeriod:
-			newProposal.Status = govtypes.StatusVotingPeriod
+			newProposal.Status = govtypesv1beta1.StatusVotingPeriod
 		case StatusPassed:
-			newProposal.Status = govtypes.StatusPassed
+			newProposal.Status = govtypesv1beta1.StatusPassed
 		case StatusRejected:
-			newProposal.Status = govtypes.StatusRejected
+			newProposal.Status = govtypesv1beta1.StatusRejected
 		case StatusFailed:
-			newProposal.Status = govtypes.StatusFailed
+			newProposal.Status = govtypesv1beta1.StatusFailed
 		default:
-			newProposal.Status = govtypes.ProposalStatus(oldProposal.Status)
+			newProposal.Status = govtypesv1beta1.ProposalStatus(oldProposal.Status)
 		}
 
 		store.Delete(iterator.Key())
@@ -59,7 +59,7 @@ func MigrateProposalStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc cod
 		if err != nil {
 			return err
 		}
-		store.Set(govtypes2.ProposalKey(newProposal.ProposalId), bz)
+		store.Set(govtypes.ProposalKey(newProposal.ProposalId), bz)
 	}
 
 	return nil
@@ -67,7 +67,7 @@ func MigrateProposalStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc cod
 
 func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) error {
 	var (
-		depositParams  govtypes.DepositParams
+		depositParams  govtypesv1beta1.DepositParams
 		oldTallyParams TallyParams
 	)
 
@@ -82,19 +82,19 @@ func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) error {
 
 	securityVoteTally := oldTallyParams.CertifierUpdateSecurityVoteTally
 	stakeVoteTally := oldTallyParams.CertifierUpdateStakeVoteTally
-	tallyParams := govtypes.NewTallyParams(defaultTally.Quorum, defaultTally.Threshold, defaultTally.VetoThreshold)
+	tallyParams := govtypesv1beta1.NewTallyParams(defaultTally.Quorum, defaultTally.Threshold, defaultTally.VetoThreshold)
 	// customParams
-	certifierUpdateSecurityVoteTally := govtypes.NewTallyParams(
+	certifierUpdateSecurityVoteTally := govtypesv1beta1.NewTallyParams(
 		securityVoteTally.Quorum,
 		securityVoteTally.Threshold,
 		securityVoteTally.VetoThreshold,
 	)
-	certifierUpdateStakeVoteTally := govtypes.NewTallyParams(
+	certifierUpdateStakeVoteTally := govtypesv1beta1.NewTallyParams(
 		stakeVoteTally.Quorum,
 		stakeVoteTally.Threshold,
 		stakeVoteTally.VetoThreshold,
 	)
-	customParams := typesv1alpha1.CustomParams{
+	customParams := v1alpha1.CustomParams{
 		CertifierUpdateSecurityVoteTally: &certifierUpdateSecurityVoteTally,
 		CertifierUpdateStakeVoteTally:    &certifierUpdateStakeVoteTally,
 	}
@@ -102,7 +102,7 @@ func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) error {
 	// set migrate params
 	paramSubspace.Set(ctx, govtypesv1.ParamStoreKeyDepositParams, &depositParams)
 	paramSubspace.Set(ctx, govtypesv1.ParamStoreKeyTallyParams, &tallyParams)
-	paramSubspace.Set(ctx, v1.ParamStoreKeyCustomParams, &customParams)
+	paramSubspace.Set(ctx, v1alpha1.ParamStoreKeyCustomParams, &customParams)
 
 	return nil
 }

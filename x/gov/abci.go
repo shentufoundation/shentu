@@ -75,7 +75,7 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1
 	)
 	logger := k.Logger(ctx)
 
-	if k.HasSecurityVoting(proposal) && !k.GetCertifierVoted(ctx, proposal.Id) {
+	if k.CertifierVoteIsRequired(proposal) && !k.GetCertifierVoted(ctx, proposal.Id) {
 		var endVoting bool
 		pass, endVoting, tallyResults = keeper.SecurityTally(ctx, k, proposal)
 		if !endVoting {
@@ -177,11 +177,11 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.P
 	logger := k.Logger(ctx)
 
 	// Only process security proposals
-	if !k.HasSecurityVoting(proposal) {
+	if !k.CertifierVoteIsRequired(proposal) {
 		return false
 	}
 	// Only process proposals in the security voting period.
-	if k.HasSecurityVoting(proposal) && k.GetCertifierVoted(ctx, proposal.Id) {
+	if k.CertifierVoteIsRequired(proposal) && k.GetCertifierVoted(ctx, proposal.Id) {
 		return false
 	}
 

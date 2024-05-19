@@ -5,6 +5,7 @@ import (
 	"cosmossdk.io/math"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/shentufoundation/shentu/v2/common"
 	"strconv"
 	"testing"
@@ -251,10 +252,38 @@ func createRandomAccounts(accNum int) []sdk.AccAddress {
 	return testAddrs
 }
 
+// createIncrementalAccounts is a strategy used by addTestAddrs() in order to generated addresses in ascending order.
+func createIncrementalAccounts(accNum int) []sdk.AccAddress {
+	var addresses []sdk.AccAddress
+	var buffer bytes.Buffer
+
+	// start at 100 so we can make up to 999 test addresses with valid test addresses
+	for i := 100; i < (accNum + 100); i++ {
+		numString := strconv.Itoa(i)
+		buffer.WriteString("A58856F0FD53BF058B4909A21AEC019107BA6") // base address string
+
+		buffer.WriteString(numString) // adding on final two digits to make addresses unique
+		res, _ := sdk.AccAddressFromHexUnsafe(buffer.String())
+		bech := res.String()
+		addr, _ := TestAddr(buffer.String(), bech)
+
+		addresses = append(addresses, addr)
+		buffer.Reset()
+	}
+
+	return addresses
+}
+
 // AddTestAddrs constructs and returns accNum amount of accounts with an
 // initial balance of accAmt
 func AddTestAddrs(app *ShentuApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, createRandomAccounts)
+}
+
+// AddTestAddrsIncremental constructs and returns accNum amount of accounts with an
+// initial balance of accAmt in random order
+func AddTestAddrsIncremental(app *ShentuApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
+	return addTestAddrs(app, ctx, accNum, accAmt, createIncrementalAccounts)
 }
 
 // AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
@@ -317,6 +346,27 @@ func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 		panic(errors.Wrap(errors.ErrInvalidPubKey, "invalid pubkey size"))
 	}
 	return &ed25519.PubKey{Key: pkBytes}
+}
+
+func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
+	res, err := sdk.AccAddressFromHexUnsafe(addr)
+	if err != nil {
+		return nil, err
+	}
+	bechexpected := res.String()
+	if bech != bechexpected {
+		return nil, fmt.Errorf("bech encoding doesn't match reference")
+	}
+
+	bechres, err := sdk.AccAddressFromBech32(bech)
+	if err != nil {
+		return nil, err
+	}
+	if !bytes.Equal(bechres, res) {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 // EmptyAppOptions is a stub implementing AppOptions

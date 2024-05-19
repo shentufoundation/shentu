@@ -7,6 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
+	"github.com/shentufoundation/shentu/v2/common"
 )
 
 func (suite *KeeperTestSuite) TestSubmitProposalReq() {
@@ -14,7 +16,7 @@ func (suite *KeeperTestSuite) TestSubmitProposalReq() {
 	addrs := suite.addrs
 	proposer := addrs[0]
 
-	coins := sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(100)))
+	coins := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100)))
 	initialDeposit := coins
 	minDeposit := suite.app.GovKeeper.GetDepositParams(suite.ctx).MinDeposit
 	bankMsg := &banktypes.MsgSend{

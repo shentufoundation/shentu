@@ -2,7 +2,6 @@ package v260_test
 
 import (
 	"fmt"
-	"github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 	"reflect"
 	"testing"
 	"time"
@@ -17,20 +16,23 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/common"
 	v260 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v260"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	v1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
+	v1alpha1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1alpha1"
 )
 
 func Test_MigrateProposalStore(t *testing.T) {
 	govKey := sdk.NewKVStoreKey(govtypes.StoreKey)
 	ctx := testutil.DefaultContext(govKey, sdk.NewTransientStoreKey("transient_test"))
-	cdc := shentuapp.MakeEncodingConfig().Marshaler
+	cdc := shentuapp.MakeEncodingConfig().Codec
 	store := ctx.KVStore(govKey)
 
-	content := govtypes.NewTextProposal("title", "description")
+	content := govtypesv1beta1.NewTextProposal("title", "description")
 	fmt.Println(content.ProposalRoute())
 	msg, ok := content.(proto.Message)
 	require.True(t, ok)
@@ -75,12 +77,12 @@ func Test_MigrateProposalStore(t *testing.T) {
 
 func Test_MigrateParams(t *testing.T) {
 	var (
-		depositParams govtypes.DepositParams
-		tallyParams   govtypes.TallyParams
-		customParams  types.CustomParams
+		depositParams govtypesv1beta1.DepositParams
+		tallyParams   govtypesv1beta1.TallyParams
+		customParams  v1alpha1.CustomParams
 	)
 
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	govSubspace := app.GetSubspace(govtypes.ModuleName)
 	tableField := reflect.ValueOf(&govSubspace).Elem().FieldByName("table")
@@ -89,14 +91,14 @@ func Test_MigrateParams(t *testing.T) {
 
 	minInitialDepositTokens := sdk.TokensFromConsensusPower(1, sdk.DefaultPowerReduction)
 	minDepositTokens := sdk.TokensFromConsensusPower(5, sdk.DefaultPowerReduction)
-	defaultTally := govtypes.NewTallyParams(sdk.NewDecWithPrec(335, 3), sdk.NewDecWithPrec(6, 1), sdk.NewDecWithPrec(335, 3))
-	certifierUpdateSecurityVoteTally := govtypes.NewTallyParams(sdk.NewDecWithPrec(335, 3), sdk.NewDecWithPrec(668, 3), sdk.NewDecWithPrec(335, 3))
-	certifierUpdateStakeVoteTally := govtypes.NewTallyParams(sdk.NewDecWithPrec(335, 3), sdk.NewDecWithPrec(8, 1), sdk.NewDecWithPrec(335, 3))
+	defaultTally := govtypesv1beta1.NewTallyParams(sdk.NewDecWithPrec(335, 3), sdk.NewDecWithPrec(6, 1), sdk.NewDecWithPrec(335, 3))
+	certifierUpdateSecurityVoteTally := govtypesv1beta1.NewTallyParams(sdk.NewDecWithPrec(335, 3), sdk.NewDecWithPrec(668, 3), sdk.NewDecWithPrec(335, 3))
+	certifierUpdateStakeVoteTally := govtypesv1beta1.NewTallyParams(sdk.NewDecWithPrec(335, 3), sdk.NewDecWithPrec(8, 1), sdk.NewDecWithPrec(335, 3))
 
 	oldDepositParams := v260.DepositParams{
 		MinInitialDeposit: sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minInitialDepositTokens)},
 		MinDeposit:        sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)},
-		MaxDepositPeriod:  govtypes.DefaultPeriod,
+		MaxDepositPeriod:  govtypesv1beta1.DefaultPeriod,
 	}
 	oldTallyParams := v260.TallyParams{
 		DefaultTally:                     &defaultTally,
@@ -104,15 +106,15 @@ func Test_MigrateParams(t *testing.T) {
 		CertifierUpdateStakeVoteTally:    &certifierUpdateStakeVoteTally,
 	}
 	// set old data
-	govSubspace.Set(ctx, govtypes.ParamStoreKeyDepositParams, &oldDepositParams)
-	govSubspace.Set(ctx, govtypes.ParamStoreKeyTallyParams, &oldTallyParams)
+	govSubspace.Set(ctx, govtypesv1.ParamStoreKeyDepositParams, &oldDepositParams)
+	govSubspace.Set(ctx, govtypesv1.ParamStoreKeyTallyParams, &oldTallyParams)
 
 	tableFieldPtr.Elem().Set(reflect.ValueOf(v1.ParamKeyTable()))
 	err := v260.MigrateParams(ctx, govSubspace)
 	require.NoError(t, err)
 	// get migrate params
-	govSubspace.Get(ctx, govtypes.ParamStoreKeyDepositParams, &depositParams)
-	govSubspace.Get(ctx, govtypes.ParamStoreKeyTallyParams, &tallyParams)
+	govSubspace.Get(ctx, govtypesv1.ParamStoreKeyDepositParams, &depositParams)
+	govSubspace.Get(ctx, govtypesv1.ParamStoreKeyTallyParams, &tallyParams)
 	govSubspace.Get(ctx, v1.ParamStoreKeyCustomParams, &customParams)
 
 	require.Equal(t, depositParams.MinDeposit, oldDepositParams.MinDeposit)

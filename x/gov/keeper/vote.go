@@ -8,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	v046 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v046"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
@@ -37,19 +36,29 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		}
 	}
 
-	// Add cert vote
-	if k.HasSecurityVoting(proposal) && !k.GetCertifierVoted(ctx, proposalID) {
+	// Add certifier vote
+	if k.CertifierVoteIsRequired(proposal) && !k.GetCertifierVoted(ctx, proposalID) {
 		return k.AddCertifierVote(ctx, proposalID, voterAddr, options)
 	}
 
-	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
+	// update certifier vote
+	proposalMsgs, err := proposal.GetMsgs()
 	if err != nil {
 		return err
 	}
-	if legacyProposal.GetContent().ProposalType() == shieldtypes.ProposalTypeShieldClaim &&
-		proposal.Status == govtypesv1.StatusVotingPeriod &&
-		!k.IsCertifiedIdentity(ctx, voterAddr) {
-		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
+	for _, proposalmsg := range proposalMsgs {
+		if legacyMsg, ok := proposalmsg.(*govtypesv1.MsgExecLegacyContent); ok {
+			// check that the content struct can be unmarshalled
+			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
+			if err != nil {
+				return err
+			}
+			if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim &&
+				proposal.Status == govtypesv1.StatusVotingPeriod &&
+				!k.IsCertifiedIdentity(ctx, voterAddr) {
+				return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
+			}
+		}
 	}
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))

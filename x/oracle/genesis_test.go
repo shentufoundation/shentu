@@ -12,13 +12,13 @@ import (
 )
 
 func TestExportGenesis(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	k := app.OracleKeeper
 
 	exported := oracle.ExportGenesis(ctx, k)
 
-	app2 := shentuapp.Setup(false)
+	app2 := shentuapp.Setup(t, false)
 	ctx2 := app2.BaseApp.NewContext(false, tmproto.Header{})
 	k2 := app2.OracleKeeper
 

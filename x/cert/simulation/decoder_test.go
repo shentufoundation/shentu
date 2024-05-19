@@ -21,7 +21,7 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	cdc := app.Codec()
 
 	rand.Seed(time.Now().UnixNano())

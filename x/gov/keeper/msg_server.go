@@ -7,10 +7,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	v046 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v046"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
@@ -42,16 +41,29 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubm
 
 	// Skip deposit period for proposals from certifier memebers or shield claim proposals.
 	proposer, _ := sdk.AccAddressFromBech32(msg.GetProposer())
-	votingStarted := k.ActivateVotingPeriodCustom(ctx, proposal, proposer)
+	votingStarted := false
+
+	// update shield SecureCollaterals
+	for _, proposalmsg := range proposalMsgs {
+		if legacyMsg, ok := proposalmsg.(*govtypesv1.MsgExecLegacyContent); ok {
+			// check that the content struct can be unmarshalled
+			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
+			if err != nil {
+				return nil, err
+			}
+			votingStarted = k.ActivateVotingPeriodCustom(ctx, content, proposal, proposer)
+
+			if err = updateAfterSubmitProposal(ctx, k.Keeper, content); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	if !votingStarted {
 		votingStarted, err = k.Keeper.AddDeposit(ctx, proposal.Id, proposer, msg.GetInitialDeposit())
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if err := updateAfterSubmitProposal(ctx, k.Keeper, proposal); err != nil {
-		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -108,6 +120,7 @@ func (k msgServer) Vote(goCtx context.Context, msg *govtypesv1.MsgVote) (*govtyp
 		return nil, accErr
 	}
 	options := govtypesv1.NewNonSplitVoteOption(msg.Option)
+
 	err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, options, msg.Metadata)
 	if err != nil {
 		return nil, err
@@ -177,78 +190,9 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypesv1.MsgDeposit) (*
 	return &govtypesv1.MsgDepositResponse{}, nil
 }
 
-// todo remove to msg check
-//func validateProposalByType(ctx sdk.Context, k Keeper, messages []sdk.Msg) error {
-//	for _, msg := range messages {
-//		msg, ok := msg.(*govtypesv1.MsgExecLegacyContent)
-//		if !ok {
-//			continue
-//		}
-//
-//		switch c := msg.GetContent().(type) {
-//		case *certtypes.CertifierUpdateProposal:
-//			msgs, err := msg.GetMsgs()
-//			if err != nil {
-//				return err
-//			}
-//			if msgs[0].Alias != "" && k.CertKeeper.HasCertifierAlias(ctx, c.Alias) {
-//				return certtypes.ErrRepeatedAlias
-//			}
-//
-//		case *shieldtypes.ShieldClaimProposal:
-//			// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
-//			denom := k.stakingKeeper.BondDenom(ctx)
-//			initialDepositAmount := sdk.NewDecFromInt(msg.InitialDeposit.AmountOf(denom))
-//			lossAmount := c.Loss.AmountOf(denom)
-//			lossAmountDec := sdk.NewDecFromInt(lossAmount)
-//			claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
-//			depositRate := claimProposalParams.DepositRate
-//			minDeposit := sdk.NewDecFromInt(claimProposalParams.MinDeposit.AmountOf(denom))
-//			if initialDepositAmount.LT(lossAmountDec.Mul(depositRate)) || initialDepositAmount.LT(minDeposit) {
-//				return sdkerrors.Wrapf(
-//					sdkerrors.ErrInsufficientFunds,
-//					"insufficient initial deposits amount: %v, minimum: max(%v, %v)",
-//					initialDepositAmount, lossAmountDec.Mul(depositRate), minDeposit,
-//				)
-//			}
-//
-//			// check shield >= loss
-//			proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
-//			if err != nil {
-//				return err
-//			}
-//			purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolId, proposerAddr)
-//			if !found {
-//				return shieldtypes.ErrPurchaseNotFound
-//			}
-//			purchase, found := k.ShieldKeeper.GetPurchase(purchaseList, c.PurchaseId)
-//			if !found {
-//				return shieldtypes.ErrPurchaseNotFound
-//			}
-//			if !purchase.Shield.GTE(lossAmount) {
-//				return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Shield, c.Loss)
-//			}
-//
-//			// check the purchaseList is not expired
-//			if purchase.ProtectionEndTime.Before(ctx.BlockTime()) {
-//				return fmt.Errorf("after protection end time: %s", purchase.ProtectionEndTime)
-//			}
-//			return nil
-//
-//		default:
-//			return nil
-//		}
-//	}
-//	return nil
-//}
-
-func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal govtypesv1.Proposal) error {
-	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
-	if err != nil {
-		return err
-	}
-	if legacyProposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := legacyProposal.GetContent().(*shieldtypes.ShieldClaimProposal)
+func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, content govtypesv1beta1.Content) error {
+	if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+		c := content.(*shieldtypes.ShieldClaimProposal)
 		lockPeriod := time.Duration(*k.GetVotingParams(ctx).VotingPeriod) * 2
 		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
 		if err != nil {
@@ -266,13 +210,13 @@ type legacyMsgServer struct {
 
 // NewLegacyMsgServerImpl returns an implementation of the v1beta1 legacy MsgServer interface. It wraps around
 // the current MsgServer
-func NewLegacyMsgServerImpl(govAcct string, v1Server govtypesv1.MsgServer) v1beta1.MsgServer {
+func NewLegacyMsgServerImpl(govAcct string, v1Server govtypesv1.MsgServer) govtypesv1beta1.MsgServer {
 	return &legacyMsgServer{govAcct: govAcct, server: v1Server}
 }
 
-var _ v1beta1.MsgServer = legacyMsgServer{}
+var _ govtypesv1beta1.MsgServer = legacyMsgServer{}
 
-func (k legacyMsgServer) SubmitProposal(goCtx context.Context, msg *v1beta1.MsgSubmitProposal) (*v1beta1.MsgSubmitProposalResponse, error) {
+func (k legacyMsgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1beta1.MsgSubmitProposal) (*govtypesv1beta1.MsgSubmitProposalResponse, error) {
 	contentMsg, err := govtypesv1.NewLegacyContent(msg.GetContent(), k.govAcct)
 	if err != nil {
 		return nil, fmt.Errorf("error converting legacy content into proposal message: %w", err)
@@ -293,10 +237,10 @@ func (k legacyMsgServer) SubmitProposal(goCtx context.Context, msg *v1beta1.MsgS
 		return nil, err
 	}
 
-	return &v1beta1.MsgSubmitProposalResponse{ProposalId: resp.ProposalId}, nil
+	return &govtypesv1beta1.MsgSubmitProposalResponse{ProposalId: resp.ProposalId}, nil
 }
 
-func (k legacyMsgServer) Vote(goCtx context.Context, msg *v1beta1.MsgVote) (*v1beta1.MsgVoteResponse, error) {
+func (k legacyMsgServer) Vote(goCtx context.Context, msg *govtypesv1beta1.MsgVote) (*govtypesv1beta1.MsgVoteResponse, error) {
 	_, err := k.server.Vote(goCtx, &govtypesv1.MsgVote{
 		ProposalId: msg.ProposalId,
 		Voter:      msg.Voter,
@@ -305,10 +249,10 @@ func (k legacyMsgServer) Vote(goCtx context.Context, msg *v1beta1.MsgVote) (*v1b
 	if err != nil {
 		return nil, err
 	}
-	return &v1beta1.MsgVoteResponse{}, nil
+	return &govtypesv1beta1.MsgVoteResponse{}, nil
 }
 
-func (k legacyMsgServer) VoteWeighted(goCtx context.Context, msg *v1beta1.MsgVoteWeighted) (*v1beta1.MsgVoteWeightedResponse, error) {
+func (k legacyMsgServer) VoteWeighted(goCtx context.Context, msg *govtypesv1beta1.MsgVoteWeighted) (*govtypesv1beta1.MsgVoteWeightedResponse, error) {
 	opts := make([]*govtypesv1.WeightedVoteOption, len(msg.Options))
 	for idx, opt := range msg.Options {
 		opts[idx] = &govtypesv1.WeightedVoteOption{
@@ -325,10 +269,10 @@ func (k legacyMsgServer) VoteWeighted(goCtx context.Context, msg *v1beta1.MsgVot
 	if err != nil {
 		return nil, err
 	}
-	return &v1beta1.MsgVoteWeightedResponse{}, nil
+	return &govtypesv1beta1.MsgVoteWeightedResponse{}, nil
 }
 
-func (k legacyMsgServer) Deposit(goCtx context.Context, msg *v1beta1.MsgDeposit) (*v1beta1.MsgDepositResponse, error) {
+func (k legacyMsgServer) Deposit(goCtx context.Context, msg *govtypesv1beta1.MsgDeposit) (*govtypesv1beta1.MsgDepositResponse, error) {
 	_, err := k.server.Deposit(goCtx, &govtypesv1.MsgDeposit{
 		ProposalId: msg.ProposalId,
 		Depositor:  msg.Depositor,
@@ -337,5 +281,5 @@ func (k legacyMsgServer) Deposit(goCtx context.Context, msg *v1beta1.MsgDeposit)
 	if err != nil {
 		return nil, err
 	}
-	return &v1beta1.MsgDepositResponse{}, nil
+	return &govtypesv1beta1.MsgDepositResponse{}, nil
 }
