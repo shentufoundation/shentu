@@ -135,7 +135,7 @@ func Setup(t *testing.T, isCheckTx bool) *ShentuApp {
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e14))),
 	}
 
 	return SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)

@@ -37,16 +37,26 @@ func (sh *Helper) DepositCollateral(addr sdk.AccAddress, amount int64, ok bool) 
 	coins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, amount))
 	msg := types.NewMsgDepositCollateral(addr, coins)
 	res, err := sh.msgSrvr.DepositCollateral(sdk.WrapSDKContext(sh.ctx), msg)
-	require.NoError(sh.t, err)
-	require.NotNil(sh.t, res)
+	if ok {
+		require.NoError(sh.t, err)
+		require.NotNil(sh.t, res)
+	} else {
+		require.Error(sh.t, err)
+		require.Nil(sh.t, res)
+	}
 }
 
 func (sh *Helper) WithdrawCollateral(addr sdk.AccAddress, amount int64, ok bool) {
 	coins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, amount))
 	msg := types.NewMsgWithdrawCollateral(addr, coins)
 	res, err := sh.msgSrvr.WithdrawCollateral(sdk.WrapSDKContext(sh.ctx), msg)
-	require.NoError(sh.t, err)
-	require.NotNil(sh.t, res)
+	if ok {
+		require.NoError(sh.t, err)
+		require.NotNil(sh.t, res)
+	} else {
+		require.Error(sh.t, err)
+		require.Nil(sh.t, res)
+	}
 }
 
 func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, deposit, shield, shieldLimit int64, sponsor, description string) {
@@ -63,8 +73,13 @@ func (sh *Helper) PurchaseShield(purchaser sdk.AccAddress, shield int64, poolID 
 	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
 	msg := types.NewMsgPurchaseShield(poolID, shieldCoins, "test_purchase", purchaser)
 	res, err := sh.msgSrvr.PurchaseShield(sdk.WrapSDKContext(sh.ctx), msg)
-	require.NoError(sh.t, err)
-	require.NotNil(sh.t, res)
+	if ok {
+		require.NoError(sh.t, err)
+		require.NotNil(sh.t, res)
+	} else {
+		require.Error(sh.t, err)
+		require.Nil(sh.t, res)
+	}
 }
 
 func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) {
@@ -76,8 +91,13 @@ func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolI
 func (sh *Helper) WithdrawReimbursement(purchaser sdk.AccAddress, proposalID uint64, ok bool) {
 	msg := types.NewMsgWithdrawReimbursement(proposalID, purchaser)
 	res, err := sh.msgSrvr.WithdrawReimbursement(sdk.WrapSDKContext(sh.ctx), msg)
-	require.NoError(sh.t, err)
-	require.NotNil(sh.t, res)
+	if ok {
+		require.NoError(sh.t, err)
+		require.NotNil(sh.t, res)
+	} else {
+		require.Error(sh.t, err)
+		require.Nil(sh.t, res)
+	}
 }
 
 // TurnBlock updates context and calls endblocker.

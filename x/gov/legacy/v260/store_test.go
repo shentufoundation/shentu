@@ -22,7 +22,6 @@ import (
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/common"
 	v260 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v260"
-	v1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 	v1alpha1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1alpha1"
 )
 
@@ -109,13 +108,13 @@ func Test_MigrateParams(t *testing.T) {
 	govSubspace.Set(ctx, govtypesv1.ParamStoreKeyDepositParams, &oldDepositParams)
 	govSubspace.Set(ctx, govtypesv1.ParamStoreKeyTallyParams, &oldTallyParams)
 
-	tableFieldPtr.Elem().Set(reflect.ValueOf(v1.ParamKeyTable()))
+	tableFieldPtr.Elem().Set(reflect.ValueOf(v1alpha1.ParamKeyTable()))
 	err := v260.MigrateParams(ctx, govSubspace)
 	require.NoError(t, err)
 	// get migrate params
 	govSubspace.Get(ctx, govtypesv1.ParamStoreKeyDepositParams, &depositParams)
 	govSubspace.Get(ctx, govtypesv1.ParamStoreKeyTallyParams, &tallyParams)
-	govSubspace.Get(ctx, v1.ParamStoreKeyCustomParams, &customParams)
+	govSubspace.Get(ctx, v1alpha1.ParamStoreKeyCustomParams, &customParams)
 
 	require.Equal(t, depositParams.MinDeposit, oldDepositParams.MinDeposit)
 	require.Equal(t, depositParams.MaxDepositPeriod, oldDepositParams.MaxDepositPeriod)

@@ -1,6 +1,7 @@
 package mva_test
 
 import (
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"testing"
 	"time"
@@ -111,7 +112,7 @@ func copyMVA(mva types.ManualVestingAccount) *types.ManualVestingAccount {
 }
 
 func (suite *ForkTestSuite) SetupTest() {
-	suite.app = shentuapp.Setup(false)
+	suite.app = shentuapp.Setup(suite.T(), false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.ak = suite.app.AccountKeeper
 	suite.bk = suite.app.BankKeeper
@@ -297,7 +298,7 @@ func (suite *ForkTestSuite) TestFork() {
 				if err != nil {
 					panic(err)
 				}
-				suite.tstaking.Delegate(tc.args.acc.GetAddress(), operAddr, s.Int64())
+				suite.tstaking.Delegate(tc.args.acc.GetAddress(), operAddr, math.NewInt(s.Int64()))
 			}
 			for i, u := range tc.args.unbondings {
 				operAddr, err := sdk.ValAddressFromBech32(suite.sk.GetAllValidators(suite.ctx)[i].OperatorAddress)

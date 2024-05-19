@@ -5,7 +5,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/tendermint/crypto"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov"
@@ -26,7 +29,9 @@ type Helper struct {
 
 // NewHelper creates staking Handler wrapper for tests
 func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper, denom string) *Helper {
-	return &Helper{t, keeper.NewLegacyMsgServerImpl(k), k, ctx, denom}
+	moduleAcct := sdk.AccAddress(crypto.AddressHash([]byte(govtypes.ModuleName)))
+	msgSrvr := keeper.NewMsgServerImpl(k)
+	return &Helper{t, keeper.NewLegacyMsgServerImpl(moduleAcct.String(), msgSrvr), k, ctx, denom}
 }
 
 func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) {

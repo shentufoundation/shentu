@@ -25,7 +25,7 @@ type MigrationTestSuite struct {
 }
 
 func (suite *MigrationTestSuite) SetupTest() {
-	suite.app = shentuapp.Setup(false)
+	suite.app = shentuapp.Setup(suite.T(), false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	suite.keeper = suite.app.ShieldKeeper
 }

@@ -59,7 +59,7 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	// create and add addresses
 	pks := shentuapp.CreateTestPubKeys(4)
-	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(1e8))
 	del1addr, del2addr := sdk.AccAddress(pks[0].Address()), sdk.AccAddress(pks[1].Address())
 	val1pk, val2pk := pks[2], pks[3]
 	val1addr, val2addr := sdk.ValAddress(val1pk.Address()), sdk.ValAddress(val2pk.Address())
