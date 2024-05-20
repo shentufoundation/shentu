@@ -585,6 +585,10 @@ func (msg MsgUpdateSponsor) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUpdateSponsor) ValidateBasic() error {
+	if msg.PoolId == 0 {
+		return ErrInvalidPoolID
+	}
+
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
 		panic(err)
@@ -593,7 +597,7 @@ func (msg MsgUpdateSponsor) ValidateBasic() error {
 		return ErrEmptySender
 	}
 
-	sponsorAddr, err := sdk.AccAddressFromBech32(msg.From)
+	sponsorAddr, err := sdk.AccAddressFromBech32(msg.SponsorAddr)
 	if err != nil {
 		panic(err)
 	}
