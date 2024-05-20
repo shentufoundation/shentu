@@ -49,6 +49,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 			index = i
 			break
 		}
+		return types.ErrPurchaseNotFound
 	}
 	purchase := &purchaseList.Entries[index]
 	if lossAmt.GT(purchase.Shield) {
