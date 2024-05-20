@@ -2,18 +2,18 @@
 package app
 
 import (
+	tmos "github.com/cometbft/cometbft/libs/os"
 	"io"
 	"net/http"
 	"os"
 
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -44,7 +44,6 @@ import (
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	sdkdistr "github.com/cosmos/cosmos-sdk/x/distribution"
-	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
@@ -146,7 +145,8 @@ var (
 		distr.AppModuleBasic{},
 		feegrant.AppModuleBasic{},
 		gov.NewAppModuleBasic(
-			[]govclient.ProposalHandler{paramsclient.ProposalHandler, distrclient.ProposalHandler,
+			[]govclient.ProposalHandler{
+				paramsclient.ProposalHandler,
 				upgradeclient.LegacyProposalHandler,
 				upgradeclient.LegacyCancelProposalHandler,
 				certclient.LegacyProposalHandler,

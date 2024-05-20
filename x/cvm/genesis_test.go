@@ -9,7 +9,7 @@ import (
 
 	"github.com/hyperledger/burrow/txs/payload"
 
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

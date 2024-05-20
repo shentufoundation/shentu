@@ -3,11 +3,11 @@ package simulation
 import (
 	"math/rand"
 
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	simappparams "cosmossdk.io/simapp/params"
 
+	"cosmossdk.io/simapp/helpers"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"

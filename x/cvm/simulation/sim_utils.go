@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 
+	"cosmossdk.io/simapp/helpers"
+	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 

@@ -6,8 +6,8 @@ package v1alpha1
 import (
 	fmt "fmt"
 	v1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"

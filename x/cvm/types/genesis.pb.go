@@ -5,8 +5,8 @@ package types
 
 import (
 	fmt "fmt"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
 	golang_proto "github.com/golang/protobuf/proto"
 	acm "github.com/hyperledger/burrow/acm"
 	github_com_hyperledger_burrow_acm "github.com/hyperledger/burrow/acm"

@@ -3,12 +3,11 @@ package staking
 
 import (
 	"encoding/json"
-	"math/rand"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,7 +17,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	sdksimulation "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -108,21 +106,6 @@ func (AppModule) Name() string {
 // RegisterInvariants registers module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route returns the message routing key for the staking module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the module query route.
-func (AppModule) QuerierRoute() string {
-	return stakingtypes.QuerierRoute
-}
-
-// NewQuerierHandler create new query handler.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return stakingkeeper.NewQuerier(am.keeper.Keeper, legacyQuerierCdc)
-}
-
 // RegisterServices registers a gRPC query service to respond to the
 // module-specific gRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
@@ -160,16 +143,6 @@ func (am AppModule) EndBlock(ctx sdk.Context, reb abci.RequestEndBlock) []abci.V
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	sdksimulation.RandomizedGenState(simState)
-}
-
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-// RandomizedParams returns functions that generate params for the module.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return sdksimulation.ParamChanges(r)
 }
 
 // RegisterStoreDecoder registers a decoder for this module.

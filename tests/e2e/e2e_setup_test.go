@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	tmconfig "github.com/tendermint/tendermint/config"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
+	tmconfig "github.com/cometbft/cometbft/config"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"

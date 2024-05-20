@@ -6,7 +6,7 @@ import (
 
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	proto "github.com/gogo/protobuf/proto"
+	proto "github.com/cosmos/gogoproto/proto"
 )
 
 // Certificate types implement UnpackInterfaceMessages to unpack Content field.

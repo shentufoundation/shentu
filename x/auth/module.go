@@ -2,12 +2,10 @@ package auth
 
 import (
 	"encoding/json"
-	"math/rand"
-
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,7 +15,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	cosmosauth "github.com/cosmos/cosmos-sdk/x/auth"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authsim "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/shentufoundation/shentu/v2/x/auth/client/cli"
@@ -110,21 +107,6 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	am.cosmosAppModule.RegisterInvariants(ir)
 }
 
-// Route returns the message routing key for the auth module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the auth module's querier route name.
-func (am AppModule) QuerierRoute() string {
-	return am.cosmosAppModule.QuerierRoute()
-}
-
-// LegacyQuerierHandler returns the auth module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(cdc *codec.LegacyAmino) sdk.Querier {
-	return am.cosmosAppModule.LegacyQuerierHandler(cdc)
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
@@ -162,16 +144,6 @@ func (am AppModule) ConsensusVersion() uint64 { return am.cosmosAppModule.Consen
 // GenerateGenesisState creates a randomized GenState of the auth module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
-}
-
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-// RandomizedParams creates randomized auth param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return authsim.ParamChanges(r)
 }
 
 // RegisterStoreDecoder registers a decoder for auth module's types.

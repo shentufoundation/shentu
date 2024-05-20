@@ -3,13 +3,11 @@ package slashing
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
-
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -102,19 +100,6 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	am.cosmosAppModule.RegisterInvariants(ir)
 }
 
-// Route returns the message routing key for the slashing module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the slashing module's querier route name.
-func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
-
-// LegacyQuerierHandler returns the slashing module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return am.cosmosAppModule.LegacyQuerierHandler(legacyQuerierCdc)
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	am.cosmosAppModule.RegisterServices(cfg)
@@ -152,16 +137,6 @@ func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	genesisState.Params.SlashFractionDoubleSign = sdk.ZeroDec()
 	genesisState.Params.SlashFractionDowntime = sdk.ZeroDec()
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&genesisState)
-}
-
-// ProposalContents doesn't return any content functions for governance proposals.
-func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return am.cosmosAppModule.ProposalContents(simState)
-}
-
-// RandomizedParams creates randomized slashing param changes for the simulator.
-func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return []simtypes.ParamChange{} // disable slashing param change
 }
 
 // RegisterStoreDecoder registers a decoder for slashing module's types.

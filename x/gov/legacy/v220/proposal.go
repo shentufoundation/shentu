@@ -13,7 +13,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	proto "github.com/gogo/protobuf/proto"
+	proto "github.com/cosmos/gogoproto/proto"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"

@@ -5,13 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
-
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -103,11 +101,6 @@ func NewAppModule(k keeper.Keeper, bk types.BankKeeper) AppModule {
 	}
 }
 
-// Route returns the module's route key.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
 
@@ -135,20 +128,10 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	return cdc.MustMarshalJSON(gs)
 }
 
-// LegacyQuerierHandler returns a new querier module handler.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.Querier{Keeper: am.keeper})
-}
-
-// QuerierRoute returns the module querier route name.
-func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
 }
 
 // RegisterInvariants registers the module invariants.
@@ -176,10 +159,5 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 
 // ProposalContents returns functions that generate gov proposals for the module.
 func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-// RandomizedParams returns functions that generate params for the module.
-func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 	return nil
 }

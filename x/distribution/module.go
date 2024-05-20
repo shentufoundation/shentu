@@ -3,12 +3,10 @@ package distribution
 
 import (
 	"encoding/json"
-	"math/rand"
-
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -105,19 +103,6 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	am.cosmosAppModule.RegisterInvariants(ir)
 }
 
-// Route returns the message routing key for the distribution module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the distribution module's querier route name.
-func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
-
-// LegacyQuerierHandler returns the distribution module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return am.cosmosAppModule.LegacyQuerierHandler(legacyQuerierCdc)
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	am.cosmosAppModule.RegisterServices(cfg)
@@ -148,16 +133,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 // GenerateGenesisState creates a randomized GenState of the distribution module.
 func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	am.cosmosAppModule.GenerateGenesisState(simState)
-}
-
-// ProposalContents returns all the distribution content functions used to simulate governance proposals.
-func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return am.cosmosAppModule.ProposalContents(simState)
-}
-
-// RandomizedParams creates randomized distribution param changes for the simulator.
-func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return am.cosmosAppModule.RandomizedParams(r)
 }
 
 // RegisterStoreDecoder registers a decoder for distribution module's types

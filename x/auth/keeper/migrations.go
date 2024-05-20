@@ -3,7 +3,7 @@ package keeper
 import (
 	"math"
 
-	"github.com/gogo/protobuf/grpc"
+	"github.com/cosmos/gogoproto/grpc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v043 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v043"
