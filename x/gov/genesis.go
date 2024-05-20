@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
@@ -12,7 +12,7 @@ import (
 )
 
 // InitGenesis stores genesis parameters.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk govTypes.BankKeeper, data typesv1.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, data *typesv1.GenesisState) {
 	k.SetProposalID(ctx, data.StartingProposalId)
 	k.SetDepositParams(ctx, *data.DepositParams)
 	k.SetVotingParams(ctx, *data.VotingParams)
@@ -22,7 +22,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk
 	// check if the deposits pool account exists
 	moduleAcc := k.GetGovernanceAccount(ctx)
 	if moduleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", govTypes.ModuleName))
+		panic(fmt.Sprintf("%s module account has not been set", govtypes.ModuleName))
 	}
 
 	var totalDeposits sdk.Coins
@@ -51,11 +51,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk
 
 	// if account has zero balance it probably means it's not set, so we set it
 	balance := bk.GetAllBalances(ctx, moduleAcc.GetAddress())
-
 	if balance.IsZero() {
 		ak.SetModuleAccount(ctx, moduleAcc)
 	}
 
+	// check if total deposits equals balance, if it doesn't panic because there were export/import errors
 	if !balance.IsEqual(totalDeposits) {
 		panic(fmt.Sprintf("expected module account was %s but we got %s", balance.String(), totalDeposits.String()))
 	}

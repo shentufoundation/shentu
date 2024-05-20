@@ -1,3 +1,5 @@
+// TODO remove
+
 // Package distribution defines the distribution module.
 package distribution
 
@@ -169,5 +171,3 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return am.cosmosAppModule.WeightedOperations(simState)
 }
-
-// TODO remove

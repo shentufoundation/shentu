@@ -212,6 +212,8 @@ func genesisStateWithValSet(t *testing.T,
 // of one consensus engine unit in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
 func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *ShentuApp {
+	t.Helper()
+
 	app, genesisState := setup(true, 5)
 	genesisState = genesisStateWithValSet(t, app, genesisState, valSet, genAccs, balances...)
 
@@ -237,6 +239,35 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	}})
 
 	return app
+}
+
+// GenesisStateWithSingleValidator initializes GenesisState with a single validator and genesis accounts
+// that also act as delegators.
+func GenesisStateWithSingleValidator(t *testing.T, app *ShentuApp) GenesisState {
+	t.Helper()
+
+	privVal := mock.NewPV()
+	pubKey, err := privVal.GetPubKey()
+	require.NoError(t, err)
+
+	// create validator set with single validator
+	validator := tmtypes.NewValidator(pubKey, 1)
+	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+
+	// generate genesis account
+	senderPrivKey := secp256k1.GenPrivKey()
+	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
+	balances := []banktypes.Balance{
+		{
+			Address: acc.GetAddress().String(),
+			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
+		},
+	}
+
+	genesisState := NewDefaultGenesisState(app.appCodec)
+	genesisState = genesisStateWithValSet(t, app, genesisState, valSet, []authtypes.GenesisAccount{acc}, balances...)
+
+	return genesisState
 }
 
 type GenerateAccountStrategy func(int) []sdk.AccAddress

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	"math/rand"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -21,6 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -185,7 +185,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState typesv1.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.accountKeeper, am.bankKeeper, genesisState)
+	InitGenesis(ctx, am.keeper, am.accountKeeper, am.bankKeeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

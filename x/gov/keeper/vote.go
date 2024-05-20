@@ -70,7 +70,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 			govtypes.EventTypeProposalVote,
 			sdk.NewAttribute(govtypes.AttributeKeyOption, options.String()),
 			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
-			sdk.NewAttribute(types.AttributeKeyVoter, voterAddr.String()),
+			sdk.NewAttribute(govtypes.AttributeKeyVoter, voterAddr.String()),
 			sdk.NewAttribute(types.AttributeTxHash, txhash),
 		),
 	)
@@ -118,7 +118,7 @@ func (k Keeper) AddCertifierVote(ctx sdk.Context, proposalID uint64, voterAddr s
 			types.EventTypeCertVote,
 			sdk.NewAttribute(govtypes.AttributeKeyOption, options.String()),
 			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
-			sdk.NewAttribute(types.AttributeKeyVoter, voterAddr.String()),
+			sdk.NewAttribute(govtypes.AttributeKeyVoter, voterAddr.String()),
 			sdk.NewAttribute(types.AttributeTxHash, txhash),
 		),
 	)
