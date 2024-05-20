@@ -374,6 +374,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		stakingKeeper,
 	)
 	app.AuthKeeper = authkeeper.NewKeeper(
+		appCodec,
+		keys[authtypes.StoreKey],
 		app.AccountKeeper,
 		app.CertKeeper,
 	)
