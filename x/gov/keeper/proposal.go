@@ -98,9 +98,9 @@ func (k Keeper) ActivateVotingPeriodCustom(ctx sdk.Context, c govtypesv1beta1.Co
 	if !k.IsCertifier(ctx, addr) && c.ProposalType() != shieldtypes.ProposalTypeShieldClaim {
 		return false
 	}
-	if k.IsCertifier(ctx, addr) && k.CertifierVoteIsRequired(proposal) {
-		k.SetCertifierVoted(ctx, proposal.Id)
-	}
+	//if k.IsCertifier(ctx, addr) && k.CertifierVoteIsRequired(proposal) {
+	//	k.SetCertifierVoted(ctx, proposal.Id)
+	//}
 	k.ActivateVotingPeriod(ctx, proposal)
 	return true
 }
