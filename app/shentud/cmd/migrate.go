@@ -11,9 +11,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	cryptocodec "github.com/tendermint/tendermint/crypto/encoding"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmtypes "github.com/tendermint/tendermint/types"
+	cryptocodec "github.com/cometbft/cometbft/crypto/encoding"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

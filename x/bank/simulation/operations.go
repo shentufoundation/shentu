@@ -3,12 +3,11 @@ package simulation
 import (
 	"math/rand"
 
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -75,14 +74,13 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Op
 
 			msg := types.NewMsgLockedSend(fromAcc.GetAddress(), toAddr, "", sendCoins)
 
-			txGen := simappparams.MakeTestEncodingConfig().TxConfig
-
-			tx, err := helpers.GenSignedMockTx(
+			txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
+			tx, err := simtestutil.GenSignedMockTx(
 				r,
 				txGen,
 				[]sdk.Msg{msg},
 				fees,
-				helpers.DefaultGenTxGas,
+				simtestutil.DefaultGenTxGas,
 				chainID,
 				[]uint64{fromAcc.GetAccountNumber()},
 				[]uint64{fromAcc.GetSequence()},

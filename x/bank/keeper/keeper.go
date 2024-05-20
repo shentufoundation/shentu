@@ -5,7 +5,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
@@ -17,9 +16,9 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new Keeper.
-func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ak types.AccountKeeper, paramSpace paramsTypes.Subspace,
-	blockedAddrs map[string]bool) Keeper {
-	bk := bankKeeper.NewBaseKeeper(cdc, storeKey, ak, paramSpace, blockedAddrs)
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ak types.AccountKeeper,
+	blockedAddrs map[string]bool, authority string) Keeper {
+	bk := bankKeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority)
 	return Keeper{
 		BaseKeeper: bk,
 		ak:         ak,

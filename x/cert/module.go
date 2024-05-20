@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"math/rand"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -105,21 +105,6 @@ func (am AppModule) Name() string {
 
 // RegisterInvariants registers the module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-}
-
-// Route returns the module's route key.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the module querier route name.
-func (AppModule) QuerierRoute() string {
-	return types.RouterKey
-}
-
-// LegacyQuerierHandler returns a new querier module handler.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.moduleKeeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers module services.

@@ -5,12 +5,11 @@ package distribution
 
 import (
 	"encoding/json"
-	"math/rand"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,6 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/distribution/exported"
 	"github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -89,11 +89,11 @@ type AppModule struct {
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
 	cdc codec.Codec, keeper keeper.Keeper, accountKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper, stakingKeeper stakingkeeper.Keeper,
+	bankKeeper types.BankKeeper, stakingKeeper stakingkeeper.Keeper, ss exported.Subspace,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{cdc: cdc},
-		cosmosAppModule: distribution.NewAppModule(cdc, keeper, accountKeeper, bankKeeper, stakingKeeper),
+		cosmosAppModule: distribution.NewAppModule(cdc, keeper, accountKeeper, bankKeeper, stakingKeeper, ss),
 	}
 }
 
@@ -105,19 +105,6 @@ func (am AppModule) Name() string {
 // RegisterInvariants registers the distribution module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	am.cosmosAppModule.RegisterInvariants(ir)
-}
-
-// Route returns the message routing key for the distribution module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the distribution module's querier route name.
-func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
-
-// LegacyQuerierHandler returns the distribution module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return am.cosmosAppModule.LegacyQuerierHandler(legacyQuerierCdc)
 }
 
 // RegisterServices registers module services.
@@ -150,16 +137,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 // GenerateGenesisState creates a randomized GenState of the distribution module.
 func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	am.cosmosAppModule.GenerateGenesisState(simState)
-}
-
-// ProposalContents returns all the distribution content functions used to simulate governance proposals.
-func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return am.cosmosAppModule.ProposalContents(simState)
-}
-
-// RandomizedParams creates randomized distribution param changes for the simulator.
-func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return am.cosmosAppModule.RandomizedParams(r)
 }
 
 // RegisterStoreDecoder registers a decoder for distribution module's types

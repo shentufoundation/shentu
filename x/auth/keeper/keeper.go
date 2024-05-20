@@ -8,17 +8,17 @@ import (
 )
 
 type Keeper struct {
-	cdc codec.BinaryCodec
-	key storetypes.StoreKey
-	ak  types.AccountKeeper
-	ck  types.CertKeeper
+	cdc      codec.BinaryCodec
+	storeKey storetypes.StoreKey
+	ak       types.AccountKeeper
+	ck       types.CertKeeper
 }
 
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, ak types.AccountKeeper, ck types.CertKeeper) Keeper {
 	return Keeper{
-		cdc: cdc,
-		key: key,
-		ak:  ak,
-		ck:  ck,
+		cdc:      cdc,
+		storeKey: key,
+		ak:       ak,
+		ck:       ck,
 	}
 }

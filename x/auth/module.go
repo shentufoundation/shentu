@@ -2,12 +2,12 @@ package auth
 
 import (
 	"encoding/json"
-	"math/rand"
+	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,13 +17,14 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	cosmosauth "github.com/cosmos/cosmos-sdk/x/auth"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authsim "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/shentufoundation/shentu/v2/x/auth/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/auth/keeper"
 	"github.com/shentufoundation/shentu/v2/x/auth/simulation"
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
+
+	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 )
 
 var (
@@ -91,17 +92,23 @@ type AppModule struct {
 	authKeeper authkeeper.AccountKeeper
 	bankKeeper types.BankKeeper
 	certKeeper types.CertKeeper
+
+	// legacySubspace is used solely for migration of x/params managed parameters
+	legacySubspace exported.Subspace
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak authkeeper.AccountKeeper, bk types.BankKeeper, ck types.CertKeeper, randGenAccountsFn authtypes.RandomGenesisAccountsFn) AppModule {
+func NewAppModule(cdc codec.Codec, keeper keeper.Keeper,
+	ak authkeeper.AccountKeeper, bk types.BankKeeper, ck types.CertKeeper,
+	randGenAccountsFn authtypes.RandomGenesisAccountsFn, ss exported.Subspace) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{cdc: cdc},
-		cosmosAppModule: cosmosauth.NewAppModule(cdc, ak, randGenAccountsFn),
+		cosmosAppModule: cosmosauth.NewAppModule(cdc, ak, randGenAccountsFn, ss),
 		keeper:          keeper,
 		authKeeper:      ak,
 		bankKeeper:      bk,
 		certKeeper:      ck,
+		legacySubspace:  ss,
 	}
 }
 
@@ -110,27 +117,12 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	am.cosmosAppModule.RegisterInvariants(ir)
 }
 
-// Route returns the message routing key for the auth module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the auth module's querier route name.
-func (am AppModule) QuerierRoute() string {
-	return am.cosmosAppModule.QuerierRoute()
-}
-
-// LegacyQuerierHandler returns the auth module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(cdc *codec.LegacyAmino) sdk.Querier {
-	return am.cosmosAppModule.LegacyQuerierHandler(cdc)
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	authtypes.RegisterQueryServer(cfg.QueryServer(), am.authKeeper)
 
-	m := keeper.NewMigrator(am.keeper, cfg.QueryServer())
+	m := keeper.NewMigrator(am.keeper, cfg.QueryServer(), am.legacySubspace)
 	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
 	if err != nil {
 		panic(err)
@@ -139,6 +131,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	err = cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3)
 	if err != nil {
 		panic(err)
+	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3to4); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/%s from version 3 to 4: %v", types.ModuleName, err))
 	}
 }
 
@@ -162,16 +158,6 @@ func (am AppModule) ConsensusVersion() uint64 { return am.cosmosAppModule.Consen
 // GenerateGenesisState creates a randomized GenState of the auth module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
-}
-
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-// RandomizedParams creates randomized auth param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return authsim.ParamChanges(r)
 }
 
 // RegisterStoreDecoder registers a decoder for auth module's types.

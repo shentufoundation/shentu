@@ -5,9 +5,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -61,13 +61,13 @@ func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Oper
 			}
 
 			msg := types.NewMsgUnlock(acc.Address, acc.Address, unlockAmount)
-			txGen := simappparams.MakeTestEncodingConfig().TxConfig
-			tx, err := helpers.GenSignedMockTx(
+			txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
+			tx, err := simtestutil.GenSignedMockTx(
 				r,
 				txGen,
 				[]sdk.Msg{msg},
 				fees,
-				helpers.DefaultGenTxGas,
+				simtestutil.DefaultGenTxGas,
 				chainID,
 				[]uint64{account.GetAccountNumber()},
 				[]uint64{account.GetSequence()},

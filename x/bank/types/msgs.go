@@ -6,7 +6,7 @@ import (
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-// bank message types
+// TypeMsgLockedSend bank message types
 const (
 	TypeMsgLockedSend = "locked_send"
 )
