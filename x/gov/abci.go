@@ -17,6 +17,7 @@ import (
 func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 	logger := k.Logger(ctx)
 
+	// delete dead proposals from store and returns theirs deposits. A proposal is dead when it's inactive and didn't get enough deposit on time to get into voting phase.
 	k.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal govtypesv1.Proposal) bool {
 		k.DeleteProposal(ctx, proposal.Id)
 		k.RefundAndDeleteDeposits(ctx, proposal.Id)
@@ -67,6 +68,7 @@ func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposa
 	}
 }
 
+// fetch active proposals whose voting periods have ended (are passed the block time)
 func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) bool {
 	var (
 		tagValue, logMsg string
@@ -136,6 +138,9 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1
 
 			// write state to the underlying multi-store
 			writeCache()
+
+			// propagate the msg events to the current context
+			ctx.EventManager().EmitEvents(events)
 		} else {
 			proposal.Status = govtypesv1.StatusFailed
 			tagValue = govtypes.AttributeValueProposalFailed
@@ -223,6 +228,9 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.P
 
 			// write state to the underlying multi-store
 			writeCache()
+
+			// propagate the msg events to the current context
+			ctx.EventManager().EmitEvents(events)
 		} else {
 			proposal.Status = govtypesv1.StatusFailed
 			tagValue = govtypes.AttributeValueProposalFailed
