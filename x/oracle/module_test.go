@@ -35,6 +35,8 @@ func TestItCreatesModuleAccountOnInitBlock(t *testing.T) {
 	)
 
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	acc := app.AccountKeeper.GetAccount(ctx, authtypes.NewModuleAddress(types.ModuleName))
+	acc := app.AccountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	require.NotNil(t, acc)
+	acc1 := app.AccountKeeper.GetAccount(ctx, authtypes.NewModuleAddress(types.ModuleName))
+	require.NotNil(t, acc1)
 }
