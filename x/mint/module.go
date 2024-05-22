@@ -2,7 +2,6 @@ package mint
 
 import (
 	"encoding/json"
-	types2 "github.com/shentufoundation/shentu/v2/x/mint/types"
 	"math/rand"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -19,9 +18,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/mint/client/cli"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	"github.com/cosmos/cosmos-sdk/x/mint/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/shentufoundation/shentu/v2/x/mint/keeper"
+	"github.com/shentufoundation/shentu/v2/x/mint/types"
 	"github.com/shentufoundation/shentu/v2/x/oracle/simulation"
 )
 
@@ -48,7 +48,7 @@ func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the mint module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types2.DefaultGenesisState())
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the mint module.
@@ -74,11 +74,11 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper     keeper.Keeper
-	authKeeper types.AccountKeeper
+	authKeeper minttypes.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, authKeeper types.AccountKeeper) AppModule {
+func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, authKeeper minttypes.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,
@@ -88,7 +88,7 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, authKeeper types.Accoun
 
 // Name returns the module name.
 func (AppModule) Name() string {
-	return types.ModuleName
+	return minttypes.ModuleName
 }
 
 // RegisterInvariants registers module invariants.
@@ -102,7 +102,7 @@ func (am AppModule) NewHandler() sdk.Handler { return nil }
 
 // QuerierRoute returns the module query route.
 func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
+	return minttypes.QuerierRoute
 }
 
 // NewQuerierHandler create new query handler.
@@ -113,12 +113,12 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // RegisterServices registers a gRPC query service to respond to the
 // module-specific gRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	minttypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
 // InitGenesis initializes genesis state from data.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
+	var genesisState minttypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
 	am.keeper.InitGenesis(ctx, am.authKeeper, &genesisState)
@@ -160,7 +160,7 @@ func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 
 // RegisterStoreDecoder registers a decoder for mint module's types.
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+	sdr[minttypes.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations doesn't return any mint module operation.

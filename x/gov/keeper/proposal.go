@@ -82,6 +82,7 @@ func (k Keeper) CertifierVoteIsRequired(proposal govtypesv1.Proposal) bool {
 				return false
 			}
 			switch content.(type) {
+			// nolint
 			case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal, *shieldtypes.ShieldClaimProposal:
 				return true
 			default:

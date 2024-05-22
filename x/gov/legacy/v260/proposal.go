@@ -99,6 +99,7 @@ func (p Proposal) ProposalRoute() string {
 
 // HasSecurityVoting returns true if the proposal needs to go through security
 // (certifier) voting before stake (validator) voting.
+// nolint
 func (p Proposal) HasSecurityVoting() bool {
 	switch p.GetContent().(type) {
 	case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal, shieldtypes.ShieldClaimProposal:
