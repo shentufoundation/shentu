@@ -58,6 +58,9 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	sdkgovtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/cosmos/cosmos-sdk/x/group"
+	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
+	groupmodule "github.com/cosmos/cosmos-sdk/x/group/module"
 	sdkminttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
@@ -156,6 +159,7 @@ var (
 				ibcclientclient.UpgradeProposalHandler,
 			},
 		),
+		groupmodule.AppModuleBasic{},
 		params.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
@@ -224,6 +228,7 @@ type ShentuApp struct {
 	OracleKeeper     oraclekeeper.Keeper
 	ShieldKeeper     shieldkeeper.Keeper
 	BountyKeeper     bountykeeper.Keeper
+	GroupKeeper      groupkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -274,6 +279,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		icahosttypes.StoreKey,
 		capabilitytypes.StoreKey,
 		bountytypes.StoreKey,
+		group.StoreKey,
 	}
 
 	keys := sdk.NewKVStoreKeys(ks...)
@@ -458,6 +464,9 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		govConfig,
 	)
 
+	groupConfig := group.DefaultConfig()
+	app.GroupKeeper = groupkeeper.NewKeeper(keys[group.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper, groupConfig)
+
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
@@ -518,6 +527,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
+		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
@@ -536,7 +546,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName,
 		sdkauthz.ModuleName, sdkfeegrant.ModuleName, crisistypes.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName,
-		oracletypes.ModuleName, cvmtypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName,
+		oracletypes.ModuleName, cvmtypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName, group.ModuleName,
 	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
@@ -545,7 +555,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		capabilitytypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
-		certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName, bountytypes.ModuleName,
+		certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName, bountytypes.ModuleName, group.ModuleName,
 	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
@@ -574,6 +584,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		bountytypes.ModuleName,
+		group.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -600,6 +611,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		bountytypes.ModuleName,
+		group.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
