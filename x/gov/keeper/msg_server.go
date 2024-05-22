@@ -43,8 +43,8 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubm
 	votingStarted := false
 
 	// update shield SecureCollaterals
-	for _, proposalmsg := range proposalMsgs {
-		if legacyMsg, ok := proposalmsg.(*govtypesv1.MsgExecLegacyContent); ok {
+	if len(proposalMsgs) == 1 {
+		if legacyMsg, ok := proposalMsgs[0].(*govtypesv1.MsgExecLegacyContent); ok {
 			// check that the content struct can be unmarshalled
 			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
 			if err != nil {

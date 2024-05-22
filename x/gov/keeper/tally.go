@@ -1,9 +1,7 @@
 package keeper
 
 import (
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v046 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v046"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -11,22 +9,19 @@ import (
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
-// validatorGovInfo used for tallying
-type validatorGovInfo struct {
-	Address             sdk.ValAddress                 // address of the validator operator
-	BondedTokens        math.Int                       // power of a Validator
-	DelegatorShares     sdk.Dec                        // total outstanding delegator shares
-	DelegatorDeductions sdk.Dec                        // delegator deductions from validator's delegators voting independently
-	Vote                govtypesv1.WeightedVoteOptions // vote of the validator
-}
-
 // Tally counts the votes and returns whether the proposal passes and/or if tokens should be burned.
-func Tally(ctx sdk.Context, k Keeper, proposal govtypesv1.Proposal) (pass bool, veto bool, tallyResults govtypesv1.TallyResult) {
+func (k Keeper) Tally(ctx sdk.Context, proposal govtypesv1.Proposal) (pass bool, veto bool, tallyResults govtypesv1.TallyResult) {
+	proposalMsgs, err := proposal.GetMsgs()
+	if err != nil {
+		return false, false, govtypesv1.TallyResult{}
+	}
+
 	results := newResults()
 
 	totalVotingPower := sdk.ZeroDec()
-	currValidators := make(map[string]*validatorGovInfo)
+	currValidators := make(map[string]govtypesv1.ValidatorGovInfo)
 
+	// fetches all the bonded validators
 	fetchBondedValidators(ctx, k, currValidators)
 
 	k.IterateVotes(ctx, proposal.Id, func(vote govtypesv1.Vote) bool {
@@ -69,29 +64,31 @@ func Tally(ctx sdk.Context, k Keeper, proposal govtypesv1.Proposal) (pass bool, 
 	tallyParams := k.GetTallyParams(ctx)
 	customParams := k.GetCustomParams(ctx)
 	tallyResults = govtypesv1.NewTallyResultFromMap(results)
-
-	var tp govtypesv1.TallyParams
-	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
-	if err != nil {
-		return false, false, govtypesv1.TallyResult{}
-	}
-	switch legacyProposal.GetContent().(type) {
-	case *certtypes.CertifierUpdateProposal:
-		tp = *customParams.CertifierUpdateStakeVoteTally
-	default:
-		tp = tallyParams
-	}
-
 	th := TallyHelper{
 		totalVotingPower,
-		tp,
+		tallyParams,
 		results,
 	}
-	if legacyProposal.GetContent().ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		pass, veto = passAndVetoStakeResultForShieldClaim(k, ctx, th)
-	} else {
-		pass, veto = passAndVetoStakeResult(k, ctx, th)
+
+	if len(proposalMsgs) == 1 {
+		if legacyMsg, ok := proposalMsgs[0].(*govtypesv1.MsgExecLegacyContent); ok {
+			// check that the content struct can be unmarshalled
+			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
+			if err != nil {
+				return false, false, govtypesv1.TallyResult{}
+			}
+			if content.ProposalType() == certtypes.ProposalTypeCertifierUpdate {
+				th.tallyParams = *customParams.CertifierUpdateStakeVoteTally
+			}
+
+			if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+				pass, veto = passAndVetoStakeResultForShieldClaim(k, ctx, th)
+				return pass, veto, tallyResults
+			}
+		}
 	}
+
+	pass, veto = passAndVetoStakeResult(k, ctx, th)
 
 	return pass, veto, tallyResults
 }
@@ -112,32 +109,22 @@ func newResults() map[govtypesv1.VoteOption]sdk.Dec {
 	}
 }
 
-func newValidatorGovInfo(address sdk.ValAddress, bondedTokens math.Int, delegatorShares,
-	delegatorDeductions sdk.Dec, vote govtypesv1.WeightedVoteOptions) *validatorGovInfo {
-	return &validatorGovInfo{
-		Address:             address,
-		BondedTokens:        bondedTokens,
-		DelegatorShares:     delegatorShares,
-		DelegatorDeductions: delegatorDeductions,
-		Vote:                vote,
-	}
-}
-
 // fetchBondedValidators fetches all the bonded validators, insert them into currValidators.
-func fetchBondedValidators(ctx sdk.Context, k Keeper, validators map[string]*validatorGovInfo) {
+func fetchBondedValidators(ctx sdk.Context, k Keeper, validators map[string]govtypesv1.ValidatorGovInfo) {
 	k.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
-		validators[validator.GetOperator().String()] = newValidatorGovInfo(
+		validators[validator.GetOperator().String()] = govtypesv1.NewValidatorGovInfo(
 			validator.GetOperator(),
 			validator.GetBondedTokens(),
 			validator.GetDelegatorShares(),
 			sdk.ZeroDec(),
 			govtypesv1.WeightedVoteOptions{},
 		)
+
 		return false
 	})
 }
 
-func delegatorVoting(ctx sdk.Context, k Keeper, vote govtypesv1.Vote, validators map[string]*validatorGovInfo, results map[govtypesv1.VoteOption]sdk.Dec, totalVotingPower *sdk.Dec) {
+func delegatorVoting(ctx sdk.Context, k Keeper, vote govtypesv1.Vote, validators map[string]govtypesv1.ValidatorGovInfo, results map[govtypesv1.VoteOption]sdk.Dec, totalVotingPower *sdk.Dec) {
 	voter, err := sdk.AccAddressFromBech32(vote.Voter)
 	if err != nil {
 		panic(err)
@@ -273,10 +260,15 @@ func passAndVetoSecurityResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass 
 
 // SecurityTally only gets called if the proposal is a software upgrade or
 // certifier update and if it is the certifier round. If the proposal passes,
-// we setup the validator voting round and the calling function EndBlocker
+// we set up the validator voting round and the calling function EndBlocker
 // continues to the next iteration. If it fails, the proposal is removed by the
 // logic in EndBlocker.
 func SecurityTally(ctx sdk.Context, k Keeper, proposal govtypesv1.Proposal) (bool, bool, govtypesv1.TallyResult) {
+	proposalMsgs, err := proposal.GetMsgs()
+	if err != nil {
+		return false, false, govtypesv1.TallyResult{}
+	}
+
 	results := newResults()
 	totalHeadCounts := sdk.ZeroDec()
 
@@ -305,19 +297,28 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal govtypesv1.Proposal) (boo
 	}
 	pass := passAndVetoSecurityResult(k, ctx, th)
 
-	var endVoting bool
+	var endVoting, isCertifierUpdateProposal bool
 
 	// For CertifierUpdateProposal: If security round didn't pass, continue to
 	// stake voting (must pass one of the two rounds).
 	//
 	// For other proposal types (SoftwareUpgrade, etc.): Only continue to stake
 	// round if security round passed (must pass both rounds).
-	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
-	if err != nil {
-		return false, false, govtypesv1.TallyResult{}
+	if len(proposalMsgs) == 1 {
+		if legacyMsg, ok := proposalMsgs[0].(*govtypesv1.MsgExecLegacyContent); ok {
+			// check that the content struct can be unmarshalled
+			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
+			if err != nil {
+				return false, false, govtypesv1.TallyResult{}
+			}
+			if content.ProposalType() == certtypes.ProposalTypeCertifierUpdate {
+				isCertifierUpdateProposal = true
+			}
+
+		}
 	}
-	_, isCert := legacyProposal.GetContent().(*certtypes.CertifierUpdateProposal)
-	endVoting = (pass && isCert) || (!pass && !isCert)
+
+	endVoting = (pass && isCertifierUpdateProposal) || (!pass && !isCertifierUpdateProposal)
 
 	return pass, endVoting, tallyResults
 }
