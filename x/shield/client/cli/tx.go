@@ -14,7 +14,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	
+
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 

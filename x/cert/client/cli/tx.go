@@ -14,7 +14,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	
+
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
