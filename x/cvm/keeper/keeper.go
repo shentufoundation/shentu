@@ -4,12 +4,12 @@ package keeper
 import (
 	"bytes"
 	gobin "encoding/binary"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"math/big"
 
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

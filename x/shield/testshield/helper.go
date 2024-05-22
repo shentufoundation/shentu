@@ -1,16 +1,16 @@
 package testshield
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
 	"github.com/shentufoundation/shentu/v2/x/shield"
 	"github.com/shentufoundation/shentu/v2/x/shield/keeper"
 	"github.com/shentufoundation/shentu/v2/x/shield/types"

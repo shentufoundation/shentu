@@ -119,6 +119,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/slashing"
 	"github.com/shentufoundation/shentu/v2/x/staking"
 	stakingkeeper "github.com/shentufoundation/shentu/v2/x/staking/keeper"
+
 	// unnamed import of statik for swagger UI support
 	_ "github.com/shentufoundation/shentu/v2/docs/statik"
 )
