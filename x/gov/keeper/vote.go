@@ -12,7 +12,7 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
-	"github.com/shentufoundation/shentu/v2/x/gov/types/v1"
+	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -139,12 +139,12 @@ func (k Keeper) SetCertifierVoted(ctx sdk.Context, proposalID uint64) {
 // SetCertVote sets a cert vote to the gov store
 func (k Keeper) SetCertVote(ctx sdk.Context, proposalID uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(v1.CertVotesKey(proposalID), govtypes.GetProposalIDBytes(proposalID))
+	store.Set(typesv1.CertVotesKey(proposalID), govtypes.GetProposalIDBytes(proposalID))
 }
 
 // GetCertifierVoted determine cert vote for custom proposal types have finished
 func (k Keeper) GetCertifierVoted(ctx sdk.Context, proposalID uint64) bool {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(v1.CertVotesKey(proposalID))
+	bz := store.Get(typesv1.CertVotesKey(proposalID))
 	return bz != nil
 }

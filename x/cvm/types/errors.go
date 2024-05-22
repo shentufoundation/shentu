@@ -11,6 +11,7 @@ import (
 const BurrowErrorCodeStart = 200
 
 // ErrCodedError wraps execution CodedError into sdk Error.
+// nolint
 func ErrCodedError(error errors.CodedError) *sdkerrors.Error {
 	return sdkerrors.New(ModuleName, BurrowErrorCodeStart+error.ErrorCode().Number, error.ErrorCode().Name)
 }
