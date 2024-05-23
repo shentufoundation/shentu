@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v046 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v046"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
@@ -41,33 +40,6 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 	})
 }
 
-func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) {
-	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
-	if err != nil {
-		return
-	}
-	if legacyProposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := legacyProposal.GetContent().(*shieldtypes.ShieldClaimProposal)
-		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalId, c.PoolId, c.Loss)
-	}
-}
-
-func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) {
-	legacyProposal, err := v046.ConvertToLegacyProposal(proposal)
-	if err != nil {
-		return
-	}
-	if legacyProposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := legacyProposal.GetContent().(*shieldtypes.ShieldClaimProposal)
-		proposer, err := sdk.AccAddressFromBech32(c.Proposer)
-		if err != nil {
-			panic(err)
-		}
-		k.ShieldKeeper.RestoreShield(ctx, c.PoolId, proposer, c.PurchaseId, c.Loss)
-		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalId, c.PoolId, c.Loss)
-	}
-}
-
 // fetch active proposals whose voting periods have ended (are passed the block time)
 func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) bool {
 	var (
@@ -89,7 +61,7 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1
 			return false
 		}
 	} else {
-		pass, veto, tallyResults = keeper.Tally(ctx, k, proposal)
+		pass, veto, tallyResults = k.Tally(ctx, proposal)
 	}
 
 	if veto {
@@ -281,4 +253,48 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	k.IterateActiveProposalsQueue(ctx, time.Unix(common.MaxTimestamp, 0), func(proposal govtypesv1.Proposal) bool {
 		return processSecurityVote(ctx, k, proposal)
 	})
+}
+
+func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) {
+	processShieldClaimProposal(ctx, k, proposal, func(proposal *shieldtypes.ShieldClaimProposal) {
+		k.ShieldKeeper.ClaimEnd(ctx, proposal.ProposalId, proposal.PoolId, proposal.Loss)
+	})
+}
+
+func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) {
+	processShieldClaimProposal(ctx, k, proposal, func(proposal *shieldtypes.ShieldClaimProposal) {
+		proposer, err := sdk.AccAddressFromBech32(proposal.Proposer)
+		if err != nil {
+			panic(err)
+		}
+		k.ShieldKeeper.RestoreShield(ctx, proposal.PoolId, proposer, proposal.PurchaseId, proposal.Loss)
+		k.ShieldKeeper.ClaimEnd(ctx, proposal.ProposalId, proposal.PoolId, proposal.Loss)
+	})
+}
+
+func processShieldClaimProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal, processFunc func(*shieldtypes.ShieldClaimProposal)) {
+	proposalMsgs, err := proposal.GetMsgs()
+	if err != nil {
+		// TODO add log
+		return
+	}
+	if len(proposalMsgs) != 1 {
+		return
+	}
+
+	legacyMsg, ok := proposalMsgs[0].(*govtypesv1.MsgExecLegacyContent)
+	if !ok {
+		return
+	}
+
+	// check that the content struct can be unmarshalled
+	content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
+	if err != nil {
+		// TODO add log
+		return
+	}
+
+	if claimProposal, ok := content.(*shieldtypes.ShieldClaimProposal); ok {
+		processFunc(claimProposal)
+	}
 }
