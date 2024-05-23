@@ -59,11 +59,11 @@ func (k Keeper) GetNextPoolID(ctx sdk.Context) uint64 {
 }
 
 // GetPoolsBySponsor search store for a pool object with given pool ID.
-func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsorAddr string) ([]types.Pool, bool) {
+func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsor string) ([]types.Pool, bool) {
 	var ret []types.Pool
 	found := false
 	k.IterateAllPools(ctx, func(pool types.Pool) bool {
-		if pool.SponsorAddr == sponsorAddr {
+		if pool.Sponsor == sponsor {
 			ret = append(ret, pool)
 			found = true
 		}
