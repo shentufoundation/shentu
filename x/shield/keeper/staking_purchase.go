@@ -170,7 +170,10 @@ func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchas
 		return nil
 	}
 	refundCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
-	k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, refundCoins)
+	err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, refundCoins)
+	if err != nil {
+		return err
+	}
 
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOriginalStakingKey(purchaseID))
@@ -198,7 +201,7 @@ func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchas
 	}
 
 	sPRate := k.GetShieldStakingRate(ctx)
-	renewShieldInt := sdk.NewDecFromInt(amount).Quo(sPRate).TruncateInt()
+	renewShieldInt := sdk.NewDecFromInt(renew).Quo(sPRate).TruncateInt()
 	renewShield := sdk.NewCoins(sdk.NewCoin(bondDenom, renewShieldInt))
 	if renewShieldInt.IsZero() {
 		return nil
