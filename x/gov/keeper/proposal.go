@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -56,7 +57,11 @@ func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) math.Int {
 			if !found {
 				return false
 			}
+			fmt.Println("TotalBondedByCertifiedIdentities identity", identity.String())
+			fmt.Println("TotalBondedByCertifiedIdentities val", val.String())
+			fmt.Println("TotalBondedByCertifiedIdentities bonded +", bonded)
 			bonded = bonded.Add(delegation.GetShares().Quo(val.GetDelegatorShares()).MulInt(val.GetBondedTokens()).TruncateInt())
+			fmt.Println("TotalBondedByCertifiedIdentities bonded -", bonded)
 			return false
 		})
 	}
