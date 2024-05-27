@@ -212,7 +212,7 @@ type legacyMsgServer struct {
 // NewLegacyMsgServerImpl returns an implementation of the v1beta1 legacy MsgServer interface. It wraps around
 // the current MsgServer
 func NewLegacyMsgServerImpl(govAcct string, v1Server govtypesv1.MsgServer, k Keeper) govtypesv1beta1.MsgServer {
-	return &legacyMsgServer{govAcct: govAcct, server: v1Server}
+	return &legacyMsgServer{govAcct: govAcct, server: v1Server, keeper: k}
 }
 
 var _ govtypesv1beta1.MsgServer = legacyMsgServer{}
