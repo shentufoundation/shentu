@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.legacyQueryClient = legacyQueryClient
 	suite.msgSrvr = keeper.NewMsgServerImpl(suite.app.GovKeeper)
 	govAcct := suite.app.GovKeeper.GetGovernanceAccount(suite.ctx).GetAddress()
-	suite.legacyMsgSrvr = keeper.NewLegacyMsgServerImpl(govAcct.String(), suite.msgSrvr)
+	suite.legacyMsgSrvr = keeper.NewLegacyMsgServerImpl(govAcct.String(), suite.msgSrvr, app.GovKeeper)
 	suite.addrs = shentuapp.AddTestAddrsIncremental(app, ctx, 2, sdk.NewInt(1e10))
 }
 

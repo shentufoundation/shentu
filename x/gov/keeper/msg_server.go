@@ -10,6 +10,7 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -205,17 +206,25 @@ func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, content govtypesv1beta
 type legacyMsgServer struct {
 	govAcct string
 	server  govtypesv1.MsgServer
+	keeper  Keeper
 }
 
 // NewLegacyMsgServerImpl returns an implementation of the v1beta1 legacy MsgServer interface. It wraps around
 // the current MsgServer
-func NewLegacyMsgServerImpl(govAcct string, v1Server govtypesv1.MsgServer) govtypesv1beta1.MsgServer {
+func NewLegacyMsgServerImpl(govAcct string, v1Server govtypesv1.MsgServer, k Keeper) govtypesv1beta1.MsgServer {
 	return &legacyMsgServer{govAcct: govAcct, server: v1Server}
 }
 
 var _ govtypesv1beta1.MsgServer = legacyMsgServer{}
 
 func (k legacyMsgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1beta1.MsgSubmitProposal) (*govtypesv1beta1.MsgSubmitProposalResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := validateProposalByType(ctx, k.keeper, msg)
+	if err != nil {
+		return nil, err
+	}
+
 	contentMsg, err := govtypesv1.NewLegacyContent(msg.GetContent(), k.govAcct)
 	if err != nil {
 		return nil, fmt.Errorf("error converting legacy content into proposal message: %w", err)
@@ -281,4 +290,58 @@ func (k legacyMsgServer) Deposit(goCtx context.Context, msg *govtypesv1beta1.Msg
 		return nil, err
 	}
 	return &govtypesv1beta1.MsgDepositResponse{}, nil
+}
+
+func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypesv1beta1.MsgSubmitProposal) error {
+	switch c := msg.GetContent().(type) {
+	case *certtypes.CertifierUpdateProposal:
+		if c.Alias != "" && k.CertKeeper.HasCertifierAlias(ctx, c.Alias) {
+			return certtypes.ErrRepeatedAlias
+		}
+
+	case *shieldtypes.ShieldClaimProposal:
+		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
+		denom := k.stakingKeeper.BondDenom(ctx)
+
+		initialDepositAmount := sdk.NewDecFromInt(msg.InitialDeposit.AmountOf(denom))
+		lossAmount := c.Loss.AmountOf(denom)
+		lossAmountDec := sdk.NewDecFromInt(lossAmount)
+		claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
+		depositRate := claimProposalParams.DepositRate
+		minDeposit := sdk.NewDecFromInt(claimProposalParams.MinDeposit.AmountOf(denom))
+		if initialDepositAmount.LT(lossAmountDec.Mul(depositRate)) || initialDepositAmount.LT(minDeposit) {
+			return sdkerrors.Wrapf(
+				sdkerrors.ErrInsufficientFunds,
+				"insufficient initial deposits amount: %v, minimum: max(%v, %v)",
+				initialDepositAmount, lossAmountDec.Mul(depositRate), minDeposit,
+			)
+		}
+
+		// check shield >= loss
+		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
+		if err != nil {
+			return err
+		}
+		purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolId, proposerAddr)
+		if !found {
+			return shieldtypes.ErrPurchaseNotFound
+		}
+		purchase, found := k.ShieldKeeper.GetPurchase(purchaseList, c.PurchaseId)
+		if !found {
+			return shieldtypes.ErrPurchaseNotFound
+		}
+		if !purchase.Shield.GTE(lossAmount) {
+			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Shield, c.Loss)
+		}
+
+		// check the purchaseList is not expired
+		if purchase.ProtectionEndTime.Before(ctx.BlockTime()) {
+			return fmt.Errorf("after protection end time: %s", purchase.ProtectionEndTime)
+		}
+		return nil
+
+	default:
+		return nil
+	}
+	return nil
 }

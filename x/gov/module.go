@@ -158,7 +158,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	msgServer := keeper.NewMsgServerImpl(am.keeper)
 	govtypesv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
-	govtypesv1beta1.RegisterMsgServer(cfg.MsgServer(), keeper.NewLegacyMsgServerImpl(am.accountKeeper.GetModuleAddress(govtypes.ModuleName).String(), msgServer))
+	govtypesv1beta1.RegisterMsgServer(cfg.MsgServer(), keeper.NewLegacyMsgServerImpl(am.accountKeeper.GetModuleAddress(govtypes.ModuleName).String(), msgServer, am.keeper))
 
 	typesv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)

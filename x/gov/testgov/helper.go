@@ -31,7 +31,7 @@ type Helper struct {
 func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper, denom string) *Helper {
 	moduleAcct := sdk.AccAddress(crypto.AddressHash([]byte(govtypes.ModuleName)))
 	msgSrvr := keeper.NewMsgServerImpl(k)
-	return &Helper{t, keeper.NewLegacyMsgServerImpl(moduleAcct.String(), msgSrvr), k, ctx, denom}
+	return &Helper{t, keeper.NewLegacyMsgServerImpl(moduleAcct.String(), msgSrvr, k), k, ctx, denom}
 }
 
 func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) {
