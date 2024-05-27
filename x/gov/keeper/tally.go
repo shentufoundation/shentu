@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -82,7 +83,9 @@ func (k Keeper) Tally(ctx sdk.Context, proposal govtypesv1.Proposal) (pass bool,
 			}
 
 			if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+				fmt.Println("passAndVetoStakeResultForShieldClaim +")
 				pass, veto = passAndVetoStakeResultForShieldClaim(k, ctx, th)
+				fmt.Println("passAndVetoStakeResultForShieldClaim -")
 				return pass, veto, tallyResults
 			}
 		}
@@ -191,7 +194,9 @@ func passAndVetoStakeResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass boo
 }
 
 func passAndVetoStakeResultForShieldClaim(k Keeper, ctx sdk.Context, th TallyHelper) (pass bool, veto bool) {
+	fmt.Println("pass and veto stake +", th.totalVotingPower, th.tallyParams)
 	totalBondedByCertifiedIdentities := k.TotalBondedByCertifiedIdentities(ctx)
+	fmt.Println("pass and veto stake totalBondedByCertifiedIdentities", totalBondedByCertifiedIdentities)
 	// If there is no staked coins, the proposal fails.
 	if totalBondedByCertifiedIdentities.IsZero() {
 		return false, false
@@ -199,7 +204,9 @@ func passAndVetoStakeResultForShieldClaim(k Keeper, ctx sdk.Context, th TallyHel
 
 	// If there is not enough quorum of votes, the proposal fails.
 	percentVoting := th.totalVotingPower.Quo(sdk.NewDecFromInt(totalBondedByCertifiedIdentities))
+	fmt.Println("pass and veto stake percentVoting", percentVoting)
 	quorum, _ := sdk.NewDecFromStr(th.tallyParams.Quorum)
+	fmt.Println("pass and veto stake quorum", quorum)
 	if percentVoting.LT(quorum) {
 		return false, false
 	}
@@ -208,15 +215,19 @@ func passAndVetoStakeResultForShieldClaim(k Keeper, ctx sdk.Context, th TallyHel
 	if th.totalVotingPower.Sub(th.results[govtypesv1.OptionAbstain]).Equal(sdk.ZeroDec()) {
 		return false, false
 	}
+	fmt.Println("pass and veto stake everyone abstains")
 
 	// If more than 1/3 of voters veto, proposal fails.
 	vetoThreshold, _ := sdk.NewDecFromStr(th.tallyParams.VetoThreshold)
+	fmt.Println("pass and veto stake vetoThreshold", vetoThreshold)
 	if th.results[govtypesv1.OptionNoWithVeto].Quo(th.totalVotingPower).GT(vetoThreshold) {
 		return false, true
 	}
 
+	fmt.Println("pass and veto stake If more than 1/3 of voters veto, proposal fails")
 	// If more than 1/2 of non-abstaining voters vote Yes, proposal passes.
 	threshold, _ := sdk.NewDecFromStr(th.tallyParams.Threshold)
+	fmt.Println("pass and veto stake threshold", threshold)
 	if th.results[govtypesv1.OptionYes].Quo(th.totalVotingPower.Sub(th.results[govtypesv1.OptionAbstain])).
 		GT(threshold) {
 		return true, false
