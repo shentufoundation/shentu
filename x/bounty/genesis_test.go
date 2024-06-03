@@ -37,14 +37,14 @@ func TestExportGenesis(t *testing.T) {
 		},
 	}
 
-	app1 := shentuapp.Setup(false)
+	app1 := shentuapp.Setup(t, false)
 	ctx1 := app1.BaseApp.NewContext(false, tmproto.Header{})
 	k1 := app1.BountyKeeper
 
 	bounty.InitGenesis(ctx1, k1, dataGS)
 	exported1 := bounty.ExportGenesis(ctx1, k1)
 
-	app2 := shentuapp.Setup(false)
+	app2 := shentuapp.Setup(t, false)
 	ctx2 := app2.BaseApp.NewContext(false, tmproto.Header{})
 	k2 := app2.BountyKeeper
 

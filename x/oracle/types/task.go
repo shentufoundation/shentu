@@ -6,6 +6,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -36,7 +37,7 @@ func NewTask(
 }
 
 // NewResponse returns a new response.
-func NewResponse(score sdk.Int, operator sdk.AccAddress) Response {
+func NewResponse(score math.Int, operator sdk.AccAddress) Response {
 	return Response{
 		Operator: operator.String(),
 		Score:    score,

@@ -13,7 +13,7 @@ import (
 )
 
 func TestNewBlockChain(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
 
@@ -22,7 +22,7 @@ func TestNewBlockChain(t *testing.T) {
 }
 
 func TestBlockchain_BlockHash(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
 
@@ -38,7 +38,7 @@ func TestBlockchain_BlockHash(t *testing.T) {
 }
 
 func TestBlockchain_LastBlockHeight(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
 	bc := NewBlockChain(ctx, cvmk)
@@ -48,7 +48,7 @@ func TestBlockchain_LastBlockHeight(t *testing.T) {
 }
 
 func TestBlockchain_LastBlockTime(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
 	bc := NewBlockChain(ctx, cvmk)

@@ -11,16 +11,27 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 var (
-	valTokens           = sdk.TokensFromConsensusPower(1000, sdk.DefaultPowerReduction)
-	TestProposal        = types.NewTextProposal("Test", "description")
+	valTokens           = sdk.TokensFromConsensusPower(1e3, sdk.DefaultPowerReduction)
+	TestProposal        = govtypesv1beta1.NewTextProposal("Test", "description")
 	TestDescription     = stakingtypes.NewDescription("T", "E", "S", "T", "Z")
 	TestCommissionRates = stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec())
 )
+
+// mkTestLegacyContent creates a MsgExecLegacyContent for testing purposes.
+func mkTestLegacyContent(t *testing.T) *govtypesv1.MsgExecLegacyContent {
+	msgContent, err := govtypesv1.NewLegacyContent(TestProposal, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	require.NoError(t, err)
+
+	return msgContent
+}
 
 // SortAddresses - Sorts Addresses
 func SortAddresses(addrs []sdk.AccAddress) {
@@ -68,13 +79,13 @@ func SortByteArrays(src [][]byte) [][]byte {
 	return sorted
 }
 
-const contextKeyBadProposal = "contextKeyBadProposal"
-
 var pubkeys = []cryptotypes.PubKey{
 	ed25519.GenPrivKey().PubKey(),
 	ed25519.GenPrivKey().PubKey(),
 	ed25519.GenPrivKey().PubKey(),
 }
+
+const contextKeyBadProposal = "contextKeyBadProposal"
 
 func createValidators(t *testing.T, stakingHandler sdk.Handler, ctx sdk.Context, addrs []sdk.ValAddress, powerAmt []int64) {
 	require.True(t, len(addrs) <= len(pubkeys), "Not enough pubkeys specified at top of file.")

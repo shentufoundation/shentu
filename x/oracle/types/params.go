@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -40,7 +41,7 @@ func ParamKeyTable() params.KeyTable {
 
 // NewTaskParams returns a TaskParams object.
 func NewTaskParams(expirationDuration time.Duration, aggregationWindow int64, aggregationResult,
-	thresholdScore, epsilon1, epsilon2 sdk.Int, shortcutQuorum sdk.Dec) TaskParams {
+	thresholdScore, epsilon1, epsilon2 math.Int, shortcutQuorum sdk.Dec) TaskParams {
 	return TaskParams{
 		ExpirationDuration: expirationDuration,
 		AggregationWindow:  aggregationWindow,

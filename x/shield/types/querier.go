@@ -1,6 +1,9 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 const (
 	QueryPoolByID            = "pool_id"
@@ -26,15 +29,15 @@ const (
 )
 
 type QueryResStatus struct {
-	TotalCollateral         sdk.Int      `json:"total_collateral" yaml:"total_collateral"`
-	TotalShield             sdk.Int      `json:"total_shield" yaml:"total_shield"`
-	TotalWithdrawing        sdk.Int      `json:"total_withdrawing" yaml:"total_withdrawing"`
+	TotalCollateral         math.Int     `json:"total_collateral" yaml:"total_collateral"`
+	TotalShield             math.Int     `json:"total_shield" yaml:"total_shield"`
+	TotalWithdrawing        math.Int     `json:"total_withdrawing" yaml:"total_withdrawing"`
 	CurrentServiceFees      sdk.DecCoins `json:"current_service_fees" yaml:"current_service_fees"`
 	RemainingServiceFees    sdk.DecCoins `json:"remaining_service_fees" yaml:"remaining_service_fees"`
-	GlobalShieldStakingPool sdk.Int      `json:"global_shield_staking_pool" yaml:"global_shield_staking_pool"`
+	GlobalShieldStakingPool math.Int     `json:"global_shield_staking_pool" yaml:"global_shield_staking_pool"`
 }
 
-func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing sdk.Int, currentServiceFees, remainingServiceFees sdk.DecCoins, globalStakingPool sdk.Int) QueryResStatus {
+func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing math.Int, currentServiceFees, remainingServiceFees sdk.DecCoins, globalStakingPool math.Int) QueryResStatus {
 	return QueryResStatus{
 		TotalCollateral:         totalCollateral,
 		TotalShield:             totalShield,

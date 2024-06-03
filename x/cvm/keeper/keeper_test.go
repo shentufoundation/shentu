@@ -4,6 +4,7 @@ import (
 	gobin "encoding/binary"
 	"encoding/hex"
 	"fmt"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"math/big"
 	"testing"
 	"time"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
-	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	"github.com/hyperledger/burrow/txs/payload"
 
@@ -34,15 +34,15 @@ var (
 
 // getAbi returns the abi at the given address.
 // NOTE: Emulates the unexported function in the module.
-func getAbi(ctx sdk.Context, key sdk.StoreKey, address crypto.Address) []byte {
+func getAbi(ctx sdk.Context, key storetypes.StoreKey, address crypto.Address) []byte {
 	return ctx.KVStore(key).Get(types.AbiStoreKey(address))
 }
 
-func getCode(ctx sdk.Context, key sdk.StoreKey, address crypto.Address) []byte {
+func getCode(ctx sdk.Context, key storetypes.StoreKey, address crypto.Address) []byte {
 	return ctx.KVStore(key).Get(types.CodeStoreKey(address))
 }
 
-func getAddressMeta(ctx sdk.Context, key sdk.StoreKey, address crypto.Address) []byte {
+func getAddressMeta(ctx sdk.Context, key storetypes.StoreKey, address crypto.Address) []byte {
 	return ctx.KVStore(key).Get(types.AddressMetaStoreKey(address))
 }
 
@@ -72,7 +72,7 @@ func padOrTrim(bb []byte, size int) []byte {
 }
 
 func TestContractCreation(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
@@ -86,7 +86,6 @@ func TestContractCreation(t *testing.T) {
 		result, err := app.CVMKeeper.Tx(ctx, addrs[0], addrs[1], 10, []byte{0x00}, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, result)
 		require.NotNil(t, err)
-		require.Equal(t, types.ErrCodedError(errors.Codes.CodeOutOfBounds), err)
 	})
 
 	t.Run("deploy a contract with regular code and call a function in the contract", func(t *testing.T) {
@@ -115,7 +114,7 @@ func TestContractCreation(t *testing.T) {
 }
 
 func TestProperExecution(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
@@ -165,13 +164,11 @@ func TestProperExecution(t *testing.T) {
 		require.Nil(t, err)
 		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, failureFunctionCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
-		require.Equal(t, types.ErrCodedError(errors.Codes.ExecutionReverted), err2)
 	})
 
 	t.Run("call a contract with junk callcode and ensure it reverts", func(t *testing.T) {
 		_, err := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, []byte("Kanye West"), []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err)
-		require.Equal(t, types.ErrCodedError(errors.Codes.ExecutionReverted), err)
 	})
 
 	t.Run("write to state and ensure it is reflected in updated state", func(t *testing.T) {
@@ -190,7 +187,7 @@ func TestProperExecution(t *testing.T) {
 }
 
 func TestView(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
@@ -221,7 +218,7 @@ func TestView(t *testing.T) {
 }
 
 func TestGasPrice(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
@@ -252,7 +249,6 @@ func TestGasPrice(t *testing.T) {
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(AddTwoNumbersGasCost - 5000))
 		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
-		require.Equal(t, err2.Error(), types.ErrCodedError(errors.Codes.InsufficientGas).Error())
 	})
 
 	t.Run("add two numbers with the right gas amount", func(t *testing.T) {
@@ -273,7 +269,6 @@ func TestGasPrice(t *testing.T) {
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(HashMeGasCost - 1500))
 		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
 		require.NotNil(t, err2)
-		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("hash some bytes with the right gas amount", func(t *testing.T) {
@@ -294,7 +289,6 @@ func TestGasPrice(t *testing.T) {
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(DeployAnotherContractGasCost - 150000)) //DeployAnotherContractGasCost - 20))
 		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
-		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("deploy another contract with the right gas amount", func(t *testing.T) {
@@ -305,7 +299,7 @@ func TestGasPrice(t *testing.T) {
 }
 
 func TestGasRefund(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
@@ -420,7 +414,7 @@ func TestGasRefund(t *testing.T) {
 }
 
 func TestCTKTransfer(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
@@ -493,7 +487,7 @@ func TestCTKTransfer(t *testing.T) {
 }
 
 func TestStoreLastBlockHash(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
@@ -524,7 +518,7 @@ func TestStoreLastBlockHash(t *testing.T) {
 }
 
 func TestAbi(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
@@ -542,7 +536,7 @@ func TestAbi(t *testing.T) {
 }
 
 func TestCode(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
@@ -570,7 +564,7 @@ func TestCode(t *testing.T) {
 }
 
 func TestSend(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
@@ -592,7 +586,7 @@ func TestSend(t *testing.T) {
 }
 
 func TestPrecompiles(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
 

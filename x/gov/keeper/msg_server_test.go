@@ -3,87 +3,116 @@ package keeper_test
 import (
 	"strings"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/common"
 )
 
-func (suite *KeeperTestSuite) TestVoteWeightedReq() {
-	proposer := suite.address[0]
+func (suite *KeeperTestSuite) TestSubmitProposalReq() {
+	govAcct := suite.app.GovKeeper.GetGovernanceAccount(suite.ctx).GetAddress()
+	addrs := suite.addrs
+	proposer := addrs[0]
 
-	stakingCoins := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e10)))
+	coins := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100)))
+	initialDeposit := coins
 	minDeposit := suite.app.GovKeeper.GetDepositParams(suite.ctx).MinDeposit
-	inactiveCoins := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1)))
+	bankMsg := &banktypes.MsgSend{
+		FromAddress: govAcct.String(),
+		ToAddress:   proposer.String(),
+		Amount:      coins,
+	}
 
-	// add staking coins to depositor
-	suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, proposer, stakingCoins))
-
-	proposalContent := govtypes.NewTextProposal("title0", "description0")
-	// active proposal
-	msg, err := govtypes.NewMsgSubmitProposal(
-		proposalContent,
-		minDeposit,
-		proposer,
-	)
-	suite.Require().NoError(err)
-	res, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res.ProposalId)
-
-	// inactive proposal
-	inactiveMsg, err := govtypes.NewMsgSubmitProposal(
-		proposalContent,
-		inactiveCoins,
-		proposer,
-	)
-	suite.Require().NoError(err)
-	inactiveRes, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), inactiveMsg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res.ProposalId)
-
-	cases := []struct {
-		name       string
-		proposalId uint64
-		voterAddr  sdk.AccAddress
-		options    govtypes.WeightedVoteOptions
-		expectPass bool
-		expErrMsg  string
+	cases := map[string]struct {
+		preRun    func() (*v1.MsgSubmitProposal, error)
+		expErr    bool
+		expErrMsg string
 	}{
-		{
-			"all good",
-			res.ProposalId,
-			proposer,
-			govtypes.NewNonSplitVoteOption(govtypes.OptionYes),
-			true,
-			"",
+		"metadata too long": {
+			preRun: func() (*v1.MsgSubmitProposal, error) {
+				return v1.NewMsgSubmitProposal(
+					[]sdk.Msg{bankMsg},
+					initialDeposit,
+					proposer.String(),
+					strings.Repeat("1", 300),
+				)
+			},
+			expErr:    true,
+			expErrMsg: "metadata too long",
 		},
-		{"voter error",
-			res.ProposalId,
-			sdk.AccAddress(strings.Repeat("a", 300)),
-			govtypes.NewNonSplitVoteOption(govtypes.OptionYes),
-			false,
-			"address max length is 255",
+		"many signers": {
+			preRun: func() (*v1.MsgSubmitProposal, error) {
+				return v1.NewMsgSubmitProposal(
+					[]sdk.Msg{testdata.NewTestMsg(govAcct, addrs[0])},
+					initialDeposit,
+					proposer.String(),
+					"",
+				)
+			},
+			expErr:    true,
+			expErrMsg: "expected gov account as only signer for proposal message",
 		},
-		{"vote on inactive proposal",
-			inactiveRes.ProposalId,
-			proposer,
-			govtypes.NewNonSplitVoteOption(govtypes.OptionYes),
-			false,
-			"inactive proposal",
+		"signer isn't gov account": {
+			preRun: func() (*v1.MsgSubmitProposal, error) {
+				return v1.NewMsgSubmitProposal(
+					[]sdk.Msg{testdata.NewTestMsg(addrs[0])},
+					initialDeposit,
+					proposer.String(),
+					"",
+				)
+			},
+			expErr:    true,
+			expErrMsg: "expected gov account as only signer for proposal message",
+		},
+		"invalid msg handler": {
+			preRun: func() (*v1.MsgSubmitProposal, error) {
+				return v1.NewMsgSubmitProposal(
+					[]sdk.Msg{testdata.NewTestMsg(govAcct)},
+					initialDeposit,
+					proposer.String(),
+					"",
+				)
+			},
+			expErr:    true,
+			expErrMsg: "proposal message not recognized by router",
+		},
+		"all good": {
+			preRun: func() (*v1.MsgSubmitProposal, error) {
+				return v1.NewMsgSubmitProposal(
+					[]sdk.Msg{bankMsg},
+					initialDeposit,
+					proposer.String(),
+					"",
+				)
+			},
+			expErr: false,
+		},
+		"all good with min deposit": {
+			preRun: func() (*v1.MsgSubmitProposal, error) {
+				return v1.NewMsgSubmitProposal(
+					[]sdk.Msg{bankMsg},
+					minDeposit,
+					proposer.String(),
+					"",
+				)
+			},
+			expErr: false,
 		},
 	}
 
-	for _, tc := range cases {
-		suite.Run(tc.name, func() {
-			voteReq := govtypes.NewMsgVoteWeighted(tc.voterAddr, tc.proposalId, tc.options)
-			_, err = suite.msgServer.VoteWeighted(sdk.WrapSDKContext(suite.ctx), voteReq)
-			if tc.expectPass {
-				suite.Require().NoError(err)
-			} else {
+	for name, tc := range cases {
+		suite.Run(name, func() {
+			msg, err := tc.preRun()
+			suite.Require().NoError(err)
+			res, err := suite.msgSrvr.SubmitProposal(suite.ctx, msg)
+			if tc.expErr {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expErrMsg)
+			} else {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res.ProposalId)
 			}
 		})
 	}

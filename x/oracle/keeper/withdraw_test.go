@@ -15,7 +15,7 @@ import (
 )
 
 func TestWithdraw(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
@@ -49,7 +49,7 @@ func TestWithdraw(t *testing.T) {
 
 // Test set withdraw
 func TestSetWithdraw(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper

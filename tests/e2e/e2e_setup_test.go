@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -32,7 +33,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/shentufoundation/shentu/v2/common"
-	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -173,17 +173,23 @@ func (s *IntegrationTestSuite) initNodes(c *chain) {
 	// initialize a genesis file for the first validator
 	val0ConfigDir := c.validators[0].configDir()
 	for _, val := range c.validators {
+		key, err := val.keyInfo.GetAddress()
+		s.Require().NoError(err)
+
 		s.Require().NoError(
-			addGenesisAccount(val0ConfigDir, "", initBalanceStr, val.keyInfo.GetAddress()),
+			addGenesisAccount(val0ConfigDir, "", initBalanceStr, key),
 		)
 		s.Require().NoError(
-			addCertifierAccount(val0ConfigDir, "", val.keyInfo.GetAddress()),
+			addCertifierAccount(val0ConfigDir, "", key),
 		)
 	}
 	for _, val := range c.accounts {
-		s.T().Logf("Account %s : %s", val.moniker, val.keyInfo.GetAddress())
+		key, err := val.keyInfo.GetAddress()
+		s.Require().NoError(err)
+
+		s.T().Logf("Account %s : %s", val.moniker, key)
 		s.Require().NoError(
-			addGenesisAccount(val0ConfigDir, "", initBalanceStr, val.keyInfo.GetAddress()),
+			addGenesisAccount(val0ConfigDir, "", initBalanceStr, key),
 		)
 	}
 
@@ -230,15 +236,18 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	appGenState[banktypes.ModuleName] = bz
 
 	shieldGenState := shieldtypes.GetGenesisStateFromAppState(cdc, appGenState)
-	shieldGenState.ShieldAdmin = c.validators[0].keyInfo.GetAddress().String()
+	sa, err := c.validators[0].keyInfo.GetAddress()
+	s.Require().NoError(err)
+	shieldGenState.ShieldAdmin = sa.String()
 	bz, err = cdc.MarshalJSON(&shieldGenState)
 	s.Require().NoError(err)
 	appGenState[shieldtypes.ModuleName] = bz
 
-	var govGenState govtypes.GenesisState
+	var govGenState govtypesv1.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[sdkgovtypes.ModuleName], &govGenState))
 
-	govGenState.VotingParams.VotingPeriod = time.Second * 20
+	votingPeriod := time.Second * 20
+	govGenState.VotingParams.VotingPeriod = &votingPeriod
 	minDepositTokens := sdk.TokensFromConsensusPower(0, sdk.NewIntFromUint64(10))
 	govGenState.DepositParams.MinDeposit = sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)}
 	bz, err = cdc.MarshalJSON(&govGenState)

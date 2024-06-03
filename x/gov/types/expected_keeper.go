@@ -3,10 +3,9 @@ package types
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
@@ -18,10 +17,6 @@ type CertKeeper interface {
 	HasCertifierAlias(ctx sdk.Context, alias string) bool
 	IsCertified(ctx sdk.Context, content string, certType string) bool
 	GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress
-}
-
-type UpgradeKeeper interface {
-	ValidatePlan(ctx sdk.Context, plan upgradetypes.Plan) error
 }
 
 type ShieldKeeper interface {
@@ -41,7 +36,7 @@ type ParamSubspace interface {
 
 type StakingKeeper interface {
 	IterateBondedValidatorsByPower(sdk.Context, func(index int64, validator stakingtypes.ValidatorI) (stop bool))
-	TotalBondedTokens(sdk.Context) sdk.Int
+	TotalBondedTokens(sdk.Context) math.Int
 	IterateDelegations(ctx sdk.Context, delegator sdk.AccAddress, fn func(index int64, delegation stakingtypes.DelegationI) (stop bool))
 	BondDenom(sdk.Context) string
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)

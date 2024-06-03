@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
@@ -48,6 +49,9 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 			index = i
 			break
 		}
+		if i == len(purchaseList.Entries)-1 {
+			return types.ErrPurchaseNotFound
+		}
 	}
 	purchase := &purchaseList.Entries[index]
 	if lossAmt.GT(purchase.Shield) {
@@ -56,10 +60,10 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 	// Secure the updated loss ratio from each provider to cover total claimed.
 	providers := k.GetAllProviders(ctx)
-	claimedRatio := totalSecureAmt.ToDec().Quo(totalCollateral.ToDec())
+	claimedRatio := sdk.NewDecFromInt(totalSecureAmt).Quo(sdk.NewDecFromInt(totalCollateral))
 	remaining := totalSecureAmt
 	for i := range providers {
-		secureAmt := sdk.MinInt(providers[i].Collateral.ToDec().Mul(claimedRatio).TruncateInt(), remaining)
+		secureAmt := sdk.MinInt(sdk.NewDecFromInt(providers[i].Collateral).Mul(claimedRatio).TruncateInt(), remaining)
 
 		// Require each provider to secure one more unit, if possible,
 		// so that the last provider does not have to cover combined
@@ -94,7 +98,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 // SecureFromProvider secures the specified amount of collaterals from
 // the provider for the duration. If necessary, it extends withdrawing
 // collaterals and, if exist, their linked unbondings as well.
-func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amount sdk.Int, duration time.Duration) {
+func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amount math.Int, duration time.Duration) {
 	providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
 	if err != nil {
 		panic(err)
@@ -251,8 +255,8 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)
 	totalPayout := amount.AmountOf(bondDenom)
-	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
-	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
+	purchaseRatio := sdk.NewDecFromInt(totalPurchased).Quo(sdk.NewDecFromInt(totalCollateral))
+	payoutRatio := sdk.NewDecFromInt(totalPayout).Quo(sdk.NewDecFromInt(totalCollateral))
 	for _, provider := range k.GetAllProviders(ctx) {
 		if !totalPayout.IsPositive() {
 			break
@@ -263,11 +267,11 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 			panic(err)
 		}
 
-		purchased := provider.Collateral.ToDec().Mul(purchaseRatio).TruncateInt()
+		purchased := sdk.NewDecFromInt(provider.Collateral).Mul(purchaseRatio).TruncateInt()
 		if purchased.GT(totalPurchased) {
 			purchased = totalPurchased
 		}
-		payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
+		payout := sdk.NewDecFromInt(provider.Collateral).Mul(payoutRatio).TruncateInt()
 		if payout.GT(totalPayout) {
 			payout = totalPayout
 		}
@@ -308,7 +312,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 }
 
 // UpdateProviderCollateralForPayout updates a provider's collateral and withdraws according to the payout.
-func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) error {
+func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout math.Int) error {
 	provider, found := k.GetProvider(ctx, providerAddr)
 	if !found {
 		return types.ErrProviderNotFound
@@ -390,7 +394,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 }
 
 // MakePayoutByProviderDelegations undelegates the provider's delegations and transfers tokens from the staking module account to the shield module account.
-func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) error {
+func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout math.Int) error {
 	provider, found := k.GetProvider(ctx, providerAddr)
 	if !found {
 		return types.ErrProviderNotFound
@@ -458,7 +462,7 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 }
 
 // PayFromDelegation reduce provider's delegations and transfer tokens to the shield module account.
-func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payout sdk.Int) {
+func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payout math.Int) {
 	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
 		panic(types.ErrProviderNotFound)
@@ -466,7 +470,7 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 	totalDelAmount := provider.DelegationBonded
 
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
-	payoutRatio := payout.ToDec().Quo(totalDelAmount.ToDec())
+	payoutRatio := sdk.NewDecFromInt(payout).Quo(sdk.NewDecFromInt(totalDelAmount))
 	remaining := payout
 	for i := range delegations {
 		if !remaining.IsPositive() {
@@ -478,7 +482,7 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 			panic("validator is not found")
 		}
 		delAmount := val.TokensFromShares(delegations[i].GetShares()).TruncateInt()
-		var ubdAmount sdk.Int
+		var ubdAmount math.Int
 		if i == len(delegations)-1 {
 			ubdAmount = remaining
 		} else {
@@ -506,7 +510,7 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 }
 
 // PayFromUnbondings reduce provider's unbonding delegations and transfer tokens to the shield module account.
-func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation, payout sdk.Int) {
+func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation, payout math.Int) {
 	delAddr, err := sdk.AccAddressFromBech32(ubd.DelegatorAddress)
 	if err != nil {
 		panic(err)
@@ -621,13 +625,13 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 		originalDelegatedVesting := vacc.GetDelegatedVesting()
 		vacc.TrackUndelegation(amt)
 		updatedDelegatedVesting := vacc.GetDelegatedVesting()
-		updateAmt := originalDelegatedVesting.Sub(updatedDelegatedVesting)
+		updateAmt := originalDelegatedVesting.Sub(updatedDelegatedVesting...)
 		if mvacc, ok := delAcc.(*vesting.ManualVestingAccount); ok {
 			var unlockAmt sdk.Coins
-			if mvacc.OriginalVesting.Sub(mvacc.VestedCoins).IsAllGT(updateAmt) {
+			if mvacc.OriginalVesting.Sub(mvacc.VestedCoins...).IsAllGT(updateAmt) {
 				unlockAmt = updateAmt
 			} else {
-				unlockAmt = mvacc.OriginalVesting.Sub(mvacc.VestedCoins)
+				unlockAmt = mvacc.OriginalVesting.Sub(mvacc.VestedCoins...)
 			}
 			mvacc.VestedCoins = mvacc.VestedCoins.Add(unlockAmt...)
 		}

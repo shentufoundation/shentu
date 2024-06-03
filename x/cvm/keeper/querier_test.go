@@ -26,7 +26,7 @@ import (
 )
 
 func TestNewQuerier(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
@@ -62,7 +62,7 @@ func TestNewQuerier(t *testing.T) {
 }
 
 func TestViewQuery(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
@@ -81,7 +81,7 @@ func TestViewQuery(t *testing.T) {
 	require.Nil(t, err2)
 	require.NotNil(t, newContractAddress)
 
-	contAddr, err := sdk.AccAddressFromHex(hex.EncodeToString(newContractAddress))
+	contAddr, err := sdk.AccAddressFromHexUnsafe(hex.EncodeToString(newContractAddress))
 	require.Nil(t, err)
 	path := []string{"code", contAddr.String()}
 
@@ -108,7 +108,7 @@ func TestViewQuery(t *testing.T) {
 }
 
 func TestQueryMeta(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
@@ -140,7 +140,7 @@ func TestQueryMeta(t *testing.T) {
 	err = cache.Sync(state)
 	require.Nil(t, err)
 
-	metaAddr, err := sdk.AccAddressFromHex(hex.EncodeToString(addr.Bytes()))
+	metaAddr, err := sdk.AccAddressFromHexUnsafe(hex.EncodeToString(addr.Bytes()))
 	require.Nil(t, err)
 	path := []string{"address-meta", metaAddr.String()}
 	bz, err := querier(ctx, path, query)

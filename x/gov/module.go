@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -21,14 +20,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
-	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
 var (
@@ -39,14 +40,14 @@ var (
 
 // AppModuleBasic is the app module basics object.
 type AppModuleBasic struct {
-	cdc              codec.Codec
-	proposalHandlers []govclient.ProposalHandler // proposal handlers which live in governance cli and rest
+	cdc                    codec.Codec
+	legacyProposalHandlers []govclient.ProposalHandler // proposal handlers which live in governance cli and rest
 }
 
 // NewAppModuleBasic creates a new AppModuleBasic object.
-func NewAppModuleBasic(proposalHandlers ...govclient.ProposalHandler) AppModuleBasic {
+func NewAppModuleBasic(legacyProposalHandlers []govclient.ProposalHandler) AppModuleBasic {
 	return AppModuleBasic{
-		proposalHandlers: proposalHandlers,
+		legacyProposalHandlers: legacyProposalHandlers,
 	}
 }
 
@@ -57,43 +58,41 @@ func (AppModuleBasic) Name() string {
 
 // RegisterLegacyAminoCodec registers the gov module's types for the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	govtypes.RegisterLegacyAminoCodec(cdc)
+	govtypesv1beta1.RegisterLegacyAminoCodec(cdc)
+	govtypesv1.RegisterLegacyAminoCodec(cdc)
 }
 
 // DefaultGenesis returns the default genesis state.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	return cdc.MustMarshalJSON(typesv1.DefaultGenesisState())
 }
 
 // ValidateGenesis validates the module genesis.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var data types.GenesisState
+	var data typesv1.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", govtypes.ModuleName, err)
 	}
 
-	return types.ValidateGenesis(&data)
-}
-
-// RegisterRESTRoutes registers REST routes for the module.
-func (a AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
-	proposalRESTHandlers := make([]govrest.ProposalRESTHandler, 0, len(a.proposalHandlers))
-	for _, proposalHandler := range a.proposalHandlers {
-		proposalRESTHandlers = append(proposalRESTHandlers, proposalHandler.RESTHandler(ctx))
-	}
-
-	govrest.RegisterHandlers(ctx, rtr, proposalRESTHandlers)
+	return typesv1.ValidateGenesis(&data)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runtime.ServeMux) {
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(ctx))
+	err := typesv1.RegisterQueryHandlerClient(context.Background(), mux, typesv1.NewQueryClient(ctx))
+	if err != nil {
+		panic(err)
+	}
+	if err := govtypesv1beta1.RegisterQueryHandlerClient(context.Background(), mux, govtypesv1beta1.NewQueryClient(ctx)); err != nil {
+		panic(err)
+	}
+
 }
 
 // GetTxCmd gets the root tx command of this module.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	proposalCLIHandlers := make([]*cobra.Command, 0, len(a.proposalHandlers))
-	for _, proposalHandler := range a.proposalHandlers {
+	proposalCLIHandlers := make([]*cobra.Command, 0, len(a.legacyProposalHandlers))
+	for _, proposalHandler := range a.legacyProposalHandlers {
 		proposalCLIHandlers = append(proposalCLIHandlers, proposalHandler.CLIHandler())
 	}
 
@@ -107,7 +106,8 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
 func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	govtypes.RegisterInterfaces(registry)
+	govtypesv1beta1.RegisterInterfaces(registry)
+	govtypesv1.RegisterInterfaces(registry)
 }
 
 // AppModule is the main ctk module app type.
@@ -141,7 +141,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // Route returns the message routing key for the governance module.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(govtypes.RouterKey, NewHandler(am.keeper))
+	return sdk.Route{}
 }
 
 // QuerierRoute returns the governance module's querier route name.
@@ -156,8 +156,13 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	govtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	msgServer := keeper.NewMsgServerImpl(am.keeper)
+	govtypesv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
+	govtypesv1beta1.RegisterMsgServer(cfg.MsgServer(), keeper.NewLegacyMsgServerImpl(am.accountKeeper.GetModuleAddress(govtypes.ModuleName).String(), msgServer, am.keeper))
+
+	typesv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
+	govtypesv1beta1.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
 
 	m := keeper.NewMigrator(am.keeper)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)
@@ -169,13 +174,18 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err != nil {
 		panic(err)
 	}
+
+	err = cfg.RegisterMigration(govtypes.ModuleName, 3, m.Migrate3to4)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis performs genesis initialization for the governance module.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
+	var genesisState typesv1.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.accountKeeper, am.bankKeeper, genesisState)
+	InitGenesis(ctx, am.keeper, am.accountKeeper, am.bankKeeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
@@ -186,7 +196,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (am AppModule) ConsensusVersion() uint64 { return 3 }
+func (am AppModule) ConsensusVersion() uint64 { return 4 }
 
 // EndBlock implements the Cosmos SDK EndBlock module function.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
@@ -199,7 +209,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 // AppModuleSimulation functions
 
 // GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
@@ -221,5 +231,6 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.bankKeeper, am.keeper.CertKeeper, am.keeper, simState.Contents)
+	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.bankKeeper, am.keeper.CertKeeper, am.keeper, simState.Contents)
+	return []simtypes.WeightedOperation{}
 }

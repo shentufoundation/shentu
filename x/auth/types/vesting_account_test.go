@@ -35,7 +35,7 @@ func TestManualVestingAcc(t *testing.T) {
 	origAmt := sdk.NewInt(1000)
 	origCoins := sdk.Coins{sdk.NewCoin(denom, origAmt)}
 
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// Set up an MVA with all its base coins vesting

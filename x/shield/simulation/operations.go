@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"strings"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -138,7 +139,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		totalShield := k.GetTotalShield(ctx)
 		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
+		maxShield := sdk.MinInt(sdk.NewDecFromInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed)).Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
 		shieldAmount, err := simtypes.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
@@ -173,7 +174,8 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 
 		feeAmount := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			feeAmount,
@@ -187,7 +189,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+		if _, _, err := app.SimDeliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
@@ -250,7 +252,8 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 
 		feeAmount := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			feeAmount,
@@ -264,7 +267,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+		if _, _, err := app.SimDeliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
@@ -303,7 +306,8 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, bk ty
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -317,7 +321,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, bk ty
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+		if _, _, err := app.SimDeliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgDepositCollateral, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
@@ -361,7 +365,8 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, bk t
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -375,7 +380,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, bk t
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+		if _, _, err := app.SimDeliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawCollateral, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
@@ -407,7 +412,8 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper) simtype
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -421,7 +427,7 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper) simtype
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+		if _, _, err := app.SimDeliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawCollateral, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
@@ -455,10 +461,10 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, err.Error()), nil, nil
 		}
-		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).GT(bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom).ToDec()) {
+		if sdk.NewDecFromInt(shieldAmount).Mul(poolParams.ShieldFeesRate).GT(sdk.NewDecFromInt(bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom))) {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, ""), nil, nil
 		}
-		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).TruncateInt().IsZero() {
+		if sdk.NewDecFromInt(shieldAmount).Mul(poolParams.ShieldFeesRate).TruncateInt().IsZero() {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, ""), nil, nil
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
@@ -468,7 +474,8 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -482,7 +489,7 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+		if _, _, err := app.SimDeliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
@@ -564,7 +571,7 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgStakeForShield, err.Error()), nil, nil
 		}
 		rate := k.GetShieldStakingRate(ctx)
-		maxShieldAmt := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom).ToDec().Quo(rate).TruncateInt()
+		maxShieldAmt := sdk.NewDecFromInt(bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)).Quo(rate).TruncateInt()
 		if shieldAmount.GT(maxShieldAmt) {
 			shieldAmount = maxShieldAmt
 		}
@@ -578,7 +585,8 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -592,7 +600,7 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+		if _, _, err := app.SimDeliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgStakeForShield, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
@@ -634,7 +642,8 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, bk ty
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -648,7 +657,7 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, bk ty
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+		if _, _, err := app.SimDeliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUnstakeFromShield, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
@@ -681,7 +690,8 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, b
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -695,16 +705,17 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, b
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+		if _, _, err := app.SimDeliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawReimbursement, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
 
-func computeMaxShield(pool types.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield sdk.Int, poolParams types.PoolParams) sdk.Int {
+func computeMaxShield(pool types.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield math.Int, poolParams types.PoolParams) math.Int {
 	poolLimit := pool.ShieldLimit.Sub(pool.Shield)
-	globalLimit := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+	// TODO check again
+	globalLimit := sdk.MinInt(sdk.NewDecFromInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed)).Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
 		totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
 	return sdk.MinInt(poolLimit, globalLimit)
 }

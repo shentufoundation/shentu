@@ -26,9 +26,9 @@ type Pool struct {
     Description string  `json:"description" yaml:"description"`
     Sponsor     string  `json:"sponsor" yaml:"sponsor"`
     SponsorAddr string  `json:"sponsor_addr" yaml:"sponsor_addr"`
-    ShieldLimit sdk.Int `json:"shield_limit" yaml:"shield_limit"`
+    ShieldLimit math.Int `json:"shield_limit" yaml:"shield_limit"`
     Active      bool    `json:"active" yaml:"active"`
-    Shield      sdk.Int `json:"shield" yaml:"shield"`
+    Shield      math.Int `json:"shield" yaml:"shield"`
 }
 ```
 
@@ -65,15 +65,15 @@ type Provider struct {
     // Address is the address of the provider.
     Address             string          `json:"address" yaml:"address"`
     // DelegationBonded is the amount of bonded delegation.
-    DelegationBonded    sdk.Int         `json:"delegation_bonded" yaml:"provider"`
+    DelegationBonded    math.Int         `json:"delegation_bonded" yaml:"provider"`
     // Collateral is amount of all collaterals for the provider, including
     // those in withdraw queue but excluding those currently locked, in all
     // pools.
-    Collateral          sdk.Int         `json:"collateral" yaml:"collateral"`
+    Collateral          math.Int         `json:"collateral" yaml:"collateral"`
     // TotalLocked is the amount locked for pending claims.
-    TotalLocked         sdk.Int         `json:"total_locked" yaml:"total_locked"`
+    TotalLocked         math.Int         `json:"total_locked" yaml:"total_locked"`
     // Withdrawing is the amount of collateral in withdraw queues.
-    Withdrawing         sdk.Int         `json:"withdrawing" yaml:"withdrawing"`
+    Withdrawing         math.Int         `json:"withdrawing" yaml:"withdrawing"`
     // Rewards is the pooling rewards to be collected.
     Rewards             MixedDecCoins   `json:"rewards" yaml:"rewards"`
 }
@@ -98,7 +98,7 @@ type Purchase struct {
     // Description is the information about the protected asset.
     Description         string          `json:"description" yaml:"description"`
     // Shield is the unused amount of shield purchased.
-    Shield              sdk.Int         `json:"shield" yaml:"shield"`
+    Shield              math.Int         `json:"shield" yaml:"shield"`
     // ServiceFees is the service fees paid by this purchase.
     ServiceFees         MixedDecCoins   `json:"service_fees" yaml:"service_fees"`
 }
@@ -146,7 +146,7 @@ type Withdraw struct {
     // Address is the chain address of the provider withdrawing.
     Address         string      `json:"address" yaml:"address"`
     // Amount is the amount of withdraw.
-    Amount          sdk.Int     `json:"amount" yaml:"amount"`
+    Amount          math.Int     `json:"amount" yaml:"amount"`
     // CompletionTime is the scheduled withdraw completion time.
     CompletionTime  time.Time   `json:"completion_time" yaml:"completion_time"`
 }
@@ -164,8 +164,8 @@ Collateral providers can stake on Shield pool, which is a higher-risk, higher-re
 type ShieldStaking struct {
     PoolId              uint64  `json:"pool_id" yaml:"pool_id"`
     Purchaser           string  `json:"purchaser" yaml:"purchaser"`
-    Amount              sdk.Int `json:"amount" yaml:"amount"`
-    WithdrawRequested   sdk.Int `json:"withdraw_requested" yaml:"withdraw_requested"`
+    Amount              math.Int `json:"amount" yaml:"amount"`
+    WithdrawRequested   math.Int `json:"withdraw_requested" yaml:"withdraw_requested"`
 }
 ```
 
@@ -208,7 +208,7 @@ type MsgCreatePool struct {
     Sponsor     string      `json:"sponsor" yaml:"sponsor"`
     SponsorAddr string      `json:"sponsor_addr" yaml:"sponsor_addr"`
     Description string      `json:"description" yaml:"description"`
-    ShieldLimit sdk.Int     `json:"shield_limit"`
+    ShieldLimit math.Int     `json:"shield_limit"`
 }
 
 // MsgUpdatePool defines the attributes of a shield pool update transaction.
@@ -218,7 +218,7 @@ type MsgUpdatePool struct {
     ServiceFees MixedCoins  `json:"service_fees" yaml:"service_fees"`
     PoolId      uint64      `json:"pool_id" yaml:"pool_id"`
     Description string      `json:"description" yaml:"description"`
-    ShieldLimit sdk.Int     `json:"shield_limit"`
+    ShieldLimit math.Int     `json:"shield_limit"`
 }
 ```
 

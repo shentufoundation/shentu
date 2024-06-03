@@ -117,7 +117,7 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 		coins := bk.SpendableCoins(ctx, account.GetAddress())
 
 		var fees sdk.Coins
-		coins, hasNeg := coins.SafeSub(sdk.Coins{selfDelegation})
+		coins, hasNeg := coins.SafeSub(sdk.Coins{selfDelegation}...)
 		if !hasNeg {
 			fees, err = simutil.RandomReasonableFees(r, ctx, coins)
 			if err != nil {
@@ -146,7 +146,8 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -160,7 +161,7 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, msg.Type(), "unable to generate mock tx"), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, msg.Type(), "unable to deliver tx"), nil, err
 		}
@@ -232,7 +233,8 @@ func SimulateMsgUndelegate(ak stakingtypes.AccountKeeper, bk stakingtypes.BankKe
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -246,7 +248,7 @@ func SimulateMsgUndelegate(ak stakingtypes.AccountKeeper, bk stakingtypes.BankKe
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgUndelegate, ""), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgUndelegate, ""), nil, err
 		}
@@ -339,7 +341,8 @@ func SimulateMsgBeginRedelegate(ak stakingtypes.AccountKeeper, bk stakingtypes.B
 		)
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
+		tx, err := helpers.GenSignedMockTx(
+			r,
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
@@ -353,7 +356,7 @@ func SimulateMsgBeginRedelegate(ak stakingtypes.AccountKeeper, bk stakingtypes.B
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgBeginRedelegate, ""), nil, err
 		}
 
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgBeginRedelegate, ""), nil, err
 		}

@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, distrParams DistributionParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees,
+	claimProposalParams ClaimProposalParams, distrParams DistributionParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed math.Int, serviceFees,
 	remainingServiceFees sdk.DecCoins, pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw,
-	lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int, stakingPurchases []ShieldStaking, originalStaking []OriginalStaking,
+	lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool math.Int, stakingPurchases []ShieldStaking, originalStaking []OriginalStaking,
 	proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
 	return GenesisState{
 		ShieldAdmin:                  shieldAdmin.String(),
@@ -84,7 +85,7 @@ func GetGenesisStateFromAppState(cdc codec.Codec, appState map[string]json.RawMe
 	return genesisState
 }
 
-func NewOriginalStaking(purchaseID uint64, amount sdk.Int) OriginalStaking {
+func NewOriginalStaking(purchaseID uint64, amount math.Int) OriginalStaking {
 	return OriginalStaking{
 		PurchaseId: purchaseID,
 		Amount:     amount,

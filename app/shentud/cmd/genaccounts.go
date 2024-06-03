@@ -60,7 +60,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				keyringBackend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
 
 				// attempt to lookup address from Keybase if no address was provided
-				kb, err := keyring.New(sdk.KeyringServiceName(), keyringBackend, ctx.HomeDir, inBuf)
+				kb, err := keyring.New(sdk.KeyringServiceName(), keyringBackend, ctx.HomeDir, inBuf, cdc)
 				if err != nil {
 					return err
 				}
@@ -70,7 +70,10 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 					return fmt.Errorf("failed to get address from Keybase: %w", err)
 				}
 
-				addr = info.GetAddress()
+				addr, err = info.GetAddress()
+				if err != nil {
+					return fmt.Errorf("failed to get address from Keybase: %w", err)
+				}
 			}
 
 			coins, err := sdk.ParseCoinsNormalized(args[1])
@@ -123,7 +126,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 
 					for i := int64(0); i < numberPeriods-1; i++ {
 						periods = append(periods, authvesting.Period{Length: period, Amount: monthlyAmount})
-						remaining = remaining.Sub(monthlyAmount)
+						remaining = remaining.Sub(monthlyAmount...)
 					}
 					periods = append(periods, authvesting.Period{Length: period, Amount: remaining})
 					endTime := vestingStart

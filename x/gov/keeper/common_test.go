@@ -1,58 +1,29 @@
 package keeper_test
 
 import (
-	"bytes"
-	"log"
-	"sort"
-
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtyepsv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtyepsv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
-var TestProposal = types.NewTextProposal("Test", "description")
+var (
+	_, _, addr   = testdata.KeyTestPubAddr()
+	govAcct      = authtypes.NewModuleAddress(types.ModuleName)
+	TestProposal = getTestProposal()
+)
 
-// SortAddresses - Sorts Addresses
-func SortAddresses(addrs []sdk.AccAddress) {
-	byteAddrs := make([][]byte, len(addrs))
-
-	for i, addr := range addrs {
-		byteAddrs[i] = addr.Bytes()
+func getTestProposal() []sdk.Msg {
+	legacyProposalMsg, err := govtyepsv1.NewLegacyContent(govtyepsv1beta1.NewTextProposal("Title", "description"), authtypes.NewModuleAddress(types.ModuleName).String())
+	if err != nil {
+		panic(err)
 	}
 
-	SortByteArrays(byteAddrs)
-
-	for i, byteAddr := range byteAddrs {
-		addrs[i] = byteAddr
+	return []sdk.Msg{
+		banktypes.NewMsgSend(govAcct, addr, sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(1000)))),
+		legacyProposalMsg,
 	}
-}
-
-// implement `Interface` in sort package.
-type sortByteArrays [][]byte
-
-func (b sortByteArrays) Len() int {
-	return len(b)
-}
-
-func (b sortByteArrays) Less(i, j int) bool {
-	// bytes package already implements Comparable for []byte.
-	switch bytes.Compare(b[i], b[j]) {
-	case -1:
-		return true
-	case 0, 1:
-		return false
-	default:
-		log.Panic("not fail-able with `bytes.Comparable` bounded [-1, 1].")
-		return false
-	}
-}
-
-func (b sortByteArrays) Swap(i, j int) {
-	b[j], b[i] = b[i], b[j]
-}
-
-// SortByteArrays - sorts the provided byte array
-func SortByteArrays(src [][]byte) [][]byte {
-	sorted := sortByteArrays(src)
-	sort.Sort(sorted)
-	return sorted
 }

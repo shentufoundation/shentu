@@ -32,7 +32,7 @@ type TypesTestSuite struct {
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	suite.app = shentuapp.Setup(false)
+	suite.app = shentuapp.Setup(suite.T(), false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.params = suite.app.AccountKeeper
 

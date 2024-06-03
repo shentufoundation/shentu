@@ -6,13 +6,12 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/group"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 const (
-	upgradeName = "v2.9.0"
+	upgradeName = "v2.10.0"
 )
 
 func (app ShentuApp) setUpgradeHandler() {
@@ -35,7 +34,7 @@ func (app ShentuApp) setUpgradeHandler() {
 	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
-				bountytypes.ModuleName,
+				group.ModuleName,
 			},
 		}
 

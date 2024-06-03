@@ -7,7 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -16,17 +16,20 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 	var ibcStakeDenom string
 
 	s.Run("send_photon_to_chainB", func() {
-		recipient := s.chainB.validators[0].keyInfo.GetAddress().String()
+		var (
+			balances sdk.Coins
+			err      error
+		)
+
+		address, err := s.chainB.validators[0].keyInfo.GetAddress()
+		s.Require().NoError(err)
+		recipient := address.String()
 		token := sdk.NewInt64Coin(photonDenom, 3300000000) // 3,300photon
 		s.sendIBC(s.chainA.id, s.chainB.id, recipient, token)
 
 		chainBAPIEndpoint := s.valResources[s.chainB.id][0].GetHostPort("9090/tcp")
 
 		// require the recipient account receives the IBC tokens (IBC packets ACKd)
-		var (
-			balances sdk.Coins
-			err      error
-		)
 		s.Require().Eventually(
 			func() bool {
 				balances, err = queryShentuAllBalances(chainBAPIEndpoint, recipient)
@@ -53,10 +56,12 @@ func (s *IntegrationTestSuite) TestStaking() {
 	s.Run("delegate_staking", func() {
 		chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 		validatorA := s.chainA.validators[0]
-		validatorAAddr := validatorA.keyInfo.GetAddress()
+		validatorAAddr, err := validatorA.keyInfo.GetAddress()
+		s.Require().NoError(err)
 		valOperA := sdk.ValAddress(validatorAAddr)
 
-		alice := s.chainA.accounts[0].keyInfo.GetAddress()
+		alice, err := s.chainA.accounts[0].keyInfo.GetAddress()
+		s.Require().NoError(err)
 
 		delegationAmount, _ := sdk.NewIntFromString("5000000")
 		delegation := sdk.NewCoin(uctkDenom, delegationAmount)
@@ -81,10 +86,12 @@ func (s *IntegrationTestSuite) TestStaking() {
 	s.Run("unbond_staking", func() {
 		chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 		validatorA := s.chainA.validators[0]
-		validatorAAddr := validatorA.keyInfo.GetAddress()
+		validatorAAddr, err := validatorA.keyInfo.GetAddress()
+		s.Require().NoError(err)
 		valOperA := sdk.ValAddress(validatorAAddr)
 
-		alice := s.chainA.accounts[0].keyInfo.GetAddress()
+		alice, err := s.chainA.accounts[0].keyInfo.GetAddress()
+		s.Require().NoError(err)
 
 		delegationAmount, _ := sdk.NewIntFromString("5000000")
 		unbondAmount, _ := sdk.NewIntFromString("500000")
@@ -111,7 +118,8 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 
 	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 	validatorA := s.chainA.validators[0]
-	validatorAAddr := validatorA.keyInfo.GetAddress()
+	validatorAAddr, err := validatorA.keyInfo.GetAddress()
+	s.Require().NoError(err)
 
 	s.Run("submit_upgrade_proposal", func() {
 		height, err := s.getLatestBlockHeight(chainAAPIEndpoint)
@@ -126,7 +134,7 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govtypes.StatusVotingPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
+				return res.Proposal.Status == govtypesv1.StatusVotingPeriod && res.Proposal.Id == uint64(proposalCounter)
 			},
 			20*time.Second,
 			5*time.Second,
@@ -143,7 +151,7 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govtypes.StatusPassed
+				return res.Proposal.Status == govtypesv1.StatusPassed
 			},
 			20*time.Second,
 			5*time.Second,
@@ -154,10 +162,12 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 func (s *IntegrationTestSuite) TestCoreShield() {
 	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 	validatorA := s.chainA.validators[0]
-	validatorAAddr := validatorA.keyInfo.GetAddress()
+	validatorAAddr, err := validatorA.keyInfo.GetAddress()
+	s.Require().NoError(err)
 
 	accountA := s.chainA.accounts[0]
-	accountAAddr := accountA.keyInfo.GetAddress()
+	accountAAddr, err := accountA.keyInfo.GetAddress()
+	s.Require().NoError(err)
 
 	// Deposit collaterals
 	s.Run("deposit_collateral", func() {
@@ -246,7 +256,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govtypes.StatusVotingPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
+				return res.Proposal.Status == govtypesv1.StatusVotingPeriod && res.Proposal.Id == uint64(proposalCounter)
 			},
 			20*time.Second,
 			5*time.Second,
@@ -266,7 +276,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govtypes.StatusPassed
+				return res.Proposal.Status == govtypesv1.StatusPassed
 			},
 			20*time.Second,
 			5*time.Second,
@@ -292,7 +302,8 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 func (s *IntegrationTestSuite) TestBounty() {
 	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 	programCli := s.chainA.accounts[0]
-	programCliAddr := programCli.keyInfo.GetAddress()
+	programCliAddr, err := programCli.keyInfo.GetAddress()
+	s.Require().NoError(err)
 
 	//bountyAdmin := s.chainA.validators[0]
 	//bountyAdminAddr := bountyAdmin.keyInfo.GetAddress()
@@ -334,14 +345,16 @@ func (s *IntegrationTestSuite) TestBounty() {
 func (s *IntegrationTestSuite) TestOracle() {
 	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 
-	alice := s.chainA.accounts[0].keyInfo.GetAddress()
-	bob := s.chainA.accounts[1].keyInfo.GetAddress()
-	charle := s.chainA.accounts[2].keyInfo.GetAddress()
+	alice, err := s.chainA.accounts[0].keyInfo.GetAddress()
+	s.Require().NoError(err)
+	bob, err := s.chainA.accounts[1].keyInfo.GetAddress()
+	s.Require().NoError(err)
+	charle, err := s.chainA.accounts[2].keyInfo.GetAddress()
+	s.Require().NoError(err)
 
 	var txHash, ataskHash string
 	var txHash2, ataskHash2 string
 	var txHash3, ataskHash3 string
-	var err error
 
 	valTime := time.Now().Add(120 * time.Second)
 	valTimeStr := valTime.Format(time.RFC3339)

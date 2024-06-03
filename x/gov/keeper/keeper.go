@@ -2,10 +2,12 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
@@ -30,13 +32,18 @@ type Keeper struct {
 	ShieldKeeper types.ShieldKeeper
 
 	// the (unexposed) keys used to access the stores from the Context
-	storeKey sdk.StoreKey
+	storeKey storetypes.StoreKey
 
 	// codec for binary encoding/decoding
 	cdc codec.BinaryCodec
 
-	// Proposal router
-	router govtypes.Router
+	// Legacy Proposal router
+	legacyRouter v1beta1.Router
+
+	// Msg server router
+	router *baseapp.MsgServiceRouter
+
+	config govtypes.Config
 }
 
 // NewKeeper returns a governance keeper. It handles:
@@ -45,25 +52,22 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
+	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
 	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper, shieldKeeper types.ShieldKeeper,
-	authKeeper govtypes.AccountKeeper, router govtypes.Router,
+	authKeeper govtypes.AccountKeeper, legacyRouter v1beta1.Router, router *baseapp.MsgServiceRouter, config govtypes.Config,
 ) Keeper {
-	cosmosKeeper := govkeeper.NewKeeper(cdc, key, paramSpace, authKeeper, bankKeeper, stakingKeeper, router)
+	cosmosKeeper := govkeeper.NewKeeper(cdc, key, paramSpace, authKeeper, bankKeeper, stakingKeeper, legacyRouter, router, config)
 	return Keeper{
 		Keeper:        cosmosKeeper,
-		storeKey:      key,
 		paramSpace:    paramSpace,
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,
 		ShieldKeeper:  shieldKeeper,
+		storeKey:      key,
 		cdc:           cdc,
+		legacyRouter:  legacyRouter,
 		router:        router,
+		config:        config,
 	}
-}
-
-// Tally counts the votes and returns whether the proposal passes and/or if tokens should be burned.
-func (k Keeper) Tally(ctx sdk.Context, proposal govtypes.Proposal) (passes bool, burnDeposits bool, tallyResults govtypes.TallyResult) {
-	return Tally(ctx, k, proposal)
 }

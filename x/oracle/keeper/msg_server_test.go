@@ -25,7 +25,7 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	DepositCollateral(ctx, ok, addrs[2])
 
 	taskParsms := ok.GetTaskParams(ctx)
-	taskParsms.ShortcutQuorum = sdk.NewInt(1).ToDec()
+	taskParsms.ShortcutQuorum = sdk.NewDecFromInt(sdk.NewInt(1))
 	ok.SetTaskParams(ctx, taskParsms)
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 1)}
@@ -65,7 +65,7 @@ func TestMsgServer_pending(t *testing.T) {
 	DepositCollateral(ctx, ok, addrs[1])
 
 	taskParsms := ok.GetTaskParams(ctx)
-	taskParsms.ShortcutQuorum = sdk.NewInt(1).ToDec()
+	taskParsms.ShortcutQuorum = sdk.NewDecFromInt(sdk.NewInt(1))
 	ok.SetTaskParams(ctx, taskParsms)
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
@@ -144,7 +144,7 @@ func PassBlocks(ctx sdk.Context, ok keeper.Keeper, t require.TestingT, n int64, 
 }
 
 func DoInit(t *testing.T) (sdk.Context, keeper.Keeper, types.MsgServer, []sdk.AccAddress) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper

@@ -2,14 +2,14 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 type Keeper struct {
 	cdc           codec.BinaryCodec
-	storeKey      sdk.StoreKey
+	storeKey      storetypes.StoreKey
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	distrKeeper   types.DistrKeeper
@@ -18,7 +18,7 @@ type Keeper struct {
 	paramSpace    types.ParamSubspace
 }
 
-func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, authKeeper types.AccountKeeper, distriKeeper types.DistrKeeper,
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, authKeeper types.AccountKeeper, distriKeeper types.DistrKeeper,
 	stakingKeeper types.StakingKeeper, bankKeeper types.BankKeeper, certKeeper types.CertKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:           cdc,

@@ -203,7 +203,7 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 		if err != nil {
 			panic(err)
 		}
-		accAddrToReplace, err := sdk.AccAddressFromHex(valAddrHexToReplace)
+		accAddrToReplace, err := sdk.AccAddressFromHexUnsafe(valAddrHexToReplace)
 		if err != nil {
 			panic(err)
 		}
@@ -212,7 +212,7 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 		if err != nil {
 			panic(err)
 		}
-		accAddr, err := sdk.AccAddressFromHex(valAddrHex)
+		accAddr, err := sdk.AccAddressFromHexUnsafe(valAddrHex)
 		if err != nil {
 			panic(err)
 		}

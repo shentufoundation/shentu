@@ -6,7 +6,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -19,7 +18,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/cert/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
 	"github.com/shentufoundation/shentu/v2/x/cert/simulation"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
@@ -67,11 +65,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 	return types.ValidateGenesis(bz)
 }
 
-// RegisterRESTRoutes registers the REST routes for the cert module.
-func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(clientCtx, rtr)
-}
-
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the cert module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
@@ -116,7 +109,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 
 // Route returns the module's route key.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.moduleKeeper))
+	return sdk.Route{}
 }
 
 // QuerierRoute returns the module querier route name.

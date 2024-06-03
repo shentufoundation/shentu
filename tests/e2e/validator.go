@@ -33,7 +33,7 @@ type validator struct {
 	index            int
 	moniker          string
 	mnemonic         string
-	keyInfo          keyring.Info
+	keyInfo          keyring.Record
 	privateKey       cryptotypes.PrivKey
 	consensusKey     privval.FilePVKey
 	consensusPrivKey cryptotypes.PrivKey
@@ -43,7 +43,7 @@ type validator struct {
 type account struct {
 	moniker    string
 	mnemonic   string
-	keyInfo    keyring.Info
+	keyInfo    keyring.Record
 	privateKey cryptotypes.PrivKey
 }
 
@@ -133,7 +133,7 @@ func (v *validator) createConsensusKey() error {
 }
 
 func (v *validator) createKeyFromMnemonic(name, mnemonic string) error {
-	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil)
+	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil, cdc)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (v *validator) createKeyFromMnemonic(name, mnemonic string) error {
 		return err
 	}
 
-	v.keyInfo = info
+	v.keyInfo = *info
 	v.mnemonic = mnemonic
 	v.privateKey = privKey
 
@@ -176,7 +176,7 @@ func (v *validator) createKey(name string) error {
 }
 
 func (v *validator) createAccounts(counts int) ([]*account, error) {
-	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil)
+	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil, cdc)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +211,7 @@ func (v *validator) createAccounts(counts int) ([]*account, error) {
 		}
 
 		acct := account{}
-		acct.keyInfo = info
+		acct.keyInfo = *info
 		acct.mnemonic = mnemonic
 		acct.moniker = name
 		acct.privateKey = privKey
@@ -238,8 +238,12 @@ func (v *validator) buildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
 		return nil, err
 	}
 
+	addr, err := v.keyInfo.GetAddress()
+	if err != nil {
+		return nil, err
+	}
 	return stakingtypes.NewMsgCreateValidator(
-		sdk.ValAddress(v.keyInfo.GetAddress()),
+		sdk.ValAddress(addr),
 		valPubKey,
 		amount,
 		description,
@@ -273,8 +277,12 @@ func (v *validator) signMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 	// Note: This line is not needed for SIGN_MODE_LEGACY_AMINO, but putting it
 	// also doesn't affect its generated sign bytes, so for code's simplicity
 	// sake, we put it here.
+	pk, err := v.keyInfo.GetPubKey()
+	if err != nil {
+		return nil, err
+	}
 	sig := txsigning.SignatureV2{
-		PubKey: v.keyInfo.GetPubKey(),
+		PubKey: pk,
 		Data: &txsigning.SingleSignatureData{
 			SignMode:  txsigning.SignMode_SIGN_MODE_DIRECT,
 			Signature: nil,
@@ -301,7 +309,7 @@ func (v *validator) signMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 	}
 
 	sig = txsigning.SignatureV2{
-		PubKey: v.keyInfo.GetPubKey(),
+		PubKey: pk,
 		Data: &txsigning.SingleSignatureData{
 			SignMode:  txsigning.SignMode_SIGN_MODE_DIRECT,
 			Signature: sigBytes,

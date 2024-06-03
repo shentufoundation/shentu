@@ -9,6 +9,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -34,7 +35,7 @@ const TransactionGasLimit = uint64(5000000)
 // Keeper implements SDK Keeper.
 type Keeper struct {
 	cdc        codec.BinaryCodec
-	key        sdk.StoreKey
+	key        storetypes.StoreKey
 	ak         types.AccountKeeper
 	bk         types.BankKeeper
 	dk         types.DistributionKeeper
@@ -45,7 +46,7 @@ type Keeper struct {
 
 // NewKeeper creates a new instance of the CVM keeper.
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
+	cdc codec.BinaryCodec, key storetypes.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
 	dk types.DistributionKeeper, ck types.CertKeeper, sk types.StakingKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:        cdc,
@@ -107,27 +108,27 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	if callee == nil {
 		calleeAddr = crypto.NewContractAddress(callerAddr, sequenceBytes)
 		if err = engine.CreateAccount(cache, calleeAddr); err != nil {
-			return nil, types.ErrCodedError(errors.GetCode(err))
+			return nil, err
 		}
 		code = data
 	} else {
 		input = data
 		calleeAddr, code, isEWASM, err = getCallee(callee, cache)
 		if err != nil {
-			return nil, types.ErrCodedError(errors.GetCode(err))
+			return nil, err
 		}
 		if len(code) == 0 && !bytes.Equal(data, []byte{}) {
-			return nil, types.ErrCodedError(errors.Codes.CodeOutOfBounds)
+			return nil, errors.Errorf(errors.Codes.CodeOutOfBounds, "code out of bounds")
 		}
 	}
 	if err != nil {
-		return nil, types.ErrCodedError(errors.GetCode(err))
+		return nil, err
 	}
 
 	gasRate := k.GetGasRate(ctx)
 	originalGas, err := k.getOriginalGas(ctx, gasRate)
 	if err != nil {
-		return nil, types.ErrCodedError(errors.GetCode(err))
+		return nil, err
 	}
 	gasTracker := originalGas
 
@@ -170,7 +171,7 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	fee := originalGas - gasTracker
 	ctx.GasMeter().ConsumeGas((fee+gasRate-1)/gasRate, "CVM execution fee")
 	if err != nil {
-		return nil, types.ErrCodedError(errors.GetCode(err))
+		return nil, err
 	}
 
 	if callee == nil {
@@ -180,22 +181,22 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 			err = engine.InitEVMCode(cache, calleeAddr, ret)
 		}
 		if err != nil {
-			return nil, types.ErrCodedError(errors.GetCode(err))
+			return nil, err
 		}
 		err = engine.UpdateContractMeta(cache, state, calleeAddr, payloadMeta)
 		if err != nil {
-			return nil, types.ErrCodedError(errors.GetCode(err))
+			return nil, err
 		}
 		ret = calleeAddr.Bytes()
 	}
 	if err = cache.Sync(state); err != nil {
-		return nil, types.ErrCodedError(errors.GetCode(err))
+		return nil, err
 	}
 
 	return ret, nil
 }
 
-// Send executes the send transaction from caller to callee with the given amount of tokens.
+// Send executes to send transaction from caller to callee with the given amount of tokens.
 func (k Keeper) Send(ctx sdk.Context, caller, callee sdk.AccAddress, coins sdk.Coins) error {
 	value := coins.AmountOf(k.sk.BondDenom(ctx)).Uint64()
 	if value <= 0 {
@@ -239,7 +240,7 @@ func (k Keeper) getOriginalGas(ctx sdk.Context, gasRate uint64) (uint64, error) 
 	gasCurrent := ctx.GasMeter().Limit() - ctx.GasMeter().GasConsumed()
 	originalGas := gasCurrent * gasRate
 	if originalGas < gasCurrent {
-		return 0, types.ErrCodedError(errors.Codes.IntegerOverflow)
+		return 0, errors.Errorf(errors.Codes.IntegerOverflow, "originalGas %v less than gasCurrent %v", originalGas, gasCurrent)
 	}
 	originalGas = vm.Min(originalGas, TransactionGasLimit)
 	return originalGas, nil

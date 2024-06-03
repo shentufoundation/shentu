@@ -18,7 +18,7 @@ import (
 )
 
 func TestTaskBasic(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
@@ -66,7 +66,7 @@ func TestTaskBasic(t *testing.T) {
 }
 
 func TestTaskAggregateFail(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
@@ -110,7 +110,7 @@ func TestTaskAggregateFail(t *testing.T) {
 }
 
 func TestTaskNoResponses(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
@@ -134,7 +134,7 @@ func TestTaskNoResponses(t *testing.T) {
 }
 
 func TestTaskMinScore(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
@@ -194,7 +194,7 @@ func TestTaskMinScore(t *testing.T) {
 }
 
 func TestTaskBelowThreshold(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
@@ -241,7 +241,7 @@ func TestTaskBelowThreshold(t *testing.T) {
 }
 
 func TestTaskAboveThreshold(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
@@ -286,7 +286,7 @@ func TestTaskAboveThreshold(t *testing.T) {
 }
 
 func TestTxTaskBasic(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
@@ -313,7 +313,7 @@ func TestTxTaskBasic(t *testing.T) {
 }
 
 func TestTimer(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper

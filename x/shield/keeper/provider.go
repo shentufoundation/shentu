@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
@@ -88,7 +89,7 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 }
 
 // updateProviderForDelegationChanges updates provider based on delegation changes.
-func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.AccAddress, stakedAmt sdk.Int) {
+func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.AccAddress, stakedAmt math.Int) {
 	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
 		return

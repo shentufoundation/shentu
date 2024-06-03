@@ -9,7 +9,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
-	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -22,7 +21,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/cvm/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/cvm/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/cvm/keeper"
 	"github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 	"github.com/shentufoundation/shentu/v2/x/cvm/types"
@@ -69,11 +67,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 	return data.Validate()
 }
 
-// RegisterRESTRoutes registers the REST routes for the cvm module.
-func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(clientCtx, rtr)
-}
-
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
@@ -112,7 +105,7 @@ func NewAppModule(k keeper.Keeper, bk types.BankKeeper) AppModule {
 
 // Route returns the module's route key.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+	return sdk.Route{}
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
@@ -140,11 +133,6 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
 	return cdc.MustMarshalJSON(gs)
-}
-
-// NewHandler returns a new module handler.
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
 }
 
 // LegacyQuerierHandler returns a new querier module handler.
@@ -182,7 +170,8 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns cvm operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.bankkeeper)
+	return nil
+	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.bankkeeper)
 }
 
 // ProposalContents returns functions that generate gov proposals for the module.
@@ -191,6 +180,6 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 }
 
 // RandomizedParams returns functions that generate params for the module.
-func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
+func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 	return nil
 }

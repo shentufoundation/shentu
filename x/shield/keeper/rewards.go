@@ -39,14 +39,14 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
 	totalShield := k.GetTotalShield(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
-	totalBondedTokens := k.bk.GetAllBalances(ctx, k.sk.GetBondedPool(ctx).GetAddress()).AmountOf(k.BondDenom(ctx)).ToDec() // c + n
-	totalShieldDeposit := k.GetGlobalShieldStakingPool(ctx).ToDec()                                                        // d
+	totalBondedTokens := sdk.NewDecFromInt(k.bk.GetAllBalances(ctx, k.sk.GetBondedPool(ctx).GetAddress()).AmountOf(k.BondDenom(ctx))) // c + n
+	totalShieldDeposit := sdk.NewDecFromInt(k.GetGlobalShieldStakingPool(ctx))                                                        // d
 
 	var leverage sdk.Dec // l = (total shield) / (total collateral)
 	if totalCollateral.IsZero() {
 		leverage = sdk.ZeroDec()
 	} else {
-		leverage = totalShield.ToDec().Quo(totalCollateral.ToDec())
+		leverage = sdk.NewDecFromInt(totalShield).Quo(sdk.NewDecFromInt(totalCollateral))
 	}
 
 	blockRewardParams := k.GetDistributionParams(ctx)

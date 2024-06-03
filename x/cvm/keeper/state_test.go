@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/hyperledger/burrow/acm"
@@ -22,7 +22,7 @@ import (
 )
 
 func TestState_NewState(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
@@ -38,7 +38,7 @@ func TestState_NewState(t *testing.T) {
 }
 
 func TestState_UpdateAccount(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	bondDenom := app.StakingKeeper.BondDenom(ctx)
 
@@ -56,13 +56,13 @@ func TestState_UpdateAccount(t *testing.T) {
 	require.Nil(t, err)
 
 	sdkAcc := ak.GetAccount(ctx, addrs[0])
-	err = sdksimapp.FundAccount(app.BankKeeper, ctx, addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
+	err = testutil.FundAccount(app.BankKeeper, ctx, addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
 	require.Nil(t, err)
 	ak.SetAccount(ctx, sdkAcc)
 
 	acc, err = state.GetAccount(addr)
 	sdkCoins := app.BankKeeper.GetAllBalances(ctx, addr.Bytes()).AmountOf(bondDenom).Uint64()
-	accAddressHex, err := sdk.AccAddressFromHex(addr.String())
+	accAddressHex, err := sdk.AccAddressFromHexUnsafe(addr.String())
 	require.Nil(t, err)
 	require.Equal(t, addrs[0], accAddressHex)
 	require.Equal(t, sdkCoins, acc.Balance)
@@ -76,13 +76,13 @@ func TestState_UpdateAccount(t *testing.T) {
 	acc.Address[0] = 0x00
 	err = state.UpdateAccount(acc)
 	require.Nil(t, err)
-	accAddressHex, err = sdk.AccAddressFromHex(acc.Address.String())
+	accAddressHex, err = sdk.AccAddressFromHexUnsafe(acc.Address.String())
 	sdkCoins = app.BankKeeper.GetAllBalances(ctx, accAddressHex.Bytes()).AmountOf("uctk").Uint64()
 	require.Equal(t, sdkCoins, acc.Balance)
 }
 
 func TestState_RemoveAccount(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper

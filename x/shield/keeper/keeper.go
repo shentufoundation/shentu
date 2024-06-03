@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
@@ -14,7 +15,7 @@ import (
 
 // Keeper implements the shield keeper.
 type Keeper struct {
-	storeKey   sdk.StoreKey
+	storeKey   storetypes.StoreKey
 	cdc        codec.BinaryCodec
 	ak         types.AccountKeeper
 	bk         types.BankKeeper
@@ -24,7 +25,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a shield keeper.
-func NewKeeper(cdc codec.BinaryCodec, shieldStoreKey sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
+func NewKeeper(cdc codec.BinaryCodec, shieldStoreKey storetypes.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
 	sk types.StakingKeeper, gk types.GovKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		storeKey:   shieldStoreKey,
@@ -58,11 +59,11 @@ func (k Keeper) GetNextPoolID(ctx sdk.Context) uint64 {
 }
 
 // GetPoolsBySponsor search store for a pool object with given pool ID.
-func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsorAddr string) ([]types.Pool, bool) {
+func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsor string) ([]types.Pool, bool) {
 	var ret []types.Pool
 	found := false
 	k.IterateAllPools(ctx, func(pool types.Pool) bool {
-		if pool.SponsorAddr == sponsorAddr {
+		if pool.Sponsor == sponsor {
 			ret = append(ret, pool)
 			found = true
 		}
@@ -77,7 +78,7 @@ func (k Keeper) BondDenom(ctx sdk.Context) string {
 }
 
 // GetVotingParams returns gov keeper's voting params.
-func (k Keeper) GetVotingParams(ctx sdk.Context) govtypes.VotingParams {
+func (k Keeper) GetVotingParams(ctx sdk.Context) govtypesv1.VotingParams {
 	return k.gk.GetVotingParams(ctx)
 }
 

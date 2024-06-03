@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	proto "github.com/gogo/protobuf/proto"
 
@@ -99,6 +99,7 @@ func (p Proposal) ProposalRoute() string {
 
 // HasSecurityVoting returns true if the proposal needs to go through security
 // (certifier) voting before stake (validator) voting.
+// nolint
 func (p Proposal) HasSecurityVoting() bool {
 	switch p.GetContent().(type) {
 	case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal, shieldtypes.ShieldClaimProposal:

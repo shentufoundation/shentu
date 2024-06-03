@@ -11,14 +11,15 @@ import (
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/mint"
+	"github.com/shentufoundation/shentu/v2/x/mint/types"
 )
 
 func TestBeginBlocker(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	k := app.MintKeeper
 
-	p := mint.DefaultGenesisState().GetParams()
+	p := types.DefaultGenesisState().GetParams()
 	k.SetParams(ctx, p)
 	type args struct {
 		minter minttypes.Minter

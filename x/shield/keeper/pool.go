@@ -1,18 +1,19 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
-func (k Keeper) SetTotalCollateral(ctx sdk.Context, totalCollateral sdk.Int) {
+func (k Keeper) SetTotalCollateral(ctx sdk.Context, totalCollateral math.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: totalCollateral})
 	store.Set(types.GetTotalCollateralKey(), bz)
 }
 
-func (k Keeper) GetTotalCollateral(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetTotalCollateral(ctx sdk.Context) math.Int {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetTotalCollateralKey())
@@ -25,13 +26,13 @@ func (k Keeper) GetTotalCollateral(ctx sdk.Context) sdk.Int {
 	return ip.Int
 }
 
-func (k Keeper) SetTotalWithdrawing(ctx sdk.Context, totalWithdrawing sdk.Int) {
+func (k Keeper) SetTotalWithdrawing(ctx sdk.Context, totalWithdrawing math.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: totalWithdrawing})
 	store.Set(types.GetTotalWithdrawingKey(), bz)
 }
 
-func (k Keeper) GetTotalWithdrawing(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetTotalWithdrawing(ctx sdk.Context) math.Int {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetTotalWithdrawingKey())
@@ -44,13 +45,13 @@ func (k Keeper) GetTotalWithdrawing(ctx sdk.Context) sdk.Int {
 	return ip.Int
 }
 
-func (k Keeper) SetTotalShield(ctx sdk.Context, totalShield sdk.Int) {
+func (k Keeper) SetTotalShield(ctx sdk.Context, totalShield math.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: totalShield})
 	store.Set(types.GetTotalShieldKey(), bz)
 }
 
-func (k Keeper) GetTotalShield(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetTotalShield(ctx sdk.Context) math.Int {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetTotalShieldKey())
@@ -63,13 +64,13 @@ func (k Keeper) GetTotalShield(ctx sdk.Context) sdk.Int {
 	return ip.Int
 }
 
-func (k Keeper) SetTotalClaimed(ctx sdk.Context, totalClaimed sdk.Int) {
+func (k Keeper) SetTotalClaimed(ctx sdk.Context, totalClaimed math.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: totalClaimed})
 	store.Set(types.GetTotalClaimedKey(), bz)
 }
 
-func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetTotalClaimed(ctx sdk.Context) math.Int {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetTotalClaimedKey())
@@ -167,7 +168,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) (uint64, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit math.Int) (uint64, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return 0, types.ErrNotShieldAdmin
@@ -191,7 +192,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 }
 
 // UpdatePool updates pool info and shield for B.
-func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, serviceFees sdk.Coins, shieldLimit sdk.Int) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, serviceFees sdk.Coins, shieldLimit math.Int) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin

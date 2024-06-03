@@ -3,6 +3,7 @@ package keeper
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -140,7 +141,7 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 // ComputeWithdrawAmountByTime computes the amount of collaterals
 // from a given provider that will be dequeued from the withdraw
 // queue by a given time.
-func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, provider string, time time.Time) sdk.Int {
+func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, provider string, time time.Time) math.Int {
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, time)
 	defer withdrawTimesliceIterator.Close()
 
@@ -159,7 +160,7 @@ func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, provider string, ti
 	return amount
 }
 
-func (k Keeper) ComputeTotalUnbondingAmount(ctx sdk.Context, provider sdk.AccAddress) sdk.Int {
+func (k Keeper) ComputeTotalUnbondingAmount(ctx sdk.Context, provider sdk.AccAddress) math.Int {
 	unbondings := k.sk.GetAllUnbondingDelegations(ctx, provider)
 
 	sum := sdk.ZeroInt()
@@ -171,7 +172,7 @@ func (k Keeper) ComputeTotalUnbondingAmount(ctx sdk.Context, provider sdk.AccAdd
 	return sum
 }
 
-func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAddress, time time.Time) sdk.Int {
+func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAddress, time time.Time) math.Int {
 	dvPairs := k.getUnbondingsByProviderMaturingByTime(ctx, provider.String(), time)
 
 	sum := sdk.ZeroInt()
@@ -229,7 +230,7 @@ func (k Keeper) getUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider 
 
 // DelayWithdraws delays the given amount of withdraws maturing
 // before the delay duration until the end of the delay duration.
-func (k Keeper) DelayWithdraws(ctx sdk.Context, provider string, amount sdk.Int, delayedTime time.Time) error {
+func (k Keeper) DelayWithdraws(ctx sdk.Context, provider string, amount math.Int, delayedTime time.Time) error {
 	// Retrieve delay candidates, which are withdraws
 	// ending before the delay duration from now.
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, delayedTime)
@@ -282,7 +283,7 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider string, amount sdk.Int,
 	return nil
 }
 
-func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount sdk.Int, delayedTime time.Time) error {
+func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount math.Int, delayedTime time.Time) error {
 	providerStr := provider.String()
 
 	// Retrieve delay candidates, which are unbondings

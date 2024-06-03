@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -9,7 +10,6 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
@@ -39,7 +39,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.app = shentuapp.Setup(false)
+	suite.app = shentuapp.Setup(suite.T(), false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.OracleKeeper
 	suite.params = suite.keeper.GetLockedPoolParams(suite.ctx)
@@ -50,7 +50,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
-		err := sdksimapp.FundAccount(
+		err := testutil.FundAccount(
 			suite.app.BankKeeper,
 			suite.ctx,
 			acc,

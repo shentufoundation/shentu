@@ -17,7 +17,7 @@ import (
 )
 
 func TestQueryOperators(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
 	ok1 := app.OracleKeeper
@@ -69,7 +69,7 @@ func TestQueryOperators(t *testing.T) {
 }
 
 func TestQueryTask(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper

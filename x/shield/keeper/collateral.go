@@ -1,13 +1,14 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // DepositCollateral deposits a community member's collateral for a pool.
-func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) error {
+func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount math.Int) error {
 	provider, found := k.GetProvider(ctx, from)
 	if !found {
 		provider = k.addProvider(ctx, from)
@@ -36,7 +37,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount s
 // WithdrawCollateral withdraws a community member's collateral for a pool.
 // In case of unbonding-initiated withdraw, store the validator address and
 // the creation height.
-func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) error {
+func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount math.Int) error {
 	if amount.IsZero() {
 		return nil
 	}

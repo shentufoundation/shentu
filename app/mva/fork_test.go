@@ -9,11 +9,12 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
@@ -111,7 +112,7 @@ func copyMVA(mva types.ManualVestingAccount) *types.ManualVestingAccount {
 }
 
 func (suite *ForkTestSuite) SetupTest() {
-	suite.app = shentuapp.Setup(false)
+	suite.app = shentuapp.Setup(suite.T(), false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.ak = suite.app.AccountKeeper
 	suite.bk = suite.app.BankKeeper
@@ -127,7 +128,7 @@ func (suite *ForkTestSuite) SetupTest() {
 
 	for _, pk := range pk {
 		acc := toAddr(pk)
-		err := sdksimapp.FundAccount(
+		err := testutil.FundAccount(
 			suite.app.BankKeeper,
 			suite.ctx,
 			acc,
@@ -155,8 +156,8 @@ func (suite *ForkTestSuite) SetupTest() {
 func (suite *ForkTestSuite) TestFork() {
 	type args struct {
 		acc        authtypes.AccountI
-		stakings   []sdk.Int
-		unbondings []sdk.Int
+		stakings   []math.Int
+		unbondings []math.Int
 	}
 	type errArgs struct {
 		shouldPass bool
@@ -171,8 +172,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"empty acc", args{
 				copyMVA(baseMVA),
-				[]sdk.Int{},
-				[]sdk.Int{},
+				[]math.Int{},
+				[]math.Int{},
 			},
 			errArgs{
 				true,
@@ -183,8 +184,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"manual vesting account with some delegated vesting coins", args{
 				copyMVA(baseMVA2),
-				[]sdk.Int{sdk.NewInt(2000000)},
-				[]sdk.Int{sdk.NewInt(1000000)},
+				[]math.Int{sdk.NewInt(2000000)},
+				[]math.Int{sdk.NewInt(1000000)},
 			},
 			errArgs{
 				true,
@@ -195,8 +196,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"manual vesting account with some delegated vesting and delegated free coins", args{
 				copyMVA(baseMVA2),
-				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{},
+				[]math.Int{sdk.NewInt(3500000)},
+				[]math.Int{},
 			},
 			errArgs{
 				true,
@@ -207,8 +208,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"fully vested manual vesting account", args{
 				copyMVA(baseMVA3),
-				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{sdk.NewInt(1500000)},
+				[]math.Int{sdk.NewInt(3500000)},
+				[]math.Int{sdk.NewInt(1500000)},
 			},
 			errArgs{
 				true,
@@ -219,8 +220,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"fully vesting (locked) manual vesting account", args{
 				copyMVA(baseMVA4),
-				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{sdk.NewInt(1500000)},
+				[]math.Int{sdk.NewInt(3500000)},
+				[]math.Int{sdk.NewInt(1500000)},
 			},
 			errArgs{
 				true,
@@ -231,8 +232,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"manual vesting account with some delegated vesting coins with multiple validators", args{
 				copyMVA(baseMVA2),
-				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(1000000)},
-				[]sdk.Int{sdk.NewInt(500000), sdk.NewInt(500000)},
+				[]math.Int{sdk.NewInt(1000000), sdk.NewInt(1000000)},
+				[]math.Int{sdk.NewInt(500000), sdk.NewInt(500000)},
 			},
 			errArgs{
 				true,
@@ -243,8 +244,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"manual vesting account with some delegated vesting and delegated free coins with multiple validators", args{
 				copyMVA(baseMVA2),
-				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
-				[]sdk.Int{},
+				[]math.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
+				[]math.Int{},
 			},
 			errArgs{
 				true,
@@ -255,8 +256,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"fully vested manual vesting account with multiple validators", args{
 				copyMVA(baseMVA3),
-				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
-				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
+				[]math.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
+				[]math.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
 			},
 			errArgs{
 				true,
@@ -267,8 +268,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"fully vesting (locked) manual vesting account with multiple validators", args{
 				copyMVA(baseMVA4),
-				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
-				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
+				[]math.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
+				[]math.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
 			},
 			errArgs{
 				true,
@@ -279,8 +280,8 @@ func (suite *ForkTestSuite) TestFork() {
 		{
 			"sample failing test case", args{
 				copyMVA(baseMVA4),
-				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
-				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
+				[]math.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
+				[]math.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
 			},
 			errArgs{
 				false,
@@ -297,7 +298,7 @@ func (suite *ForkTestSuite) TestFork() {
 				if err != nil {
 					panic(err)
 				}
-				suite.tstaking.Delegate(tc.args.acc.GetAddress(), operAddr, s.Int64())
+				suite.tstaking.Delegate(tc.args.acc.GetAddress(), operAddr, math.NewInt(s.Int64()))
 			}
 			for i, u := range tc.args.unbondings {
 				operAddr, err := sdk.ValAddressFromBech32(suite.sk.GetAllValidators(suite.ctx)[i].OperatorAddress)

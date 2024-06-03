@@ -50,10 +50,7 @@ func (k Keeper) ReduceTotalCollateral(ctx sdk.Context, decrement sdk.Coins) erro
 	if err != nil {
 		return err
 	}
-	currentCollateral = currentCollateral.Sub(decrement)
-	if currentCollateral.IsAnyNegative() {
-		return types.ErrNoEnoughTotalCollateral
-	}
+	currentCollateral = currentCollateral.Sub(decrement...)
 	k.SetTotalCollateral(ctx, currentCollateral)
 	return nil
 }

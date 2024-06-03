@@ -8,22 +8,25 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
 // RandomizedGenState creates a randomGenesis state for module simulation.
 func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
-	gs := types.GenesisState{}
+	gs := typesv1.GenesisState{}
 	gs.StartingProposalId = uint64(simState.Rand.Intn(100))
 
-	gs.DepositParams = GenerateADepositParams(r)
-	gs.VotingParams = GenerateAVotingParams(r)
+	a := GenerateADepositParams(r)
+	gs.DepositParams = &a
+	b := GenerateAVotingParams(r)
+	gs.VotingParams = &b
 	tallyParams := GenerateTallyParams(r)
-	gs.TallyParams = tallyParams
-	gs.CustomParams = types.CustomParams{
+	gs.TallyParams = &tallyParams
+	gs.CustomParams = &typesv1.CustomParams{
 		CertifierUpdateSecurityVoteTally: &tallyParams,
 		CertifierUpdateStakeVoteTally:    &tallyParams,
 	}
@@ -33,30 +36,31 @@ func RandomizedGenState(simState *module.SimulationState) {
 	var stakingGenState stakingtypes.GenesisState
 	simState.Cdc.MustUnmarshalJSON(stakingGenStatebz, &stakingGenState)
 	ubdTime := stakingGenState.Params.UnbondingTime
-	if 2*gs.VotingParams.VotingPeriod >= ubdTime {
-		gs.VotingParams.VotingPeriod = time.Duration(sim.RandIntBetween(r, int(ubdTime)/10, int(ubdTime)/2))
+	if *gs.VotingParams.VotingPeriod*2 >= ubdTime {
+		votingPeriod := time.Duration(sim.RandIntBetween(r, int(ubdTime)/10, int(ubdTime)/2))
+		gs.VotingParams.VotingPeriod = &votingPeriod
 	}
 
 	simState.GenState[govTypes.ModuleName] = simState.Cdc.MustMarshalJSON(&gs)
 }
 
 // GenerateADepositParams returns a DepositParams object with all of its fields randomized.
-func GenerateADepositParams(r *rand.Rand) govTypes.DepositParams {
+func GenerateADepositParams(r *rand.Rand) govtypesv1.DepositParams {
 	minDeposit := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, int64(sim.RandIntBetween(r, 1, 10))))
 	maxDepositPeriod := sim.RandIntBetween(r, 1, 2*60*60*24*2)
-	return govTypes.NewDepositParams(minDeposit, time.Duration(maxDepositPeriod)*time.Second)
+	return govtypesv1.NewDepositParams(minDeposit, time.Duration(maxDepositPeriod)*time.Second)
 }
 
 // GenerateAVotingParams returns a VotingParams object with all of its fields randomized.
-func GenerateAVotingParams(r *rand.Rand) govTypes.VotingParams {
+func GenerateAVotingParams(r *rand.Rand) govtypesv1.VotingParams {
 	votingPeriod := sim.RandIntBetween(r, 1, 2*60*60*24*2)
-	return govTypes.NewVotingParams(time.Duration(votingPeriod) * time.Second)
+	return govtypesv1.NewVotingParams(time.Duration(votingPeriod) * time.Second)
 }
 
 // GenerateTallyParams returns a TallyParams object with all of its fields randomized.
-func GenerateTallyParams(r *rand.Rand) govTypes.TallyParams {
+func GenerateTallyParams(r *rand.Rand) govtypesv1.TallyParams {
 	quorum := sdk.NewDecWithPrec(int64(sim.RandIntBetween(r, 334, 500)), 3)
 	threshold := sdk.NewDecWithPrec(int64(sim.RandIntBetween(r, 450, 550)), 3)
 	veto := sdk.NewDecWithPrec(int64(sim.RandIntBetween(r, 250, 334)), 3)
-	return govTypes.NewTallyParams(quorum, threshold, veto)
+	return govtypesv1.NewTallyParams(quorum, threshold, veto)
 }

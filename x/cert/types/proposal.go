@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const (
@@ -14,11 +14,11 @@ const (
 )
 
 // Assert CertifierUpdateProposal implements govtypes.Content at compile-time
-var _ govtypes.Content = &CertifierUpdateProposal{}
+var _ v1beta1.Content = &CertifierUpdateProposal{}
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeCertifierUpdate)
-	govtypes.RegisterProposalTypeCodec(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal")
+	v1beta1.RegisterProposalType(ProposalTypeCertifierUpdate)
+	//govtypes.RegisterProposalTypeCodec(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal")
 }
 
 // NewCertifierUpdateProposal creates a new certifier update proposal.
@@ -53,7 +53,7 @@ func (cup CertifierUpdateProposal) ProposalType() string { return ProposalTypeCe
 
 // ValidateBasic runs basic stateless validity checks
 func (cup CertifierUpdateProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(&cup)
+	err := v1beta1.ValidateAbstract(&cup)
 	if err != nil {
 		return err
 	}

@@ -54,12 +54,12 @@ func strAddrEqualsAccAddr(strAddr string, accAddr sdk.AccAddress) bool {
 
 // TestWithdraw tests withdraws triggered by staking undelegation.
 func TestWithdrawsByUndelegate(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
 	pks := shentuapp.CreateTestPubKeys(4)
-	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(1e8))
 	del1addr, del2addr := sdk.AccAddress(pks[0].Address()), sdk.AccAddress(pks[1].Address())
 	val1pk, val2pk := pks[2], pks[3]
 	val1addr, val2addr := sdk.ValAddress(val1pk.Address()), sdk.ValAddress(val2pk.Address())
@@ -83,17 +83,17 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	// both delegators delegate 50 to each validator
 	tstaking.CheckDelegator(del1addr, val1addr, false)
-	tstaking.Delegate(del1addr, val1addr, 50)
+	tstaking.Delegate(del1addr, val1addr, sdk.NewInt(50))
 	tstaking.CheckDelegator(del1addr, val1addr, true)
 	tstaking.CheckDelegator(del1addr, val2addr, false)
-	tstaking.Delegate(del1addr, val2addr, 50)
+	tstaking.Delegate(del1addr, val2addr, sdk.NewInt(50))
 	tstaking.CheckDelegator(del1addr, val2addr, true)
 
 	tstaking.CheckDelegator(del2addr, val1addr, false)
-	tstaking.Delegate(del2addr, val1addr, 50)
+	tstaking.Delegate(del2addr, val1addr, sdk.NewInt(50))
 	tstaking.CheckDelegator(del2addr, val1addr, true)
 	tstaking.CheckDelegator(del2addr, val2addr, false)
-	tstaking.Delegate(del2addr, val2addr, 50)
+	tstaking.Delegate(del2addr, val2addr, sdk.NewInt(50))
 	tstaking.CheckDelegator(del2addr, val2addr, true)
 
 	// both delegators deposit collateral of amount 75
@@ -129,7 +129,7 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	tshield.DepositCollateral(del1addr, 10, false)
 
 	// delegate 25
-	tstaking.Delegate(del1addr, val1addr, 25)
+	tstaking.Delegate(del1addr, val1addr, sdk.NewInt(25))
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 
 	// withdraw 5
@@ -147,7 +147,7 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 // TestWithdraw tests withdraws triggered by staking redelegation.
 func TestWithdrawsByRedelegate(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
@@ -176,7 +176,7 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 
 	// delegate 100 to the validator
 	tstaking.CheckDelegator(del1addr, val1addr, false)
-	tstaking.Delegate(del1addr, val1addr, 100)
+	tstaking.Delegate(del1addr, val1addr, sdk.NewInt(100))
 	tstaking.CheckDelegator(del1addr, val1addr, true)
 
 	// deposit collateral of amount 75
@@ -210,7 +210,7 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 // TestClaimProposal tests a claim proposal process that involves
 // withdrawal and unbonding delays.
 func TestClaimProposal(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -240,7 +240,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// shield admin deposit and create pool
 	// $BondDenom pool with shield = 100,000 $BondDenom, limit = 500,000 $BondDenom, serviceFees = 200 $BondDenom
-	tstaking.Delegate(shieldAdmin, val1addr, adminDeposit)
+	tstaking.Delegate(shieldAdmin, val1addr, sdk.NewInt(adminDeposit))
 	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
 	tshield.CreatePool(shieldAdmin, sponsorAddr, 200e6, 100e9, 500e9, "Shentu", "fake_description")
 
@@ -252,7 +252,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// delegator deposits
 	tstaking.CheckDelegator(del1addr, val1addr, false)
-	tstaking.Delegate(del1addr, val1addr, delegatorDeposit)
+	tstaking.Delegate(del1addr, val1addr, sdk.NewInt(delegatorDeposit))
 	tstaking.CheckDelegator(del1addr, val1addr, true)
 	tshield.DepositCollateral(del1addr, delegatorDeposit, true)
 
@@ -290,7 +290,7 @@ func TestClaimProposal(t *testing.T) {
 	// verify that the withdrawal and unbonding have been delayed
 	// about 19e9 must be secured (two of three withdraws & ubds are delayed)
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
-	delayedWithdrawEnd := ctx.BlockTime().Add(app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2)
+	delayedWithdrawEnd := ctx.BlockTime().Add(*app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2)
 	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(25e9)))
 	require.True(t, withdraws[0].CompletionTime.Equal(withdraw1End)) //25e9 not delayed
 	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(10e9)))
@@ -346,7 +346,7 @@ func TestClaimProposal(t *testing.T) {
 }
 
 func TestUpdatePool(t *testing.T) {
-	app := shentuapp.Setup(false)
+	app := shentuapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -375,7 +375,7 @@ func TestUpdatePool(t *testing.T) {
 	adminDeposit := int64(200e9)
 	serviceFee0 := int64(200e6)
 	shield1 := int64(50e9)
-	tstaking.Delegate(shieldAdmin, val1addr, adminDeposit)
+	tstaking.Delegate(shieldAdmin, val1addr, sdk.NewInt(adminDeposit))
 	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
 	tshield.CreatePool(shieldAdmin, sponsorAddr, serviceFee0, shield1, 500e9, "Shentu", "fake_description")
 	pools := app.ShieldKeeper.GetAllPools(ctx)

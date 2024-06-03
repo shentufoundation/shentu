@@ -2,7 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v043 "github.com/cosmos/cosmos-sdk/x/gov/legacy/v043"
+	v043 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v043"
+	v046 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v046"
 
 	v220 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v220"
 	v260 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v260"
@@ -36,4 +37,9 @@ func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 		return err
 	}
 	return v260.MigrateProposalStore(ctx, m.keeper.storeKey, m.keeper.cdc)
+}
+
+// Migrate3to4 migrates from version 3 to 4.
+func (m Migrator) Migrate3to4(ctx sdk.Context) error {
+	return v046.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
 }

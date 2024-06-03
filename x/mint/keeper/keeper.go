@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -20,7 +21,7 @@ type Keeper struct {
 
 // NewKeeper implements the wrapper newkeeper on top of the original newkeeper with distribution, supply and staking keeper.
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper, distributionKeeper types.DistributionKeeper, shieldKeeper types.ShieldKeeper,
 	feeCollectorName string) Keeper {
 	return Keeper{
@@ -54,7 +55,7 @@ func (k Keeper) SendToShieldRewards(ctx sdk.Context, amount sdk.Coins) error {
 func (k Keeper) GetCommunityPoolRatio(ctx sdk.Context) sdk.Dec {
 	communityPool := k.dk.GetFeePool(ctx).CommunityPool
 	for _, coin := range communityPool {
-		totalBondedTokensDec := k.StakingTokenSupply(ctx).ToDec()
+		totalBondedTokensDec := sdk.NewDecFromInt(k.StakingTokenSupply(ctx))
 		if coin.Denom == k.stakingKeeper.BondDenom(ctx) {
 			ratio := coin.Amount.Quo(totalBondedTokensDec)
 			return ratio

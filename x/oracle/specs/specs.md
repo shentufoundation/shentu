@@ -66,7 +66,7 @@ type Task struct {
     Expiration      time.Time   `json:"expiration" yaml:"expiration"`
     Creator         string		`json:"creator" yaml:"creator"`
     Responses       Responses   `json:"responses" yaml:"responses"`
-    Result          sdk.Int     `json:"result" yaml:"result"`
+    Result          math.Int     `json:"result" yaml:"result"`
     ClosingBlock    int64       `json:"closing_block" yaml:"closing_block"`
     WaitingBlocks   int64       `json:"waiting_blocks" yaml:"waiting_blocks"`
     Status          TaskStatus  `json:"status" yaml:"status"`
@@ -83,8 +83,8 @@ An operator can respond to the task by providing a valid `Response`, which conta
 ```go
 type Response struct {
     Operator string		`json:"operator" yaml:"operator"`
-    Score    sdk.Int	`json:"score" yaml:"score"`
-    Weight   sdk.Int	`json:"weight" yaml:"weight"`
+    Score    math.Int	`json:"score" yaml:"score"`
+    Weight   math.Int	`json:"weight" yaml:"weight"`
     Reward   sdk.Coins	`json:"reward" yaml:"reward"`
 }
 ```

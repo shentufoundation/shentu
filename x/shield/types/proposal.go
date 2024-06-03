@@ -6,8 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -17,11 +18,11 @@ const (
 )
 
 // Assert ShieldClaimProposal implements govTypes.Content at compile-time.
-var _ govTypes.Content = ShieldClaimProposal{}
+var _ govtypesv1beta1.Content = ShieldClaimProposal{}
 
 func init() {
-	govTypes.RegisterProposalType(ProposalTypeShieldClaim)
-	govTypes.RegisterProposalTypeCodec(ShieldClaimProposal{}, "shield/ShieldClaimProposal")
+	govtypesv1beta1.RegisterProposalType(ProposalTypeShieldClaim)
+	//govTypes.RegisterProposalTypeCodec(ShieldClaimProposal{}, "shield/ShieldClaimProposal")
 }
 
 // NewShieldClaimProposal creates a new shield claim proposal.
@@ -78,12 +79,12 @@ func (scp ShieldClaimProposal) String() string {
 
 // LockedCollateral defines the data type of locked collateral for a claim proposal.
 type LockedCollateral struct {
-	ProposalID uint64  `json:"proposal_id" yaml:"proposal_id"`
-	Amount     sdk.Int `json:"locked_coins" yaml:"locked_coins"`
+	ProposalID uint64   `json:"proposal_id" yaml:"proposal_id"`
+	Amount     math.Int `json:"locked_coins" yaml:"locked_coins"`
 }
 
 // NewLockedCollateral returns a new LockedCollateral instance.
-func NewLockedCollateral(proposalID uint64, lockedAmt sdk.Int) LockedCollateral {
+func NewLockedCollateral(proposalID uint64, lockedAmt math.Int) LockedCollateral {
 	return LockedCollateral{
 		ProposalID: proposalID,
 		Amount:     lockedAmt,

@@ -6,7 +6,7 @@ import "gogoproto/gogo.proto";
 import "cosmos/gov/v1beta1/gov.proto";
 import "shentu/gov/v1alpha1/gov.proto";
 
-option go_package = "github.com/shentufoundation/shentu/x/gov/types";
+option go_package = "github.com/shentufoundation/shentu/x/gov/types/v1alpha1";
 
 // GenesisState defines the gov module's genesis state.
 message GenesisState {

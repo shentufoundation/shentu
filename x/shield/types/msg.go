@@ -3,6 +3,7 @@ package types
 import (
 	"strings"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -24,7 +25,7 @@ const (
 )
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) *MsgCreatePool {
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit math.Int) *MsgCreatePool {
 	return &MsgCreatePool{
 		From:        accAddr.String(),
 		Shield:      shield,
@@ -77,7 +78,7 @@ func (msg MsgCreatePool) ValidateBasic() error {
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees sdk.Coins, id uint64, description string, shieldLimit sdk.Int) *MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees sdk.Coins, id uint64, description string, shieldLimit math.Int) *MsgUpdatePool {
 	return &MsgUpdatePool{
 		From:        accAddr.String(),
 		Shield:      shield,
@@ -584,6 +585,10 @@ func (msg MsgUpdateSponsor) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUpdateSponsor) ValidateBasic() error {
+	if msg.PoolId == 0 {
+		return ErrInvalidPoolID
+	}
+
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
 		panic(err)
@@ -592,7 +597,7 @@ func (msg MsgUpdateSponsor) ValidateBasic() error {
 		return ErrEmptySender
 	}
 
-	sponsorAddr, err := sdk.AccAddressFromBech32(msg.From)
+	sponsorAddr, err := sdk.AccAddressFromBech32(msg.SponsorAddr)
 	if err != nil {
 		panic(err)
 	}

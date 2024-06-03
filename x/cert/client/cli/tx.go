@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
@@ -246,7 +246,7 @@ Where proposal.json contains:
 				proposal.AddOrRemove,
 			)
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			msg, err := v1beta1.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err != nil {
 				return err
 			}

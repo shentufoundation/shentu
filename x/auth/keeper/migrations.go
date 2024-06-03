@@ -6,7 +6,8 @@ import (
 	"github.com/gogo/protobuf/grpc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v043 "github.com/cosmos/cosmos-sdk/x/auth/legacy/v043"
+	v043 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v043"
+	v046 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v046"
 	sdktypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
@@ -15,20 +16,20 @@ import (
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
-	keeper      types.AccountKeeper
+	keeper      Keeper
 	queryServer grpc.Server
 }
 
 // NewMigrator returns a new Migrator.
 func NewMigrator(keeper Keeper, queryServer grpc.Server) Migrator {
-	return Migrator{keeper: keeper.ak, queryServer: queryServer}
+	return Migrator{keeper: keeper, queryServer: queryServer}
 }
 
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	var iterErr error
 
-	m.keeper.IterateAccounts(ctx, func(account sdktypes.AccountI) (stop bool) {
+	m.keeper.ak.IterateAccounts(ctx, func(account sdktypes.AccountI) (stop bool) {
 		mvacc, ok := account.(*types.ManualVestingAccount)
 		if !ok {
 			return false
@@ -58,9 +59,15 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		}
 		newmvacc := types.NewManualVestingAccount(dvAcc.BaseAccount, dvAcc.OriginalVesting, vestedCoins, unlocker)
 
-		m.keeper.SetAccount(ctx, newmvacc)
+		m.keeper.ak.SetAccount(ctx, newmvacc)
 		return false
 	})
 
 	return iterErr
+}
+
+// Migrate2to3 migrates from consensus version 2 to version 3. Specifically, for each account
+// we index the account's ID to their address.
+func (m Migrator) Migrate2to3(ctx sdk.Context) error {
+	return v046.MigrateStore(ctx, m.keeper.key, m.keeper.cdc)
 }

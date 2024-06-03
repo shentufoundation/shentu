@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -154,7 +155,7 @@ func (k Keeper) ReduceCollateral(ctx sdk.Context, address sdk.AccAddress, decrem
 	if err != nil {
 		return err
 	}
-	operator.Collateral = operator.Collateral.Sub(decrement)
+	operator.Collateral = operator.Collateral.Sub(decrement...)
 	if k.IsBelowMinCollateral(ctx, operator.Collateral) {
 		return types.ErrNoEnoughCollateral
 	}
@@ -202,7 +203,7 @@ func (k Keeper) WithdrawAllReward(ctx sdk.Context, address sdk.AccAddress) (sdk.
 }
 
 // GetCollateralAmount gets an operator's collateral.
-func (k Keeper) GetCollateralAmount(ctx sdk.Context, address sdk.AccAddress) (sdk.Int, error) {
+func (k Keeper) GetCollateralAmount(ctx sdk.Context, address sdk.AccAddress) (math.Int, error) {
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
 		return sdk.NewInt(0), err

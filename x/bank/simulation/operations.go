@@ -61,7 +61,7 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Op
 			if sendCoins.Empty() {
 				return simtypes.NoOpMsg(banktypes.ModuleName, types.TypeMsgLockedSend, "send coins empty"), nil, nil
 			}
-			spendableCoins = spendableCoins.Sub(sendCoins)
+			spendableCoins = spendableCoins.Sub(sendCoins...)
 
 			fees, err := simutil.RandomReasonableFees(r, ctx, spendableCoins)
 			if err != nil {
@@ -77,7 +77,8 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Op
 
 			txGen := simappparams.MakeTestEncodingConfig().TxConfig
 
-			tx, err := helpers.GenTx(
+			tx, err := helpers.GenSignedMockTx(
+				r,
 				txGen,
 				[]sdk.Msg{msg},
 				fees,
@@ -91,7 +92,7 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Op
 				return simtypes.NoOpMsg(banktypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}
 
-			_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+			_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
 			if err != nil {
 				return simtypes.NoOpMsg(banktypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}

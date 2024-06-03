@@ -4,45 +4,65 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/tendermint/tendermint/crypto/tmhash"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // AddVote Adds a vote on a specific proposal.
-func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypes.WeightedVoteOptions) error {
+func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypesv1.WeightedVoteOptions, metadata string) error {
 	proposal, ok := k.GetProposal(ctx, proposalID)
 	if !ok {
 		return sdkerrors.Wrapf(govtypes.ErrUnknownProposal, "%d", proposalID)
 	}
-
-	if proposal.Status != govtypes.StatusVotingPeriod {
+	if proposal.Status != govtypesv1.StatusVotingPeriod {
 		return sdkerrors.Wrapf(govtypes.ErrInactiveProposal, "%d", proposalID)
+	}
+	err := k.assertMetadataLength(metadata)
+	if err != nil {
+		return err
 	}
 
 	for _, option := range options {
-		if !govtypes.ValidWeightedVoteOption(option) {
+		if !govtypesv1.ValidWeightedVoteOption(*option) {
 			return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "%s", option)
 		}
 	}
 
-	// Add cert vote
-	if k.HasSecurityVoting(proposal) && !k.GetCertifierVoted(ctx, proposalID) {
+	// Add certifier vote
+	if k.CertifierVoteIsRequired(proposal) && !k.GetCertifierVoted(ctx, proposalID) {
 		return k.AddCertifierVote(ctx, proposalID, voterAddr, options)
 	}
 
-	if proposal.GetContent().ProposalType() == shieldtypes.ProposalTypeShieldClaim &&
-		proposal.Status == govtypes.StatusVotingPeriod &&
-		!k.IsCertifiedIdentity(ctx, voterAddr) {
-		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
+	// update certifier vote
+	proposalMsgs, err := proposal.GetMsgs()
+	if err != nil {
+		return err
+	}
+	for _, proposalmsg := range proposalMsgs {
+		if legacyMsg, ok := proposalmsg.(*govtypesv1.MsgExecLegacyContent); ok {
+			// check that the content struct can be unmarshalled
+			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
+			if err != nil {
+				return err
+			}
+			if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim &&
+				proposal.Status == govtypesv1.StatusVotingPeriod &&
+				!k.IsCertifiedIdentity(ctx, voterAddr) {
+				return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
+			}
+		}
 	}
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
-	vote := govtypes.NewVote(proposalID, voterAddr, options)
+	vote := govtypesv1.NewVote(proposalID, voterAddr, options, metadata)
 	k.SetVote(ctx, vote)
 
 	ctx.EventManager().EmitEvent(
@@ -50,7 +70,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 			govtypes.EventTypeProposalVote,
 			sdk.NewAttribute(govtypes.AttributeKeyOption, options.String()),
 			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
-			sdk.NewAttribute(types.AttributeKeyVoter, voterAddr.String()),
+			sdk.NewAttribute(govtypes.AttributeKeyVoter, voterAddr.String()),
 			sdk.NewAttribute(types.AttributeTxHash, txhash),
 		),
 	)
@@ -73,7 +93,7 @@ func (k Keeper) deleteVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.Acc
 
 // DeleteAllVotes deletes all votes for a proposal.
 func (k Keeper) DeleteAllVotes(ctx sdk.Context, proposalID uint64) {
-	k.IterateVotes(ctx, proposalID, func(vote govtypes.Vote) bool {
+	k.IterateVotes(ctx, proposalID, func(vote govtypesv1.Vote) bool {
 		addr, err := sdk.AccAddressFromBech32(vote.Voter)
 		if err != nil {
 			panic(err)
@@ -84,13 +104,13 @@ func (k Keeper) DeleteAllVotes(ctx sdk.Context, proposalID uint64) {
 }
 
 // AddCertifierVote add a certifier vote
-func (k Keeper) AddCertifierVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypes.WeightedVoteOptions) error {
+func (k Keeper) AddCertifierVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypesv1.WeightedVoteOptions) error {
 	if !k.IsCertifier(ctx, voterAddr) {
 		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "%s is not a certified identity", voterAddr)
 	}
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
-	vote := govtypes.NewVote(proposalID, voterAddr, options)
+	vote := govtypesv1.NewVote(proposalID, voterAddr, options, "")
 	k.SetVote(ctx, vote)
 
 	ctx.EventManager().EmitEvent(
@@ -98,7 +118,7 @@ func (k Keeper) AddCertifierVote(ctx sdk.Context, proposalID uint64, voterAddr s
 			types.EventTypeCertVote,
 			sdk.NewAttribute(govtypes.AttributeKeyOption, options.String()),
 			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
-			sdk.NewAttribute(types.AttributeKeyVoter, voterAddr.String()),
+			sdk.NewAttribute(govtypes.AttributeKeyVoter, voterAddr.String()),
 			sdk.NewAttribute(types.AttributeTxHash, txhash),
 		),
 	)
@@ -119,12 +139,12 @@ func (k Keeper) SetCertifierVoted(ctx sdk.Context, proposalID uint64) {
 // SetCertVote sets a cert vote to the gov store
 func (k Keeper) SetCertVote(ctx sdk.Context, proposalID uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.CertVotesKey(proposalID), govtypes.GetProposalIDBytes(proposalID))
+	store.Set(typesv1.CertVotesKey(proposalID), govtypes.GetProposalIDBytes(proposalID))
 }
 
 // GetCertifierVoted determine cert vote for custom proposal types have finished
 func (k Keeper) GetCertifierVoted(ctx sdk.Context, proposalID uint64) bool {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.CertVotesKey(proposalID))
+	bz := store.Get(typesv1.CertVotesKey(proposalID))
 	return bz != nil
 }

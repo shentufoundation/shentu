@@ -1,3 +1,5 @@
+// TODO remove
+
 // Package distribution defines the distribution module.
 package distribution
 
@@ -5,7 +7,6 @@ import (
 	"encoding/json"
 	"math/rand"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -16,7 +17,6 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -65,11 +65,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 	return distribution.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
-// RegisterRESTRoutes registers the REST routes for the distribution module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
-	distribution.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
-}
-
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	distribution.AppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
@@ -114,7 +109,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // Route returns the message routing key for the distribution module.
 func (am AppModule) Route() sdk.Route {
-	return am.cosmosAppModule.Route()
+	return sdk.Route{}
 }
 
 // QuerierRoute returns the distribution module's querier route name.
