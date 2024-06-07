@@ -43,7 +43,7 @@ func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (stakingtypes
 	return k.sk.GetValidator(ctx, addr)
 }
 
-// SetLatestPoolID sets the latest pool ID to store.
+// SetNextPoolID sets the next pool ID to store.
 func (k Keeper) SetNextPoolID(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := make([]byte, 8)
