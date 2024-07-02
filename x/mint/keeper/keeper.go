@@ -64,12 +64,6 @@ func (k Keeper) GetCommunityPoolRatio(ctx sdk.Context) sdk.Dec {
 	return sdk.NewDec(0)
 }
 
-// GetShieldRatio returns the current ratio of
-// shield staking pool compared to the total supply.
-func (k Keeper) GetShieldRatio(ctx sdk.Context) sdk.Dec {
-	return k.shieldKeeper.GetShieldBlockRewardRatio(ctx)
-}
-
 // GetPoolMint returns Coins that are about to be minted towards the community pool.
 func (k Keeper) GetPoolMint(ctx sdk.Context, ratio sdk.Dec, mintedCoin sdk.Coin) sdk.Coin {
 	communityPoolMintDec := ratio.MulInt(mintedCoin.Amount)
