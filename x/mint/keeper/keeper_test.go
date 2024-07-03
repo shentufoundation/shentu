@@ -16,7 +16,6 @@ import (
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/common"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // shared setup
@@ -66,42 +65,6 @@ func (suite *KeeperTestSuite) TestKeeper_SendToCommunityPool() {
 			deductedMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, common.MicroCTKDenom)
 			distributionBalance2 := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte(distrtypes.ModuleName))), common.MicroCTKDenom)
 			suite.Require().Equal(initalMintBalance.Sub(deductedMintBalance), distributionBalance2.Sub(distributionBalance1))
-		}
-	}
-}
-
-func (suite *KeeperTestSuite) TestKeeper_SendToShieldRewards() {
-	tests := []struct {
-		name  string
-		coins sdk.Coins
-		err   bool
-	}{
-		{
-			name:  "Funding Shield Rewards",
-			coins: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), 1e9)),
-			err:   false,
-		},
-		{
-			name:  "Funding With 0",
-			coins: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), 0)),
-			err:   true,
-		},
-	}
-
-	for _, tc := range tests {
-		suite.T().Log(tc.name)
-		moduleAcct := sdk.AccAddress(crypto.AddressHash([]byte(minttypes.ModuleName)))
-		if tc.err {
-			err := suite.app.MintKeeper.SendToShieldRewards(suite.ctx, tc.coins)
-			suite.Require().Nil(err)
-		} else {
-			initalMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, common.MicroCTKDenom)
-			shieldBalance1 := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte(shieldtypes.ModuleName))), common.MicroCTKDenom)
-			err := suite.app.MintKeeper.SendToShieldRewards(suite.ctx, tc.coins)
-			suite.Require().NoError(err)
-			deductedMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, common.MicroCTKDenom)
-			shieldBalance2 := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte(shieldtypes.ModuleName))), common.MicroCTKDenom)
-			suite.Require().Equal(initalMintBalance.Sub(deductedMintBalance), shieldBalance2.Sub(shieldBalance1))
 		}
 	}
 }
