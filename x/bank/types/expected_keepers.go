@@ -4,8 +4,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	"github.com/hyperledger/burrow/crypto"
 )
 
 // AccountKeeper defines the account contract that must be fulfilled when creating a x/bank keeper.
@@ -27,10 +25,4 @@ type AccountKeeper interface {
 	GetModuleAccountAndPermissions(ctx sdk.Context, moduleName string) (types.ModuleAccountI, []string)
 	GetModuleAccount(ctx sdk.Context, moduleName string) types.ModuleAccountI
 	SetModuleAccount(ctx sdk.Context, macc types.ModuleAccountI)
-}
-
-// CVMKeeper defines the CVM interface that must be fulfilled when wrapping the basekeeper.
-type CVMKeeper interface {
-	Send(ctx sdk.Context, from, to sdk.AccAddress, value sdk.Coins) error
-	GetCode(ctx sdk.Context, addr crypto.Address) ([]byte, error)
 }
