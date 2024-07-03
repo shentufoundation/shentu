@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 
+	simutil "github.com/shentufoundation/shentu/v2/x/auth/simulation"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -14,7 +16,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingSim "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 )
 
 const (

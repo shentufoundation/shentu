@@ -45,7 +45,6 @@ import (
 	authcli "github.com/shentufoundation/shentu/v2/x/auth/client/cli"
 	bankcli "github.com/shentufoundation/shentu/v2/x/bank/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/crisis"
-	cvmcli "github.com/shentufoundation/shentu/v2/x/cvm/client/cli"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
@@ -246,8 +245,6 @@ func txCommand() *cobra.Command {
 		flags.LineBreak,
 		vestingcli.GetTxCmd(),
 		flags.LineBreak,
-		cvmcli.GetCmdCall(),
-		cvmcli.GetCmdDeploy(),
 		flags.LineBreak,
 	)
 

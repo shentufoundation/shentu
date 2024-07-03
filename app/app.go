@@ -103,9 +103,6 @@ import (
 	certclient "github.com/shentufoundation/shentu/v2/x/cert/client"
 	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	"github.com/shentufoundation/shentu/v2/x/cvm"
-	cvmkeeper "github.com/shentufoundation/shentu/v2/x/cvm/keeper"
-	cvmtypes "github.com/shentufoundation/shentu/v2/x/cvm/types"
 	distr "github.com/shentufoundation/shentu/v2/x/distribution"
 	"github.com/shentufoundation/shentu/v2/x/gov"
 	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
@@ -163,7 +160,6 @@ var (
 		params.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
-		cvm.NewAppModuleBasic(),
 		cert.NewAppModuleBasic(),
 		oracle.NewAppModuleBasic(),
 		shield.NewAppModuleBasic(),
@@ -185,7 +181,6 @@ var (
 		sdkgovtypes.ModuleName:         {authtypes.Burner},
 		oracletypes.ModuleName:         {authtypes.Burner},
 		shieldtypes.ModuleName:         {authtypes.Burner},
-		cvmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		bountytypes.ModuleName:         {authtypes.Burner},
 	}
@@ -224,7 +219,6 @@ type ShentuApp struct {
 	ICAHostKeeper    icahostkeeper.Keeper
 	TransferKeeper   ibctransferkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
-	CVMKeeper        cvmkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
 	ShieldKeeper     shieldkeeper.Keeper
 	BountyKeeper     bountykeeper.Keeper
@@ -270,7 +264,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		upgradetypes.StoreKey,
 		sdkgovtypes.StoreKey,
 		certtypes.StoreKey,
-		cvmtypes.StoreKey,
 		oracletypes.StoreKey,
 		shieldtypes.StoreKey,
 		evidencetypes.StoreKey,
@@ -328,7 +321,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec,
 		keys[sdkbanktypes.StoreKey],
 		app.AccountKeeper,
-		&app.CVMKeeper,
 		app.GetSubspace(sdkbanktypes.ModuleName),
 		app.ModuleAccountAddrs(),
 	)
@@ -347,16 +339,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec,
 		keys[sdkfeegrant.StoreKey],
 		app.AccountKeeper,
-	)
-	app.CVMKeeper = cvmkeeper.NewKeeper(
-		appCodec,
-		keys[cvmtypes.StoreKey],
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.DistrKeeper,
-		&app.CertKeeper,
-		&app.StakingKeeper,
-		app.GetSubspace(cvmtypes.ModuleName),
 	)
 	app.OracleKeeper = oraclekeeper.NewKeeper(
 		appCodec,
@@ -528,7 +510,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
@@ -546,7 +527,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName,
 		sdkauthz.ModuleName, sdkfeegrant.ModuleName, crisistypes.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName,
-		oracletypes.ModuleName, cvmtypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName, group.ModuleName,
+		oracletypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName, group.ModuleName,
 	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
@@ -555,7 +536,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		capabilitytypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
-		certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName, bountytypes.ModuleName, group.ModuleName,
+		certtypes.ModuleName, oracletypes.ModuleName, bountytypes.ModuleName, group.ModuleName,
 	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
@@ -569,7 +550,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
-		cvmtypes.ModuleName,
 		shieldtypes.ModuleName,
 		crisistypes.ModuleName,
 		certtypes.ModuleName,
@@ -596,7 +576,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
-		cvmtypes.ModuleName,
 		crisistypes.ModuleName,
 		certtypes.ModuleName,
 		genutiltypes.ModuleName,
@@ -633,7 +612,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
@@ -858,7 +836,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName).WithKeyTable(oracletypes.ParamKeyTable())
-	paramsKeeper.Subspace(cvmtypes.ModuleName).WithKeyTable(cvmtypes.ParamKeyTable())
 	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(shieldtypes.ParamKeyTable())
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 

@@ -22,12 +22,11 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new Keeper.
-func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ak types.AccountKeeper, cvmk types.CVMKeeper, paramSpace paramsTypes.Subspace,
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ak types.AccountKeeper, paramSpace paramsTypes.Subspace,
 	blockedAddrs map[string]bool) Keeper {
 	bk := bankKeeper.NewBaseKeeper(cdc, storeKey, ak, paramSpace, blockedAddrs)
 	return Keeper{
 		BaseKeeper: bk,
-		cvmk:       cvmk,
 		ak:         ak,
 	}
 }

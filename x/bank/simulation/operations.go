@@ -14,10 +14,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	simutil "github.com/shentufoundation/shentu/v2/x/auth/simulation"
 	vesting "github.com/shentufoundation/shentu/v2/x/auth/types"
 	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bank/types"
-	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 )
 
 const (

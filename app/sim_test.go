@@ -38,7 +38,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/testing/simapp/helpers"
 
 	cert "github.com/shentufoundation/shentu/v2/x/cert/types"
-	cvm "github.com/shentufoundation/shentu/v2/x/cvm/types"
 	oracle "github.com/shentufoundation/shentu/v2/x/oracle/types"
 	shield "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
@@ -179,7 +178,6 @@ func TestAppImportExport(t *testing.T) {
 		{app.GetKey(bank.StoreKey), newApp.GetKey(bank.StoreKey), [][]byte{bank.BalancesPrefix}},
 		{app.GetKey(gov.StoreKey), newApp.GetKey(gov.StoreKey), [][]byte{}},
 		{app.GetKey(cert.StoreKey), newApp.GetKey(cert.StoreKey), [][]byte{}},
-		{app.GetKey(cvm.StoreKey), newApp.GetKey(cvm.StoreKey), [][]byte{}},
 		{app.GetKey(oracle.StoreKey), newApp.GetKey(oracle.StoreKey), [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyTimedPrefix, oracle.ExpireTaskStoreKeyPrefix}},
 		{app.GetKey(shield.StoreKey), newApp.GetKey(shield.StoreKey), [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
 		{app.GetKey(evidence.StoreKey), newApp.GetKey(evidence.StoreKey), [][]byte{}},

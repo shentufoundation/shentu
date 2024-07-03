@@ -15,7 +15,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
+	simutil "github.com/shentufoundation/shentu/v2/x/auth/simulation"
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
