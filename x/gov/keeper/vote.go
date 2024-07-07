@@ -13,7 +13,6 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // AddVote Adds a vote on a specific proposal.
@@ -39,26 +38,6 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 	// Add certifier vote
 	if k.CertifierVoteIsRequired(proposal) && !k.GetCertifierVoted(ctx, proposalID) {
 		return k.AddCertifierVote(ctx, proposalID, voterAddr, options)
-	}
-
-	// update certifier vote
-	proposalMsgs, err := proposal.GetMsgs()
-	if err != nil {
-		return err
-	}
-	for _, proposalmsg := range proposalMsgs {
-		if legacyMsg, ok := proposalmsg.(*govtypesv1.MsgExecLegacyContent); ok {
-			// check that the content struct can be unmarshalled
-			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
-			if err != nil {
-				return err
-			}
-			if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim &&
-				proposal.Status == govtypesv1.StatusVotingPeriod &&
-				!k.IsCertifiedIdentity(ctx, voterAddr) {
-				return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
-			}
-		}
 	}
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))

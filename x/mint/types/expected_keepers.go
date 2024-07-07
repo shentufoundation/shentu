@@ -3,6 +3,7 @@ package types
 
 import (
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -37,10 +38,4 @@ type BankKeeper interface {
 type DistributionKeeper interface {
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 	GetFeePool(ctx sdk.Context) distrtypes.FeePool
-}
-
-type ShieldKeeper interface {
-	GetGlobalShieldStakingPool(ctx sdk.Context) math.Int
-	FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
-	GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec
 }

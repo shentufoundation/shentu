@@ -16,20 +16,18 @@ type Keeper struct {
 	dk            types.DistributionKeeper
 	accountKeeper types.AccountKeeper
 	stakingKeeper types.StakingKeeper
-	shieldKeeper  types.ShieldKeeper
 }
 
 // NewKeeper implements the wrapper newkeeper on top of the original newkeeper with distribution, supply and staking keeper.
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper, distributionKeeper types.DistributionKeeper, shieldKeeper types.ShieldKeeper,
+	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper, distributionKeeper types.DistributionKeeper,
 	feeCollectorName string) Keeper {
 	return Keeper{
 		Keeper:        mintkeeper.NewKeeper(cdc, key, paramSpace, sk, ak, bk, feeCollectorName),
 		dk:            distributionKeeper,
 		accountKeeper: ak,
 		stakingKeeper: sk,
-		shieldKeeper:  shieldKeeper,
 	}
 }
 
@@ -40,15 +38,6 @@ func (k Keeper) SendToCommunityPool(ctx sdk.Context, amount sdk.Coins) error {
 	}
 	mintAddress := k.accountKeeper.GetModuleAddress(minttypes.ModuleName)
 	return k.dk.FundCommunityPool(ctx, amount, mintAddress)
-}
-
-// SendToShieldRewards sends coins to the shield rewards using FundShieldBlockRewards.
-func (k Keeper) SendToShieldRewards(ctx sdk.Context, amount sdk.Coins) error {
-	if amount.AmountOf(k.stakingKeeper.BondDenom(ctx)).Equal(sdk.ZeroInt()) {
-		return nil
-	}
-	mintAddress := k.accountKeeper.GetModuleAddress(minttypes.ModuleName)
-	return k.shieldKeeper.FundShieldBlockRewards(ctx, amount, mintAddress)
 }
 
 // GetCommunityPoolRatio returns the current ratio of the community pool compared to the total supply.
@@ -62,12 +51,6 @@ func (k Keeper) GetCommunityPoolRatio(ctx sdk.Context) sdk.Dec {
 		}
 	}
 	return sdk.NewDec(0)
-}
-
-// GetShieldRatio returns the current ratio of
-// shield staking pool compared to the total supply.
-func (k Keeper) GetShieldRatio(ctx sdk.Context) sdk.Dec {
-	return k.shieldKeeper.GetShieldBlockRewardRatio(ctx)
 }
 
 // GetPoolMint returns Coins that are about to be minted towards the community pool.

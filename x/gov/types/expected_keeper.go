@@ -1,13 +1,11 @@
 package types
 
 import (
-	"time"
-
 	"cosmossdk.io/math"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 type CertKeeper interface {
@@ -17,15 +15,6 @@ type CertKeeper interface {
 	HasCertifierAlias(ctx sdk.Context, alias string) bool
 	IsCertified(ctx sdk.Context, content string, certType string) bool
 	GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress
-}
-
-type ShieldKeeper interface {
-	GetPurchase(purchaseList shieldtypes.PurchaseList, purchaseID uint64) (shieldtypes.Purchase, bool)
-	GetPurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (shieldtypes.PurchaseList, bool)
-	GetClaimProposalParams(ctx sdk.Context) shieldtypes.ClaimProposalParams
-	SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, lockPeriod time.Duration) error
-	RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error
-	ClaimEnd(ctx sdk.Context, id, poolID uint64, loss sdk.Coins)
 }
 
 type ParamSubspace interface {

@@ -114,7 +114,6 @@ import (
 	oraclekeeper "github.com/shentufoundation/shentu/v2/x/oracle/keeper"
 	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
 	"github.com/shentufoundation/shentu/v2/x/shield"
-	shieldclient "github.com/shentufoundation/shentu/v2/x/shield/client"
 	shieldkeeper "github.com/shentufoundation/shentu/v2/x/shield/keeper"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 	"github.com/shentufoundation/shentu/v2/x/slashing"
@@ -152,7 +151,6 @@ var (
 				upgradeclient.LegacyProposalHandler,
 				upgradeclient.LegacyCancelProposalHandler,
 				certclient.LegacyProposalHandler,
-				shieldclient.LegacyProposalHandler,
 				ibcclientclient.UpdateClientProposalHandler,
 				ibcclientclient.UpgradeProposalHandler,
 			},
@@ -412,8 +410,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[shieldtypes.StoreKey],
 		app.AccountKeeper,
 		app.BankKeeper,
-		stakingKeeper,
-		&app.GovKeeper,
 		app.GetSubspace(shieldtypes.ModuleName),
 	)
 	app.BountyKeeper = bountykeeper.NewKeeper(
@@ -425,7 +421,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	app.MintKeeper = mintkeeper.NewKeeper(
 		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
-		app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.ShieldKeeper, authtypes.FeeCollectorName,
+		app.AccountKeeper, app.BankKeeper, app.DistrKeeper, authtypes.FeeCollectorName,
 	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
@@ -433,7 +429,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	//	stakingtypes.NewMultiStakingHooks(
 	//		app.DistrKeeper.Hooks(),
 	//		app.SlashingKeeper.Hooks(),
-	//		app.ShieldKeeper.Hooks(),
 	//	),
 	//)
 
@@ -448,7 +443,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		//AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		//AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.ShieldKeeper)).
 		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.CertKeeper))
 	govConfig := sdkgovtypes.DefaultConfig()
 	app.GovKeeper = govkeeper.NewKeeper(
@@ -458,7 +452,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.BankKeeper,
 		app.StakingKeeper,
 		app.CertKeeper,
-		app.ShieldKeeper,
 		app.AccountKeeper,
 		govRouter,
 		app.MsgServiceRouter(),
@@ -531,7 +524,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
-		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
+		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
@@ -634,7 +627,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
-		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
+		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 		bounty.NewAppModule(app.BountyKeeper),
