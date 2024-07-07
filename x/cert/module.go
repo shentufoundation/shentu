@@ -4,7 +4,6 @@ package cert
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -160,7 +159,7 @@ func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.Weight
 	return simulation.ProposalContents(am.moduleKeeper)
 }
 
-// RandomizedParams returns functions that generate params for the module
-func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
-	return nil
-}
+//// RandomizedParams returns functions that generate params for the module
+//func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
+//	return nil
+//}

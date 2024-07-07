@@ -1,14 +1,13 @@
 package keeper
 
 import (
+	"github.com/shentufoundation/shentu/v2/x/mint/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	"github.com/shentufoundation/shentu/v2/x/mint/types"
 )
 
 type Keeper struct {
@@ -20,11 +19,11 @@ type Keeper struct {
 
 // NewKeeper implements the wrapper newkeeper on top of the original newkeeper with distribution, supply and staking keeper.
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, key storetypes.StoreKey,
 	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper, distributionKeeper types.DistributionKeeper,
-	feeCollectorName string) Keeper {
+	feeCollectorName string, authority string) Keeper {
 	return Keeper{
-		Keeper:        mintkeeper.NewKeeper(cdc, key, paramSpace, sk, ak, bk, feeCollectorName),
+		Keeper:        mintkeeper.NewKeeper(cdc, key, sk, ak, bk, feeCollectorName, authority),
 		dk:            distributionKeeper,
 		accountKeeper: ak,
 		stakingKeeper: sk,

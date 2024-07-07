@@ -38,7 +38,11 @@ func GetCmdWithdrawRewards() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 

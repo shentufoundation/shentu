@@ -61,7 +61,11 @@ func GetCmdCreateOperator() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			from := cliCtx.GetFromAddress()
 			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
@@ -98,7 +102,11 @@ func GetCmdRemoveOperator() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			from := cliCtx.GetFromAddress()
 			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
@@ -129,7 +137,11 @@ func GetCmdDepositCollateral() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -159,7 +171,11 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -189,7 +205,11 @@ func GetCmdClaimReward() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -215,7 +235,11 @@ func GetCmdCreateTask() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			from := cliCtx.GetFromAddress()
 			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
@@ -260,7 +284,11 @@ func GetCmdRespondToTask() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			from := cliCtx.GetFromAddress()
 			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
@@ -293,7 +321,11 @@ func GetCmdDeleteTask() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			from := cliCtx.GetFromAddress()
 			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
@@ -323,7 +355,11 @@ func GetCmdRespondToTxTask() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			from := cliCtx.GetFromAddress()
 			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
@@ -360,7 +396,11 @@ func GetCmdDeleteTxTask() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			from := cliCtx.GetFromAddress()
 			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
@@ -392,7 +432,11 @@ func GetCmdCreateTxTask() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			from := cliCtx.GetFromAddress()
 			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {

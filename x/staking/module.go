@@ -91,7 +91,7 @@ type AppModule struct {
 func NewAppModule(cdc codec.Codec, stakingKeeper keeper.Keeper, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper, ls exported.Subspace) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: staking.NewAppModule(cdc, stakingKeeper.Keeper, ak, bk, ls),
+		cosmosAppModule: staking.NewAppModule(cdc, &stakingKeeper.Keeper, ak, bk, ls),
 		authKeeper:      ak,
 		bankKeeper:      bk,
 		keeper:          stakingKeeper,
@@ -152,5 +152,5 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns staking operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.keeper.Keeper)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, &am.keeper.Keeper)
 }
