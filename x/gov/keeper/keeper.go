@@ -28,9 +28,6 @@ type Keeper struct {
 	// the reference to get information about certifiers
 	CertKeeper types.CertKeeper
 
-	// the reference to get claim proposal parameters
-	ShieldKeeper types.ShieldKeeper
-
 	// the (unexposed) keys used to access the stores from the Context
 	storeKey storetypes.StoreKey
 
@@ -53,7 +50,7 @@ type Keeper struct {
 // - and tallying the result of the vote.
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
-	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper, shieldKeeper types.ShieldKeeper,
+	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper,
 	authKeeper govtypes.AccountKeeper, legacyRouter v1beta1.Router, router *baseapp.MsgServiceRouter, config govtypes.Config,
 ) Keeper {
 	cosmosKeeper := govkeeper.NewKeeper(cdc, key, paramSpace, authKeeper, bankKeeper, stakingKeeper, legacyRouter, router, config)
@@ -63,7 +60,6 @@ func NewKeeper(
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,
-		ShieldKeeper:  shieldKeeper,
 		storeKey:      key,
 		cdc:           cdc,
 		legacyRouter:  legacyRouter,

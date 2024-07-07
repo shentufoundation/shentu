@@ -2,15 +2,14 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govtypesv1.Proposal) {
@@ -83,7 +82,7 @@ func (k Keeper) CertifierVoteIsRequired(proposal govtypesv1.Proposal) bool {
 			}
 			switch content.(type) {
 			// nolint
-			case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal, *shieldtypes.ShieldClaimProposal:
+			case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal:
 				return true
 			default:
 				return false
@@ -92,18 +91,6 @@ func (k Keeper) CertifierVoteIsRequired(proposal govtypesv1.Proposal) bool {
 	}
 
 	return false
-}
-
-// ActivateVotingPeriodCustom switches proposals to voting period for customization.
-func (k Keeper) ActivateVotingPeriodCustom(ctx sdk.Context, c govtypesv1beta1.Content, proposal govtypesv1.Proposal, addr sdk.AccAddress) bool {
-	if !k.IsCertifier(ctx, addr) && c.ProposalType() != shieldtypes.ProposalTypeShieldClaim {
-		return false
-	}
-	//if k.IsCertifier(ctx, addr) && k.CertifierVoteIsRequired(proposal) {
-	//	k.SetCertifierVoted(ctx, proposal.Id)
-	//}
-	k.ActivateVotingPeriod(ctx, proposal)
-	return true
 }
 
 // assertMetadataLength returns an error if given metadata length

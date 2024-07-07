@@ -6,7 +6,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // Tally counts the votes and returns whether the proposal passes and/or if tokens should be burned.
@@ -79,11 +78,6 @@ func (k Keeper) Tally(ctx sdk.Context, proposal govtypesv1.Proposal) (pass bool,
 			}
 			if content.ProposalType() == certtypes.ProposalTypeCertifierUpdate {
 				th.tallyParams = *customParams.CertifierUpdateStakeVoteTally
-			}
-
-			if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-				pass, veto = passAndVetoStakeResultForShieldClaim(k, ctx, th)
-				return pass, veto, tallyResults
 			}
 		}
 	}

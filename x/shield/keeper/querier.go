@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strconv"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,40 +14,12 @@ import (
 func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case types.QueryPoolByID:
-			return queryPoolByID(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPoolBySponsor:
-			return queryPoolBySponsor(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPools:
-			return queryPools(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPurchaseList:
-			return queryPurchaseList(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPurchaserPurchases:
-			return queryPurchaserPurchases(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPoolPurchases:
-			return queryPoolPurchases(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPurchases:
-			return queryPurchases(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryProvider:
 			return queryProvider(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryProviders:
 			return queryProviders(ctx, req, k, legacyQuerierCdc)
-		case types.QueryPoolParams:
-			return queryPoolParams(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryClaimParams:
-			return queryClaimParams(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryDistrParams:
-			return queryDistrParams(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryStatus:
 			return queryGlobalState(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryStakedForShield:
-			return queryStakeForShield(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryShieldStakingRate:
-			return queryShieldStakingRate(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryReimbursement:
-			return queryReimbursement(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryReimbursements:
-			return queryReimbursements(ctx, path[1:], k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -61,130 +31,6 @@ func validatePathLength(path []string, length int) error {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting %d args. Found %d.", length, len(path))
 	}
 	return nil
-}
-
-func queryPoolByID(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
-		return nil, err
-	}
-
-	id, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	pool, found := k.GetPool(ctx, id)
-	if !found {
-		return nil, err
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, pool)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-func queryPoolBySponsor(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
-		return nil, err
-	}
-
-	pool, found := k.GetPoolsBySponsor(ctx, path[0])
-	if !found {
-		return nil, types.ErrNoPoolFoundForSponsor
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, pool)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryPools returns information about all the pools.
-func queryPools(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 0); err != nil {
-		return nil, err
-	}
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllPools(ctx))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-func queryPurchaseList(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 2); err != nil {
-		return nil, err
-	}
-
-	poolID, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	purchaser, err := sdk.AccAddressFromBech32(path[1])
-	if err != nil {
-		return nil, err
-	}
-	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
-	if !found {
-		return []byte{}, types.ErrPurchaseNotFound
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, purchaseList)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryPurchaserPurchases returns information about a community member's purchases.
-func queryPurchaserPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
-		return nil, err
-	}
-
-	address, err := sdk.AccAddressFromBech32(path[0])
-	if err != nil {
-		return nil, err
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetPurchaserPurchases(ctx, address))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryPoolPurchases queries all purchases in a pool.
-func queryPoolPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
-		return nil, err
-	}
-
-	id, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetPoolPurchaseLists(ctx, id))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryPurchases queries all purchases.
-func queryPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 0); err != nil {
-		return nil, err
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllPurchases(ctx))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
 }
 
 // queryProvider returns information about a provider.
@@ -225,137 +71,16 @@ func queryProviders(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuer
 	return res, nil
 }
 
-func queryPoolParams(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 0); err != nil {
-		return nil, err
-	}
-
-	params := k.GetPoolParams(ctx)
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-func queryClaimParams(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 0); err != nil {
-		return nil, err
-	}
-
-	params := k.GetClaimProposalParams(ctx)
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-func queryDistrParams(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 0); err != nil {
-		return nil, err
-	}
-
-	params := k.GetDistributionParams(ctx)
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
 func queryGlobalState(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}
 
 	shieldState := types.NewQueryResStatus(
-		k.GetTotalCollateral(ctx),
-		k.GetTotalShield(ctx),
-		k.GetTotalWithdrawing(ctx),
-		k.GetServiceFees(ctx),
 		k.GetRemainingServiceFees(ctx),
-		k.GetGlobalShieldStakingPool(ctx),
 	)
 
 	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, shieldState)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryPurchase queries staked-for-shield for pool-purchaser pair.
-func queryStakeForShield(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 2); err != nil {
-		return nil, err
-	}
-
-	poolID, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	purchaser, err := sdk.AccAddressFromBech32(path[1])
-	if err != nil {
-		return nil, err
-	}
-	purchaseList, found := k.GetStakeForShield(ctx, poolID, purchaser)
-	if !found {
-		return []byte{}, types.ErrPurchaseNotFound
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, purchaseList)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryShieldStakingRate queries the shield staking rate for shield.
-func queryShieldStakingRate(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 0); err != nil {
-		return nil, err
-	}
-
-	rate := k.GetShieldStakingRate(ctx)
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, rate)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryReimbursement queries a reimbursement by proposal ID.
-func queryReimbursement(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
-		return nil, err
-	}
-
-	proposalID, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	pool, err := k.GetReimbursement(ctx, proposalID)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, pool)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryReimbursements returns information about all the reimbursements.
-func queryReimbursements(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 0); err != nil {
-		return nil, err
-	}
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllProposalIDReimbursementPairs(ctx))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

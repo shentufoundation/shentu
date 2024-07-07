@@ -10,7 +10,6 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
@@ -66,12 +65,8 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1
 
 	if veto {
 		k.DeleteAndBurnDeposits(ctx, proposal.Id)
-		updateVeto(ctx, k, proposal)
 	} else {
 		k.RefundAndDeleteDeposits(ctx, proposal.Id)
-		if !pass {
-			updateAbstain(ctx, k, proposal)
-		}
 	}
 
 	if pass {
@@ -253,48 +248,4 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	k.IterateActiveProposalsQueue(ctx, time.Unix(common.MaxTimestamp, 0), func(proposal govtypesv1.Proposal) bool {
 		return processSecurityVote(ctx, k, proposal)
 	})
-}
-
-func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) {
-	processShieldClaimProposal(ctx, k, proposal, func(proposal *shieldtypes.ShieldClaimProposal) {
-		k.ShieldKeeper.ClaimEnd(ctx, proposal.ProposalId, proposal.PoolId, proposal.Loss)
-	})
-}
-
-func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal) {
-	processShieldClaimProposal(ctx, k, proposal, func(proposal *shieldtypes.ShieldClaimProposal) {
-		proposer, err := sdk.AccAddressFromBech32(proposal.Proposer)
-		if err != nil {
-			panic(err)
-		}
-		k.ShieldKeeper.RestoreShield(ctx, proposal.PoolId, proposer, proposal.PurchaseId, proposal.Loss)
-		k.ShieldKeeper.ClaimEnd(ctx, proposal.ProposalId, proposal.PoolId, proposal.Loss)
-	})
-}
-
-func processShieldClaimProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.Proposal, processFunc func(*shieldtypes.ShieldClaimProposal)) {
-	proposalMsgs, err := proposal.GetMsgs()
-	if err != nil {
-		// TODO add log
-		return
-	}
-	if len(proposalMsgs) != 1 {
-		return
-	}
-
-	legacyMsg, ok := proposalMsgs[0].(*govtypesv1.MsgExecLegacyContent)
-	if !ok {
-		return
-	}
-
-	// check that the content struct can be unmarshalled
-	content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
-	if err != nil {
-		// TODO add log
-		return
-	}
-
-	if claimProposal, ok := content.(*shieldtypes.ShieldClaimProposal); ok {
-		processFunc(claimProposal)
-	}
 }

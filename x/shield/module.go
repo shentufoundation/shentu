@@ -19,7 +19,6 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/shield/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/shield/keeper"
-	"github.com/shentufoundation/shentu/v2/x/shield/simulation"
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -91,17 +90,15 @@ type AppModule struct {
 	keeper        keeper.Keeper
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
-	stakingKeeper types.StakingKeeper
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, stk types.StakingKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 		accountKeeper:  ak,
 		bankKeeper:     bk,
-		stakingKeeper:  stk,
 	}
 }
 
@@ -111,9 +108,7 @@ func (am AppModule) Name() string {
 }
 
 // RegisterInvariants registers the shield module invariants.
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	keeper.RegisterInvariants(ir, am.keeper)
-}
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route returns the message routing key for the shield module.
 func (am AppModule) Route() sdk.Route {
@@ -136,15 +131,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper, cfg.QueryServer())
-	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
-	if err != nil {
-		panic(err)
-	}
-	err = cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3)
-	if err != nil {
-		panic(err)
-	}
-	err = cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3to4)
+	err := cfg.RegisterMigration(types.ModuleName, 4, m.Migrate4to5)
 	if err != nil {
 		panic(err)
 	}
@@ -164,11 +151,10 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 4 }
+func (AppModule) ConsensusVersion() uint64 { return 5 }
 
 // EndBlock returns the end blocker for the shield module.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper)
 	return []abci.ValidatorUpdate{}
 }
 
@@ -176,27 +162,20 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 
 // AppModuleSimulation functions
 
-// WeightedOperations returns shield operations for use in simulations.
+func (am AppModule) GenerateGenesisState(input *module.SimulationState) {
+}
+
+func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
+	return []simtypes.WeightedProposalContent{}
+}
+
+func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return []simtypes.ParamChange{}
+}
+
+func (am AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {
+}
+
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.accountKeeper, am.bankKeeper, am.stakingKeeper)
-}
-
-// ProposalContents returns functions that generate gov proposals for the module.
-func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return simulation.ProposalContents(am.keeper, am.stakingKeeper)
-}
-
-// RandomizedParams returns functions that generate params for the module.
-func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return simulation.ParamChanges(r)
-}
-
-// GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
-
-// RegisterStoreDecoder registers a decoder for this module.
-func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+	return []simtypes.WeightedOperation{}
 }
