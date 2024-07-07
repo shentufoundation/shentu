@@ -12,7 +12,7 @@ import (
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
 	_ "github.com/cosmos/gogoproto/types"
-	github_com_gogo_protobuf_types "github.com/cosmos/gogoproto/types"
+	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -1762,7 +1762,7 @@ func (m *MsgCreateTask) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	n1, err1 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.ValidDuration, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.ValidDuration):])
+	n1, err1 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.ValidDuration, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.ValidDuration):])
 	if err1 != nil {
 		return 0, err1
 	}
@@ -2012,7 +2012,7 @@ func (m *MsgCreateTxTask) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.ValidTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.ValidTime):])
+	n2, err2 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.ValidTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.ValidTime):])
 	if err2 != nil {
 		return 0, err2
 	}
@@ -2395,7 +2395,7 @@ func (m *MsgCreateTask) Size() (n int) {
 	if m.Wait != 0 {
 		n += 1 + sovTx(uint64(m.Wait))
 	}
-	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.ValidDuration)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.ValidDuration)
 	n += 1 + l + sovTx(uint64(l))
 	return n
 }
@@ -2499,7 +2499,7 @@ func (m *MsgCreateTxTask) Size() (n int) {
 			n += 1 + l + sovTx(uint64(l))
 		}
 	}
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.ValidTime)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.ValidTime)
 	n += 1 + l + sovTx(uint64(l))
 	return n
 }
@@ -3675,7 +3675,7 @@ func (m *MsgCreateTask) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.ValidDuration, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdDurationUnmarshal(&m.ValidDuration, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -4371,7 +4371,7 @@ func (m *MsgCreateTxTask) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.ValidTime, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.ValidTime, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
