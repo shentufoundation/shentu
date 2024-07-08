@@ -241,11 +241,6 @@ type ShentuApp struct {
 	configurator module.Configurator
 }
 
-func (app ShentuApp) RegisterNodeService(context client.Context) {
-	//TODO implement me
-	panic("implement me")
-}
-
 // NewShentuApp returns a reference to an initialized ShentuApp.
 func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool, homePath string,
 	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp)) *ShentuApp {
@@ -265,6 +260,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		authzkeeper.StoreKey,
 		sdkbanktypes.StoreKey,
 		stakingtypes.StoreKey,
+		crisistypes.StoreKey,
 		distrtypes.StoreKey,
 		sdkfeegrant.StoreKey,
 		sdkminttypes.StoreKey,
@@ -831,6 +827,10 @@ func (app *ShentuApp) RegisterTendermintService(clientCtx client.Context) {
 		app.interfaceRegistry,
 		app.Query,
 	)
+}
+
+func (app ShentuApp) RegisterNodeService(context client.Context) {
+	nodeservice.RegisterNodeService(context, app.GRPCQueryRouter())
 }
 
 // RegisterUpgradeHandlers registers necessary upgrade handlers
