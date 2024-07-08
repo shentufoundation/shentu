@@ -16,9 +16,6 @@ import (
 type Keeper struct {
 	govkeeper.Keeper
 
-	// the reference to the ParamSpace to get and set gov specific params
-	paramSpace types.ParamSubspace
-
 	// the SupplyKeeper to reduce the supply of the network
 	bankKeeper govtypes.BankKeeper
 
@@ -41,6 +38,10 @@ type Keeper struct {
 	router *baseapp.MsgServiceRouter
 
 	config govtypes.Config
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper returns a governance keeper. It handles:
@@ -49,14 +50,14 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
+	cdc codec.BinaryCodec, key storetypes.StoreKey, bankKeeper govtypes.BankKeeper,
 	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper,
-	authKeeper govtypes.AccountKeeper, legacyRouter v1beta1.Router, router *baseapp.MsgServiceRouter, config govtypes.Config,
+	authKeeper govtypes.AccountKeeper, legacyRouter v1beta1.Router, router *baseapp.MsgServiceRouter,
+	config govtypes.Config, authority string,
 ) Keeper {
-	cosmosKeeper := govkeeper.NewKeeper(cdc, key, paramSpace, authKeeper, bankKeeper, stakingKeeper, legacyRouter, router, config)
+	cosmosKeeper := govkeeper.NewKeeper(cdc, key, authKeeper, bankKeeper, stakingKeeper, router, config, authority)
 	return Keeper{
-		Keeper:        cosmosKeeper,
-		paramSpace:    paramSpace,
+		Keeper:        *cosmosKeeper,
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,
@@ -65,5 +66,6 @@ func NewKeeper(
 		legacyRouter:  legacyRouter,
 		router:        router,
 		config:        config,
+		authority:     authority,
 	}
 }

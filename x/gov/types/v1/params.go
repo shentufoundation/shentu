@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 const ParamCustom = "custom"
@@ -17,15 +16,12 @@ var (
 	CertVotesKeyPrefix        = []byte("certvote")
 )
 
-// ParamKeyTable is the key declaration for parameters.
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable(
-		params.NewParamSetPair(govtypesv1.ParamStoreKeyDepositParams, govtypesv1.DepositParams{}, validateDepositParams),
-		params.NewParamSetPair(govtypesv1.ParamStoreKeyVotingParams, govtypesv1.VotingParams{}, validateVotingParams),
-		params.NewParamSetPair(govtypesv1.ParamStoreKeyTallyParams, govtypesv1.TallyParams{}, validateTally),
-		params.NewParamSetPair(ParamStoreKeyCustomParams, CustomParams{}, validateCustomParams),
-	)
-}
+//// ParamKeyTable is the key declaration for parameters.
+//func ParamKeyTable() params.KeyTable {
+//	return params.NewKeyTable(
+//		params.NewParamSetPair(ParamStoreKeyCustomParams, CustomParams{}, validateCustomParams),
+//	)
+//}
 
 func validateDepositParams(i interface{}) error {
 	v, ok := i.(*govtypesv1.DepositParams)
@@ -44,29 +40,29 @@ func validateDepositParams(i interface{}) error {
 	return nil
 }
 
-// Params returns all the governance params
-type Params struct {
-	VotingParams  govtypesv1.VotingParams  `json:"voting_params" yaml:"voting_params"`
-	TallyParams   govtypesv1.TallyParams   `json:"tally_params" yaml:"tally_params"`
-	DepositParams govtypesv1.DepositParams `json:"deposit_params" yaml:"deposit_parmas"`
-	CustomParams  CustomParams             `json:"custom_params" yaml:"custom_params"`
-}
+//// Params returns all the governance params
+//type Params struct {
+//	VotingParams  govtypesv1.VotingParams  `json:"voting_params" yaml:"voting_params"`
+//	TallyParams   govtypesv1.TallyParams   `json:"tally_params" yaml:"tally_params"`
+//	DepositParams govtypesv1.DepositParams `json:"deposit_params" yaml:"deposit_parmas"`
+//	CustomParams  CustomParams             `json:"custom_params" yaml:"custom_params"`
+//}
 
-func (gp Params) String() string {
-	return gp.VotingParams.String() + "\n" +
-		gp.TallyParams.String() + "\n" + gp.DepositParams.String() + "\n" +
-		gp.CustomParams.String()
-}
-
-// NewParams returns a Params structs including voting, deposit and tally params
-func NewParams(vp govtypesv1.VotingParams, tp govtypesv1.TallyParams, dp govtypesv1.DepositParams, cp CustomParams) Params {
-	return Params{
-		VotingParams:  vp,
-		DepositParams: dp,
-		TallyParams:   tp,
-		CustomParams:  cp,
-	}
-}
+//func (gp Params) String() string {
+//	return gp.VotingParams.String() + "\n" +
+//		gp.TallyParams.String() + "\n" + gp.DepositParams.String() + "\n" +
+//		gp.CustomParams.String()
+//}
+//
+//// NewParams returns a Params structs including voting, deposit and tally params
+//func NewParams(vp govtypesv1.VotingParams, tp govtypesv1.TallyParams, dp govtypesv1.DepositParams, cp CustomParams) Params {
+//	return Params{
+//		VotingParams:  vp,
+//		DepositParams: dp,
+//		TallyParams:   tp,
+//		CustomParams:  cp,
+//	}
+//}
 
 func validateTally(i interface{}) error {
 	v, ok := i.(*govtypesv1.TallyParams)

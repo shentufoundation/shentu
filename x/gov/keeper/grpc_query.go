@@ -28,26 +28,33 @@ func (k Keeper) Params(c context.Context, req *govtypesv1.QueryParamsRequest) (*
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
+	params := k.GetParams(ctx)
+
+	response := &typesv1.QueryParamsResponse{}
 
 	switch req.ParamsType {
 	case govtypesv1.ParamDeposit:
-		depositParmas := k.GetDepositParams(ctx)
-		return &typesv1.QueryParamsResponse{DepositParams: &depositParmas}, nil
+		depositParams := govtypesv1.NewDepositParams(params.MinDeposit, params.MaxDepositPeriod)
+		response.DepositParams = &depositParams
 
 	case govtypesv1.ParamVoting:
-		votingParmas := k.GetVotingParams(ctx)
-		return &typesv1.QueryParamsResponse{VotingParams: &votingParmas}, nil
+		votingParams := govtypesv1.NewVotingParams(params.VotingPeriod)
+		response.VotingParams = &votingParams
 
 	case govtypesv1.ParamTallying:
-		tallyParams := k.GetTallyParams(ctx)
-		return &typesv1.QueryParamsResponse{TallyParams: &tallyParams}, nil
+		tallyParams := govtypesv1.NewTallyParams(params.Quorum, params.Threshold, params.VetoThreshold)
+		response.TallyParams = &tallyParams
 
 	case typesv1.ParamCustom:
 		customParams := k.GetCustomParams(ctx)
-		return &typesv1.QueryParamsResponse{CustomParams: &customParams}, nil
+		response.CustomParams = &customParams
 
 	default:
 		return nil, status.Errorf(codes.InvalidArgument,
 			"%s is not a valid parameter type", req.ParamsType)
 	}
+
+	response.Params = &params
+
+	return response, nil
 }

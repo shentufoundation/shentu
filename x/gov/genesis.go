@@ -14,9 +14,7 @@ import (
 // InitGenesis stores genesis parameters.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, data *typesv1.GenesisState) {
 	k.SetProposalID(ctx, data.StartingProposalId)
-	k.SetDepositParams(ctx, *data.DepositParams)
-	k.SetVotingParams(ctx, *data.VotingParams)
-	k.SetTallyParams(ctx, *data.TallyParams)
+	k.SetParams(ctx, *data.Params)
 	k.SetCustomParams(ctx, *data.CustomParams)
 
 	// check if the deposits pool account exists
@@ -64,27 +62,32 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govtypes.AccountKeeper, bk
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *typesv1.GenesisState {
 	startingProposalID, _ := k.GetProposalID(ctx)
-	depositParams := k.GetDepositParams(ctx)
-	votingParams := k.GetVotingParams(ctx)
-	tallyParams := k.GetTallyParams(ctx)
 	proposals := k.GetProposals(ctx)
+	params := k.GetParams(ctx)
 	customParams := k.GetCustomParams(ctx)
 
-	var genState typesv1.GenesisState
-
+	var proposalsDeposits govtypesv1.Deposits
+	var proposalsVotes govtypesv1.Votes
+	var certVotedProposalIds []uint64
 	for _, proposal := range proposals {
-		genState.Deposits = append(genState.Deposits, k.GetDeposits(ctx, proposal.Id)...)
-		genState.Votes = append(genState.Votes, k.GetVotes(ctx, proposal.Id)...)
+		deposits := k.GetDeposits(ctx, proposal.Id)
+		proposalsDeposits = append(proposalsDeposits, deposits...)
+
+		votes := k.GetVotes(ctx, proposal.Id)
+		proposalsVotes = append(proposalsVotes, votes...)
+
 		if k.GetCertifierVoted(ctx, proposal.Id) {
-			genState.CertVotedProposalIds = append(genState.CertVotedProposalIds, proposal.Id)
+			certVotedProposalIds = append(certVotedProposalIds, proposal.Id)
 		}
 	}
-	genState.StartingProposalId = startingProposalID
-	genState.Proposals = proposals
-	genState.DepositParams = &depositParams
-	genState.VotingParams = &votingParams
-	genState.TallyParams = &tallyParams
-	genState.CustomParams = &customParams
 
-	return &genState
+	return &typesv1.GenesisState{
+		StartingProposalId:   startingProposalID,
+		Deposits:             proposalsDeposits,
+		Votes:                proposalsVotes,
+		Proposals:            proposals,
+		Params:               &params,
+		CustomParams:         &customParams,
+		CertVotedProposalIds: certVotedProposalIds,
+	}
 }

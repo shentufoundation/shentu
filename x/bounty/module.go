@@ -14,7 +14,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
@@ -82,16 +81,6 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
-func (am AppModule) GenerateGenesisState(input *module.SimulationState) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (am AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {
-	//TODO implement me
-	panic("implement me")
-}
-
 // NewAppModule creates a new AppModule object. If initChainAssertInvariants is set,
 // we will call keeper.AssertInvariants during InitGenesis (it may take a significant time)
 // - which doesn't impact the chain security unless 66+% of validators have a wrongly
@@ -139,13 +128,10 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 //____________________________________________________________________________
 
 // AppModuleSimulation functions
+func (am AppModule) GenerateGenesisState(input *module.SimulationState) {}
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
+func (am AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {}
 
-// WeightedOperations returns auth operations for use in simulations.
-func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations{}
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return []simtypes.WeightedOperation{}
 }

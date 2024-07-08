@@ -10,7 +10,7 @@ import (
 func BeginBlockForks(ctx sdk.Context, app *ShentuApp) {
 	switch ctx.BlockHeight() {
 	case mva.UpgradeHeight:
-		mva.RunForkLogic(ctx, &app.AccountKeeper, app.BankKeeper, &app.StakingKeeper)
+		mva.RunForkLogic(ctx, &app.AccountKeeper, app.BankKeeper, app.StakingKeeper)
 	default:
 		// do nothing
 		return

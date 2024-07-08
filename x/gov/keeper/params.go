@@ -9,11 +9,11 @@ import (
 // GetCustomParams returns the current CustomParams from the global param store.
 func (k Keeper) GetCustomParams(ctx sdk.Context) typesv1.CustomParams {
 	var customAddParams typesv1.CustomParams
-	k.paramSpace.Get(ctx, typesv1.ParamStoreKeyCustomParams, &customAddParams)
+	//k.paramSpace.Get(ctx, typesv1.ParamStoreKeyCustomParams, &customAddParams)
 	return customAddParams
 }
 
 // SetCustomParams sets parameters space for custom.
 func (k Keeper) SetCustomParams(ctx sdk.Context, customAddParams typesv1.CustomParams) {
-	k.paramSpace.Set(ctx, typesv1.ParamStoreKeyCustomParams, &customAddParams)
+	//k.paramSpace.Set(ctx, typesv1.ParamStoreKeyCustomParams, &customAddParams)
 }

@@ -27,9 +27,10 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
+
+const ConsensusVersion = 5
 
 var (
 	_ module.AppModule           = AppModule{}
@@ -116,15 +117,22 @@ type AppModule struct {
 	keeper        keeper.Keeper
 	accountKeeper govtypes.AccountKeeper
 	bankKeeper    govtypes.BankKeeper
+
+	// legacySubspace is used solely for migration of x/params managed parameters
+	legacySubspace govtypes.ParamSubspace
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper) AppModule {
+func NewAppModule(
+	cdc codec.Codec,
+	keeper keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
+	ss govtypes.ParamSubspace) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,
 		accountKeeper:  ak,
 		bankKeeper:     bk,
+		legacySubspace: ss,
 	}
 }
 
@@ -145,7 +153,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	govtypesv1beta1.RegisterMsgServer(cfg.MsgServer(), keeper.NewLegacyMsgServerImpl(am.accountKeeper.GetModuleAddress(govtypes.ModuleName).String(), msgServer, am.keeper))
 
 	typesv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
+	legacyQueryServer := govkeeper.NewLegacyQueryServer(&am.keeper.Keeper)
 	govtypesv1beta1.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
 
 	m := keeper.NewMigrator(am.keeper, am.legacySubspace)
@@ -160,6 +168,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	err = cfg.RegisterMigration(govtypes.ModuleName, 3, m.Migrate3to4)
+	if err != nil {
+		panic(err)
+	}
+
+	err = cfg.RegisterMigration(govtypes.ModuleName, 4, m.Migrate4to5)
 	if err != nil {
 		panic(err)
 	}
@@ -180,7 +193,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (am AppModule) ConsensusVersion() uint64 { return 4 }
+func (am AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // EndBlock implements the Cosmos SDK EndBlock module function.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
@@ -194,7 +207,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
+	//simulation.RandomizedGenState(simState)
 }
 
 // ProposalContents returns all the gov content functions used to

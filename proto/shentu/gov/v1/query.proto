@@ -78,5 +78,9 @@ message QueryParamsResponse {
   // tally_params defines the parameters related to tally.
   cosmos.gov.v1.TallyParams tally_params = 3;
   // custom_params defines the parameters related to custom.
-  CustomParams custom_params = 4;
+  // params defines all the paramaters of x/gov module.
+  //
+  // Since: cosmos-sdk 0.47
+  cosmos.gov.v1.Params params = 4;
+  CustomParams custom_params = 5;
 }

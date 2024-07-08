@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -28,34 +30,41 @@ var _ govtypesv1.MsgServer = msgServer{}
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubmitProposal) (*govtypesv1.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	initialDeposit := msg.GetInitialDeposit()
+	if err := k.validateInitialDeposit(ctx, initialDeposit); err != nil {
+		return nil, err
+	}
+
 	proposalMsgs, err := msg.GetMsgs()
 	if err != nil {
 		return nil, err
 	}
 
-	proposal, err := k.Keeper.SubmitProposal(ctx, proposalMsgs, msg.Metadata)
+	proposer, err := sdk.AccAddressFromBech32(msg.GetProposer())
 	if err != nil {
 		return nil, err
 	}
 
-	// Skip deposit period for proposals from certifier memebers or shield claim proposals.
-	proposer, _ := sdk.AccAddressFromBech32(msg.GetProposer())
-	votingStarted := false
-
-	if !votingStarted {
-		votingStarted, err = k.Keeper.AddDeposit(ctx, proposal.Id, proposer, msg.GetInitialDeposit())
-		if err != nil {
-			return nil, err
-		}
+	proposal, err := k.Keeper.SubmitProposal(ctx, proposalMsgs, msg.Metadata, msg.Title, msg.Summary, proposer)
+	if err != nil {
+		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetProposer()),
-		),
+	bytes, err := proposal.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	// ref: https://github.com/cosmos/cosmos-sdk/issues/9683
+	ctx.GasMeter().ConsumeGas(
+		3*ctx.KVGasConfig().WriteCostPerByte*uint64(len(bytes)),
+		"submit proposal",
 	)
+
+	// Skip deposit period for proposals from certifier memebers or shield claim proposals.
+	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.Id, proposer, msg.GetInitialDeposit())
+	if err != nil {
+		return nil, err
+	}
 
 	if votingStarted {
 		submitEvent := sdk.NewEvent(
@@ -109,14 +118,6 @@ func (k msgServer) Vote(goCtx context.Context, msg *govtypesv1.MsgVote) (*govtyp
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter),
-		),
-	)
-
 	return &govtypesv1.MsgVoteResponse{}, nil
 }
 
@@ -130,14 +131,6 @@ func (k msgServer) VoteWeighted(goCtx context.Context, msg *govtypesv1.MsgVoteWe
 	if err != nil {
 		return nil, err
 	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter),
-		),
-	)
 
 	return &govtypesv1.MsgVoteWeightedResponse{}, nil
 }
@@ -153,14 +146,6 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypesv1.MsgDeposit) (*
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor),
-		),
-	)
-
 	if votingStarted {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
@@ -171,6 +156,19 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypesv1.MsgDeposit) (*
 	}
 
 	return &govtypesv1.MsgDepositResponse{}, nil
+}
+
+func (k msgServer) UpdateParams(goCtx context.Context, msg *govtypesv1.MsgUpdateParams) (*govtypesv1.MsgUpdateParamsResponse, error) {
+	if k.authority != msg.Authority {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := k.SetParams(ctx, msg.Params); err != nil {
+		return nil, err
+	}
+
+	return &govtypesv1.MsgUpdateParamsResponse{}, nil
 }
 
 type legacyMsgServer struct {
@@ -205,6 +203,8 @@ func (k legacyMsgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1be
 		msg.InitialDeposit,
 		msg.Proposer,
 		"",
+		msg.GetContent().GetTitle(),
+		msg.GetContent().GetDescription(),
 	)
 	if err != nil {
 		return nil, err
@@ -270,6 +270,28 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypesv1beta1.MsgS
 		}
 	default:
 		return nil
+	}
+	return nil
+}
+
+// validateInitialDeposit validates if initial deposit is greater than or equal to the minimum
+// required at the time of proposal submission. This threshold amount is determined by
+// the deposit parameters. Returns nil on success, error otherwise.
+func (keeper Keeper) validateInitialDeposit(ctx sdk.Context, initialDeposit sdk.Coins) error {
+	params := keeper.GetParams(ctx)
+	minInitialDepositRatio, err := sdk.NewDecFromStr(params.MinInitialDepositRatio)
+	if err != nil {
+		return err
+	}
+	if minInitialDepositRatio.IsZero() {
+		return nil
+	}
+	minDepositCoins := params.MinDeposit
+	for i := range minDepositCoins {
+		minDepositCoins[i].Amount = sdk.NewDecFromInt(minDepositCoins[i].Amount).Mul(minInitialDepositRatio).RoundInt()
+	}
+	if !initialDeposit.IsAllGTE(minDepositCoins) {
+		return sdkerrors.Wrapf(govtypes.ErrMinDepositTooSmall, "was (%s), need (%s)", initialDeposit, minDepositCoins)
 	}
 	return nil
 }

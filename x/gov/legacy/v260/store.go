@@ -1,17 +1,11 @@
 package v260
 
 import (
-	"encoding/json"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
-	v1alpha1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1alpha1"
 )
 
 // MigrateProposalStore performs migration of ProposalKey.Specifically, it performs:
@@ -65,44 +59,44 @@ func MigrateProposalStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc cod
 	return nil
 }
 
-func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) error {
-	var (
-		depositParams  govtypesv1beta1.DepositParams
-		oldTallyParams TallyParams
-	)
-
-	paramSubspace.Get(ctx, govtypesv1.ParamStoreKeyDepositParams, &depositParams)
-	tallyParamsBytes := paramSubspace.GetRaw(ctx, govtypesv1.ParamStoreKeyTallyParams)
-	if err := json.Unmarshal(tallyParamsBytes, &oldTallyParams); err != nil {
-		return err
-	}
-
-	// tallyParams
-	defaultTally := oldTallyParams.DefaultTally
-
-	securityVoteTally := oldTallyParams.CertifierUpdateSecurityVoteTally
-	stakeVoteTally := oldTallyParams.CertifierUpdateStakeVoteTally
-	tallyParams := govtypesv1beta1.NewTallyParams(defaultTally.Quorum, defaultTally.Threshold, defaultTally.VetoThreshold)
-	// customParams
-	certifierUpdateSecurityVoteTally := govtypesv1beta1.NewTallyParams(
-		securityVoteTally.Quorum,
-		securityVoteTally.Threshold,
-		securityVoteTally.VetoThreshold,
-	)
-	certifierUpdateStakeVoteTally := govtypesv1beta1.NewTallyParams(
-		stakeVoteTally.Quorum,
-		stakeVoteTally.Threshold,
-		stakeVoteTally.VetoThreshold,
-	)
-	customParams := v1alpha1.CustomParams{
-		CertifierUpdateSecurityVoteTally: &certifierUpdateSecurityVoteTally,
-		CertifierUpdateStakeVoteTally:    &certifierUpdateStakeVoteTally,
-	}
-
-	// set migrate params
-	paramSubspace.Set(ctx, govtypesv1.ParamStoreKeyDepositParams, &depositParams)
-	paramSubspace.Set(ctx, govtypesv1.ParamStoreKeyTallyParams, &tallyParams)
-	paramSubspace.Set(ctx, v1alpha1.ParamStoreKeyCustomParams, &customParams)
-
-	return nil
-}
+//func MigrateParams(ctx sdk.Context, paramSubspace exported.ParamSubspace) error {
+//	var (
+//		depositParams  govtypesv1beta1.DepositParams
+//		oldTallyParams TallyParams
+//	)
+//
+//	paramSubspace.Get(ctx, govtypesv1.ParamStoreKeyDepositParams, &depositParams)
+//	tallyParamsBytes := paramSubspace.GetRaw(ctx, govtypesv1.ParamStoreKeyTallyParams)
+//	if err := json.Unmarshal(tallyParamsBytes, &oldTallyParams); err != nil {
+//		return err
+//	}
+//
+//	// tallyParams
+//	defaultTally := oldTallyParams.DefaultTally
+//
+//	securityVoteTally := oldTallyParams.CertifierUpdateSecurityVoteTally
+//	stakeVoteTally := oldTallyParams.CertifierUpdateStakeVoteTally
+//	tallyParams := govtypesv1beta1.NewTallyParams(defaultTally.Quorum, defaultTally.Threshold, defaultTally.VetoThreshold)
+//	// customParams
+//	certifierUpdateSecurityVoteTally := govtypesv1beta1.NewTallyParams(
+//		securityVoteTally.Quorum,
+//		securityVoteTally.Threshold,
+//		securityVoteTally.VetoThreshold,
+//	)
+//	certifierUpdateStakeVoteTally := govtypesv1beta1.NewTallyParams(
+//		stakeVoteTally.Quorum,
+//		stakeVoteTally.Threshold,
+//		stakeVoteTally.VetoThreshold,
+//	)
+//	customParams := v1alpha1.CustomParams{
+//		CertifierUpdateSecurityVoteTally: &certifierUpdateSecurityVoteTally,
+//		CertifierUpdateStakeVoteTally:    &certifierUpdateStakeVoteTally,
+//	}
+//
+//	// set migrate params
+//	paramSubspace.Set(ctx, govtypesv1.ParamStoreKeyDepositParams, &depositParams)
+//	paramSubspace.Set(ctx, govtypesv1.ParamStoreKeyTallyParams, &tallyParams)
+//	paramSubspace.Set(ctx, v1alpha1.ParamStoreKeyCustomParams, &customParams)
+//
+//	return nil
+//}

@@ -60,7 +60,12 @@ func (k Keeper) Tally(ctx sdk.Context, proposal govtypesv1.Proposal) (pass bool,
 		totalVotingPower = totalVotingPower.Add(votingPower)
 	}
 
-	tallyParams := k.GetTallyParams(ctx)
+	params := k.GetParams(ctx)
+	tallyParams := govtypesv1.TallyParams{
+		Quorum:        params.Quorum,
+		Threshold:     params.Threshold,
+		VetoThreshold: params.VetoThreshold,
+	}
 	customParams := k.GetCustomParams(ctx)
 	tallyResults = govtypesv1.NewTallyResultFromMap(results)
 	th := TallyHelper{

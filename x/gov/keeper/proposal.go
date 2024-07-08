@@ -15,7 +15,7 @@ import (
 func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govtypesv1.Proposal) {
 	startTime := ctx.BlockHeader().Time
 	proposal.VotingStartTime = &startTime
-	votingPeriod := k.GetVotingParams(ctx).VotingPeriod
+	votingPeriod := k.GetParams(ctx).VotingPeriod
 	oldVotingEndTime := proposal.VotingEndTime
 	endTime := proposal.VotingStartTime.Add(*votingPeriod)
 	proposal.VotingEndTime = &endTime
@@ -39,11 +39,6 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govtypesv1.Propos
 // IsCertifier checks if the input address is a certifier.
 func (k Keeper) IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool {
 	return k.CertKeeper.IsCertifier(ctx, addr)
-}
-
-// IsCertifiedIdentity checks if the input address is a certified identity.
-func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
-	return k.CertKeeper.IsCertified(ctx, addr.String(), "identity")
 }
 
 // TotalBondedByCertifiedIdentities calculates the amount of total bonded stakes by certified identities.

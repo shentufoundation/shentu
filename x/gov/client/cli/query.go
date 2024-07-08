@@ -374,29 +374,12 @@ $ %s query gov deposit 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 
 			// check to see if the proposal is in the store
 			ctx := cmd.Context()
-			proposalRes, err := queryClient.Proposal(
+			_, err = queryClient.Proposal(
 				ctx,
 				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
-			}
-
-			depositorAddr, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
-			var deposit govtypesv1.Deposit
-			propStatus := proposalRes.Proposal.Status
-			if !(propStatus == govtypesv1.StatusVotingPeriod || propStatus == govtypesv1.StatusDepositPeriod) {
-				params := govtypesv1.NewQueryDepositParams(proposalID, depositorAddr)
-				resByTxQuery, err := govUtils.QueryDepositByTxQuery(clientCtx, params)
-				if err != nil {
-					return err
-				}
-				clientCtx.Codec.MustUnmarshalJSON(resByTxQuery, &deposit)
-				return clientCtx.PrintProto(&deposit)
 			}
 
 			res, err := queryClient.Deposit(
@@ -446,28 +429,12 @@ $ %[1]s query gov deposits 1
 			}
 
 			// check to see if the proposal is in the store
-			proposalRes, err := queryClient.Proposal(
+			_, err = queryClient.Proposal(
 				cmd.Context(),
 				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
-			}
-
-			propStatus := proposalRes.GetProposal().Status
-			if !(propStatus == govtypesv1.StatusVotingPeriod || propStatus == govtypesv1.StatusDepositPeriod) {
-				params := govtypesv1.NewQueryProposalParams(proposalID)
-				resByTxQuery, err := govUtils.QueryDepositsByTxQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-
-				var dep govtypesv1.Deposits
-				// TODO migrate to use JSONCodec (implement MarshalJSONArray
-				// or wrap lists of proto.Message in some other message)
-				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &dep)
-
-				return cliCtx.PrintObjectLegacy(dep)
 			}
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())

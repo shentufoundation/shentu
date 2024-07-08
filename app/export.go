@@ -33,7 +33,7 @@ func (app *ShentuApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteL
 		return servertypes.ExportedApp{}, err
 	}
 
-	validators, err := staking.WriteValidators(ctx, app.StakingKeeper.Keeper)
+	validators, err := staking.WriteValidators(ctx, &app.StakingKeeper.Keeper)
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}

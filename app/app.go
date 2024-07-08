@@ -106,7 +106,6 @@ import (
 	distr "github.com/shentufoundation/shentu/v2/x/distribution"
 	"github.com/shentufoundation/shentu/v2/x/gov"
 	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	govtypesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 	"github.com/shentufoundation/shentu/v2/x/mint"
 	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle"
@@ -208,7 +207,7 @@ type ShentuApp struct {
 	AuthzKeeper           authzkeeper.Keeper
 	BankKeeper            bankkeeper.Keeper
 	CrisisKeeper          *crisiskeeper.Keeper
-	StakingKeeper         stakingkeeper.Keeper
+	StakingKeeper         *stakingkeeper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
@@ -240,6 +239,11 @@ type ShentuApp struct {
 	// simulation manager
 	sm           *module.SimulationManager
 	configurator module.Configurator
+}
+
+func (app ShentuApp) RegisterNodeService(context client.Context) {
+	//TODO implement me
+	panic("implement me")
 }
 
 // NewShentuApp returns a reference to an initialized ShentuApp.
@@ -329,9 +333,9 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[sdkbanktypes.StoreKey],
 		app.AccountKeeper,
 		app.ModuleAccountAddrs(),
-		"",
+		authtypes.NewModuleAddress(sdkbanktypes.ModuleName).String(),
 	)
-	stakingKeeper := stakingkeeper.NewKeeper(
+	app.StakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
 		keys[stakingtypes.StoreKey],
 		app.AccountKeeper,
@@ -343,7 +347,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[distrtypes.StoreKey],
 		app.AccountKeeper,
 		app.BankKeeper,
-		stakingKeeper,
+		app.StakingKeeper,
 		authtypes.FeeCollectorName,
 		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
@@ -357,7 +361,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[oracletypes.StoreKey],
 		app.AccountKeeper,
 		app.DistrKeeper,
-		&app.StakingKeeper,
+		app.StakingKeeper,
 		app.BankKeeper,
 		&app.CertKeeper,
 		app.GetSubspace(oracletypes.ModuleName),
@@ -366,14 +370,14 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec,
 		legacyAmino,
 		keys[slashingtypes.StoreKey],
-		&stakingKeeper,
+		app.StakingKeeper,
 		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
 	app.CertKeeper = certkeeper.NewKeeper(
 		appCodec,
 		keys[certtypes.StoreKey],
 		app.SlashingKeeper,
-		stakingKeeper,
+		app.StakingKeeper,
 	)
 	app.AuthKeeper = authkeeper.NewKeeper(
 		appCodec,
@@ -421,7 +425,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		keys[sdkminttypes.StoreKey],
-		&stakingKeeper,
+		app.StakingKeeper,
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.DistrKeeper,
@@ -437,9 +441,15 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	//	),
 	//)
 
+	// UpgradeKeeper must be created before IBCKeeper
 	// Create IBC Keeper
 	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
+		appCodec,
+		keys[ibcexported.StoreKey],
+		app.GetSubspace(ibcexported.ModuleName),
+		app.StakingKeeper,
+		app.UpgradeKeeper,
+		scopedIBCKeeper,
 	)
 
 	govRouter := sdkgovtypesv1beta1.NewRouter()
@@ -453,7 +463,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[sdkgovtypes.StoreKey],
-		app.GetSubspace(sdkgovtypes.ModuleName),
 		app.BankKeeper,
 		app.StakingKeeper,
 		app.CertKeeper,
@@ -461,6 +470,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		govRouter,
 		app.MsgServiceRouter(),
 		govConfig,
+		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
 
 	groupConfig := group.DefaultConfig()
@@ -521,11 +531,11 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper, app.GetSubspace(distrtypes.ModuleName)),
 		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper, app.GetSubspace(slashingtypes.ModuleName)),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
+		staking.NewAppModule(appCodec, *app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
+		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(sdkgovtypes.ModuleName)),
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
@@ -626,10 +636,10 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper, app.GetSubspace(slashingtypes.ModuleName)),
 		params.NewAppModule(app.ParamsKeeper),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
+		staking.NewAppModule(appCodec, *app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
+		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(sdkgovtypes.ModuleName)),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
@@ -849,7 +859,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(sdkminttypes.ModuleName)
 	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
-	paramsKeeper.Subspace(sdkgovtypes.ModuleName).WithKeyTable(govtypesv1.ParamKeyTable())
+	paramsKeeper.Subspace(sdkgovtypes.ModuleName)
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibcexported.ModuleName)

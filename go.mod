@@ -3,7 +3,9 @@ module github.com/shentufoundation/shentu/v2
 go 1.21.1
 
 require (
+	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.3.0
+	cosmossdk.io/tools/rosetta v0.2.1
 	github.com/cometbft/cometbft v0.37.6
 	github.com/cometbft/cometbft-db v0.11.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
@@ -12,6 +14,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v7 v7.4.0
 	github.com/cosmos/tools/cmd/runsim v1.0.0
+	github.com/gogo/protobuf v1.3.2
 	github.com/golangci/golangci-lint v1.50.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
@@ -50,9 +53,7 @@ require (
 	cosmossdk.io/api v0.3.1 // indirect
 	cosmossdk.io/core v0.5.1 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
-	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.3.1 // indirect
-	cosmossdk.io/tools/rosetta v0.2.1 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
@@ -158,7 +159,6 @@ require (
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
@@ -363,7 +363,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// Use special SDK v0.47.x release with support for both ICS and LSM
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.13-ics-lsm
+	//github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.13-ics-lsm
 
 	// Use special ICS v4.1.0-ics-lsm release with support for LSM
 	github.com/cosmos/interchain-security/v4 => github.com/cosmos/interchain-security/v4 v4.2.0-lsm

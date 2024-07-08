@@ -31,7 +31,7 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 		logger.Info(
 			"proposal did not meet minimum deposit; deleted",
 			"proposal", proposal.Id,
-			"min_deposit", sdk.NewCoins(k.GetDepositParams(ctx).MinDeposit...).String(),
+			"min_deposit", sdk.NewCoins(k.GetParams(ctx).MinDeposit...).String(),
 			"total_deposit", sdk.NewCoins(proposal.TotalDeposit...).String(),
 		)
 

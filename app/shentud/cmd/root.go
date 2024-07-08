@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
+	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
+
 	dbm "github.com/cometbft/cometbft-db"
 	tmcmds "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	tmcfg "github.com/cometbft/cometbft/config"
@@ -37,6 +39,7 @@ import (
 	sdkbankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/app/params"
@@ -46,6 +49,8 @@ import (
 	bankcli "github.com/shentufoundation/shentu/v2/x/bank/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/crisis"
 )
+
+const EnvPrefix = "SHENTU"
 
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
@@ -58,9 +63,8 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("SHENTU")
+		WithViper(EnvPrefix)
 
 	cfg := sdk.GetConfig()
 	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
@@ -70,7 +74,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	rootCmd := &cobra.Command{
 		Use:   "shentud",
-		Short: "Stargate Shentu Chain App",
+		Short: "Shentu.org Shentu Chain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
@@ -85,8 +89,8 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			}
 
 			template, customAppConfig := initAppConfig()
-			customTMConfig := initTendermintConfig()
-			return server.InterceptConfigsPreRunHandler(cmd, template, customAppConfig, customTMConfig)
+
+			return server.InterceptConfigsPreRunHandler(cmd, template, customAppConfig, tmcfg.DefaultConfig())
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			docDir, err := cmd.Flags().GetString(shentuinit.DocFlag)
@@ -101,18 +105,6 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	initRootCmd(rootCmd, encodingConfig)
 
 	return rootCmd, encodingConfig
-}
-
-// initTendermintConfig helps to override default Tendermint Config values.
-// return tmcfg.DefaultConfig if no custom configuration is required for the application.
-func initTendermintConfig() *tmcfg.Config {
-	cfg := tmcfg.DefaultConfig()
-
-	// these values put a higher strain on node memory
-	// cfg.P2P.MaxNumInboundPeers = 100
-	// cfg.P2P.MaxNumOutboundPeers = 40
-
-	return cfg
 }
 
 // initAppConfig helps to override default appConfig template and configs.
@@ -162,7 +154,7 @@ func Execute(rootCmd *cobra.Command, defaultHome string) error {
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, genutiltypes.DefaultMessageValidator),
 		genutilcli.MigrateGenesisCmd(),
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
@@ -171,7 +163,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		AddGenesisShieldAdminCmd(app.DefaultNodeHome),
 		RotateValKeysCmd(),
 		tmcli.NewCompletionCmd(rootCmd, true),
-		testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
+		//testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		tmcmds.RollbackStateCmd,
 		debug.Cmd(),
 		config.Cmd(),
@@ -190,7 +182,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	)
 
 	// add rosetta
-	rootCmd.AddCommand(server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
+	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
@@ -272,7 +264,7 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts serverty
 	}
 
 	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
-	snapshotDB, err := sdk.NewLevelDB("metadata", snapshotDir)
+	snapshotDB, err := dbm.NewDB("metadata", server.GetAppDBBackend(appOpts), snapshotDir)
 	if err != nil {
 		panic(err)
 	}
@@ -305,8 +297,16 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts serverty
 	)
 }
 
-func createSimappAndExport(logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
+func createSimappAndExport(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	height int64,
+	forZeroHeight bool,
+	jailAllowedAddrs []string,
+	appOpts servertypes.AppOptions,
+	modulesToExport []string,
+) (servertypes.ExportedApp, error) {
 	encCfg := app.MakeEncodingConfig() // Ideally, we would reuse the one created by NewRootCmd.
 	encCfg.Codec = codec.NewProtoCodec(encCfg.InterfaceRegistry)
 	var gaiaApp *app.ShentuApp
