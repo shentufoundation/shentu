@@ -26,7 +26,7 @@ jobs:
     name: shentud ${{ matrix.arch }} for ${{ matrix.targetos }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4.0.1
+      - uses: actions/setup-go@v5.0.2
         with:
           go-version: '^1.19'
         env:
