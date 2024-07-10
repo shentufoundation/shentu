@@ -10,6 +10,7 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -22,8 +23,6 @@ import (
 	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
 	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
-	stakingkeeper "github.com/shentufoundation/shentu/v2/x/staking/keeper"
-	"github.com/shentufoundation/shentu/v2/x/staking/teststaking"
 )
 
 var (
