@@ -81,13 +81,19 @@ func (app ShentuApp) setUpgradeHandler(cdc codec.BinaryCodec, clientKeeper clien
 		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			// OPTIONAL: prune expired tendermint consensus states to save storage space
+			fmt.Println("start ibctmmigrations.PruneExpiredConsensusStates +")
 			if _, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, cdc, clientKeeper); err != nil {
 				return nil, err
 			}
+			fmt.Println("start ibctmmigrations.PruneExpiredConsensusStates -")
 			// explicitly update the IBC 02-client params, adding the localhost client type
+			fmt.Println("start clientKeeper GetParams +")
 			params := clientKeeper.GetParams(ctx)
 			params.AllowedClients = append(params.AllowedClients, exported.Localhost)
 			clientKeeper.SetParams(ctx, params)
+			fmt.Println("start clientKeeper GetParams -")
+
+			fmt.Println("start MigrateICS27ChannelCapability +")
 			if err := v6.MigrateICS27ChannelCapability(
 				ctx,
 				cdc,
@@ -97,9 +103,12 @@ func (app ShentuApp) setUpgradeHandler(cdc codec.BinaryCodec, clientKeeper clien
 			); err != nil {
 				return nil, err
 			}
+			fmt.Println("start MigrateICS27ChannelCapability -")
 
+			fmt.Println("start MigrateParams +")
 			// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
 			baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
+			fmt.Println("start MigrateParams -")
 
 			ctx.Logger().Info("Start to run module migrations...")
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
