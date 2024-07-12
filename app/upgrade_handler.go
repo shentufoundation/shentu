@@ -3,6 +3,9 @@ package app
 import (
 	"fmt"
 
+	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -58,6 +61,10 @@ func (app ShentuApp) setUpgradeHandler() {
 			keyTable = authtypes.ParamKeyTable() //nolint:staticcheck
 		case crisistypes.ModuleName:
 			keyTable = crisistypes.ParamKeyTable() //nolint:staticcheck
+		case shieldtypes.ModuleName:
+			keyTable = shieldtypes.ParamKeyTable()
+		case oracletypes.ModuleName:
+			keyTable = oracletypes.ParamKeyTable()
 		default:
 			continue
 		}
