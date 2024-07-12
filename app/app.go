@@ -81,21 +81,8 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
-	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
-	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
-	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v7/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
 	appparams "github.com/shentufoundation/shentu/v2/app/params"
 	"github.com/shentufoundation/shentu/v2/x/auth"
@@ -119,6 +106,22 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/shield"
 	shieldkeeper "github.com/shentufoundation/shentu/v2/x/shield/keeper"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
+
+	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
+	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
+	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
+	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v7/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 )
 
 const (
@@ -162,6 +165,8 @@ var (
 		shield.NewAppModuleBasic(),
 		evidence.AppModuleBasic{},
 		ibc.AppModuleBasic{},
+		ibctm.AppModuleBasic{},
+		solomachine.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		bounty.AppModuleBasic{},
@@ -830,7 +835,7 @@ func (app ShentuApp) RegisterNodeService(context client.Context) {
 
 // RegisterUpgradeHandlers registers necessary upgrade handlers
 func (app *ShentuApp) RegisterUpgradeHandlers() {
-	app.setUpgradeHandler()
+	app.setUpgradeHandler(app.appCodec, app.IBCKeeper.ClientKeeper)
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server

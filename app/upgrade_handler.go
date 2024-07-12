@@ -7,11 +7,13 @@ import (
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -21,9 +23,13 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 
 	govv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
@@ -32,7 +38,7 @@ const (
 	upgradeName = "v2.11.0"
 )
 
-func (app ShentuApp) setUpgradeHandler() {
+func (app ShentuApp) setUpgradeHandler(cdc codec.BinaryCodec, clientKeeper clientkeeper.Keeper) {
 	// Set param key table for params module migration
 	for _, subspace := range app.ParamsKeeper.GetSubspaces() {
 		var keyTable paramstypes.KeyTable
@@ -55,8 +61,6 @@ func (app ShentuApp) setUpgradeHandler() {
 			keyTable = govv1.ParamKeyTable() //nolint:staticcheck
 		case icahosttypes.SubModuleName:
 			keyTable = icahosttypes.ParamKeyTable()
-		//case icaauthmoduletypes.ModuleName:
-		//	keyTable = icaauthmoduletypes.ParamKeyTable()
 		case authtypes.ModuleName:
 			keyTable = authtypes.ParamKeyTable() //nolint:staticcheck
 		case crisistypes.ModuleName:
@@ -76,6 +80,24 @@ func (app ShentuApp) setUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			// OPTIONAL: prune expired tendermint consensus states to save storage space
+			if _, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, cdc, clientKeeper); err != nil {
+				return nil, err
+			}
+			// explicitly update the IBC 02-client params, adding the localhost client type
+			params := clientKeeper.GetParams(ctx)
+			params.AllowedClients = append(params.AllowedClients, exported.Localhost)
+			clientKeeper.SetParams(ctx, params)
+			if err := v6.MigrateICS27ChannelCapability(
+				ctx,
+				cdc,
+				app.keys[capabilitytypes.ModuleName],
+				app.CapabilityKeeper,
+				icacontrollertypes.SubModuleName,
+			); err != nil {
+				return nil, err
+			}
+
 			// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
 			baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
 
