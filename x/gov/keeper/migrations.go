@@ -5,10 +5,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/exported"
 	v2 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v2"
 	v3 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v3"
-	v4 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v4"
+	sdkv4 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v4"
 
 	v220 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v220"
 	v260 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v260"
+	v4 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v4"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -52,5 +53,10 @@ func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 
 // Migrate4to5 migrates from version 4 to 5.
 func (m Migrator) Migrate4to5(ctx sdk.Context) error {
-	return v4.MigrateStore(ctx, m.keeper.storeKey, m.legacySubspace, m.keeper.cdc)
+
+	err := v4.MigrateCustomParams(ctx, m.keeper.storeKey, m.legacySubspace, m.keeper.cdc)
+	if err != nil {
+		return err
+	}
+	return sdkv4.MigrateStore(ctx, m.keeper.storeKey, m.legacySubspace, m.keeper.cdc)
 }

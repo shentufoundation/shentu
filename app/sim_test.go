@@ -37,7 +37,6 @@ import (
 
 	cert "github.com/shentufoundation/shentu/v2/x/cert/types"
 	oracle "github.com/shentufoundation/shentu/v2/x/oracle/types"
-	shield "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // SimAppChainID hardcoded chainID for simulation
@@ -200,7 +199,6 @@ func TestAppImportExport(t *testing.T) {
 		{app.GetKey(gov.StoreKey), newApp.GetKey(gov.StoreKey), [][]byte{}},
 		{app.GetKey(cert.StoreKey), newApp.GetKey(cert.StoreKey), [][]byte{}},
 		{app.GetKey(oracle.StoreKey), newApp.GetKey(oracle.StoreKey), [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyTimedPrefix, oracle.ExpireTaskStoreKeyPrefix}},
-		{app.GetKey(shield.StoreKey), newApp.GetKey(shield.StoreKey), [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
 		{app.GetKey(evidence.StoreKey), newApp.GetKey(evidence.StoreKey), [][]byte{}},
 		{app.GetKey(capability.StoreKey), newApp.GetKey(capability.StoreKey), [][]byte{}},
 		{app.GetKey(params.StoreKey), newApp.GetKey(params.StoreKey), [][]byte{}},

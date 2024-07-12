@@ -15,7 +15,7 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, data *typesv1.GenesisState) {
 	k.SetProposalID(ctx, data.StartingProposalId)
 	k.SetParams(ctx, *data.Params)
-	//k.SetCustomParams(ctx, *data.CustomParams)
+	k.SetCustomParams(ctx, *data.CustomParams)
 
 	// check if the deposits pool account exists
 	moduleAcc := k.GetGovernanceAccount(ctx)

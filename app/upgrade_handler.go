@@ -13,7 +13,6 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -22,6 +21,8 @@ import (
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+
+	govv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
 const (
@@ -48,7 +49,7 @@ func (app ShentuApp) setUpgradeHandler() {
 		case slashingtypes.ModuleName:
 			keyTable = slashingtypes.ParamKeyTable() //nolint:staticcheck
 		case govtypes.ModuleName:
-			keyTable = govtypesv1.ParamKeyTable() //nolint:staticcheck
+			keyTable = govv1.ParamKeyTable() //nolint:staticcheck
 		case icahosttypes.SubModuleName:
 			keyTable = icahosttypes.ParamKeyTable()
 		//case icaauthmoduletypes.ModuleName:

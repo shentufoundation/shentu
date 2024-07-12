@@ -6,9 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+
+	modulev1 "cosmossdk.io/api/cosmos/gov/module/v1"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -122,6 +125,8 @@ type AppModule struct {
 	legacySubspace govtypes.ParamSubspace
 }
 
+var _ appmodule.AppModule = AppModule{}
+
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
 	cdc codec.Codec,
@@ -134,6 +139,19 @@ func NewAppModule(
 		bankKeeper:     bk,
 		legacySubspace: ss,
 	}
+}
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
+
+func init() {
+	appmodule.Register(
+		&modulev1.Module{},
+		appmodule.Provide(gov.ProvideModule, typesv1.ParamKeyTable),
+		appmodule.Invoke(gov.InvokeAddRoutes, gov.InvokeSetHooks))
 }
 
 // Name returns the governance module's name.
