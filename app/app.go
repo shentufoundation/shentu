@@ -830,7 +830,7 @@ func (app ShentuApp) RegisterNodeService(context client.Context) {
 
 // RegisterUpgradeHandlers registers necessary upgrade handlers
 func (app *ShentuApp) RegisterUpgradeHandlers() {
-	app.setUpgradeHandler()
+	app.setUpgradeHandler(app.appCodec, app.IBCKeeper.ClientKeeper)
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
