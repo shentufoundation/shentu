@@ -16,6 +16,7 @@ const (
 	errInvalidPoolParams
 	errInvalidTaskParams
 	errUnqualifiedRemover
+	errUnqualifiedCreator
 )
 
 const (
@@ -49,6 +50,7 @@ var (
 	ErrInvalidPoolParams       = sdkerrors.Register(ModuleName, errInvalidPoolParams, "invalid pool params")
 	ErrInvalidTaskParams       = sdkerrors.Register(ModuleName, errInvalidTaskParams, "invalid task params")
 	ErrUnqualifiedRemover      = sdkerrors.Register(ModuleName, errUnqualifiedRemover, "unauthorized to remove this operator - not the operator itself nor a certifier")
+	ErrUnqualifiedCreator      = sdkerrors.Register(ModuleName, errUnqualifiedCreator, "unauthorized to create this operator - not a certifier")
 
 	ErrTaskNotExists       = sdkerrors.Register(ModuleName, errTaskNotExists, "task does not exist")
 	ErrUnqualifiedOperator = sdkerrors.Register(ModuleName, errUnqualifiedOperator, "operator is not qualified")

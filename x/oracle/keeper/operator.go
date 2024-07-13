@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -68,6 +69,9 @@ func (k Keeper) CreateOperator(ctx sdk.Context, address sdk.AccAddress, collater
 	}
 	if k.IsBelowMinCollateral(ctx, collateral) {
 		return types.ErrNoEnoughCollateral
+	}
+	if !k.CertKeeper.IsCertifier(ctx, proposer) {
+		return types.ErrUnqualifiedCreator
 	}
 	operator := types.NewOperator(address, proposer, collateral, nil, name)
 	k.SetOperator(ctx, operator)
