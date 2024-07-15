@@ -22,7 +22,7 @@ require (
 	github.com/regen-network/cosmos-proto v0.3.1
 	github.com/rs/zerolog v1.29.1
 	github.com/spf13/cast v1.5.0
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.2
 	github.com/tendermint/tendermint v0.34.29
@@ -101,7 +101,7 @@ require (
 	github.com/cosmos/tools/lib/runsimaws v1.0.0 // indirect
 	github.com/cosmos/tools/lib/runsimgh v1.0.0 // indirect
 	github.com/cosmos/tools/lib/runsimslack v1.0.0 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/creachadair/taskgroup v0.3.2 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
 	github.com/daixiang0/gci v0.8.1 // indirect
@@ -191,7 +191,7 @@ require (
 	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jgautheron/goconst v1.5.1 // indirect
 	github.com/jingyugao/rowserrcheck v1.1.1 // indirect
 	github.com/jirfag/go-printf-func-name v0.0.0-20200119135958-7558a9eaa5af // indirect
