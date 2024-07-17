@@ -28,7 +28,8 @@ func TestItCreatesModuleAccountOnInitBlock(t *testing.T) {
 	encCdc := shentuapp.MakeEncodingConfig()
 
 	app := shentuapp.NewShentuApp(log.NewNopLogger(), db, nil, true, map[int64]bool{},
-		shentuapp.DefaultNodeHome, 5, encCdc, shentuapp.EmptyAppOptions{}, fauxMerkleModeOpt, baseapp.SetChainID("test-chain-id"))
+		shentuapp.DefaultNodeHome, 5, encCdc, shentuapp.EmptyAppOptions{}, fauxMerkleModeOpt,
+		baseapp.SetChainID("test-chain-id"))
 
 	genesisState := shentuapp.GenesisStateWithSingleValidator(t, app)
 	stateBytes, err := tmjson.Marshal(genesisState)
