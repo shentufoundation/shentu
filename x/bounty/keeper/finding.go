@@ -159,14 +159,11 @@ func (k Keeper) ConfirmFinding(ctx sdk.Context, msg *types.MsgConfirmFinding) (t
 
 func (k Keeper) GetFindingFingerprintHash(finding *types.Finding) string {
 	findingFingerprint := &types.FindingFingerprint{
-		ProgramId:     finding.ProgramId,
-		FindingId:     finding.FindingId,
-		Title:         finding.Title,
-		FindingHash:   finding.FindingHash,
-		SeverityLevel: finding.SeverityLevel,
-		Status:        finding.Status,
-		Detail:        finding.Detail,
-		PaymentHash:   finding.PaymentHash,
+		ProgramId:   finding.ProgramId,
+		FindingId:   finding.FindingId,
+		FindingHash: finding.FindingHash,
+		Status:      finding.Status,
+		PaymentHash: finding.PaymentHash,
 	}
 
 	bz := k.cdc.MustMarshal(findingFingerprint)
