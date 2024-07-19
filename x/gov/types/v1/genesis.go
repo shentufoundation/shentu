@@ -10,6 +10,15 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
 
+// NewGenesisState creates a new genesis state for the governance module
+func NewGenesisState(startingProposalID uint64, params govtypesv1.Params, customParams CustomParams) *GenesisState {
+	return &GenesisState{
+		StartingProposalId: startingProposalID,
+		Params:             &params,
+		CustomParams:       &customParams,
+	}
+}
+
 // DefaultGenesisState creates a default GenesisState object.
 func DefaultGenesisState() *GenesisState {
 	minDepositTokens := sdk.TokensFromConsensusPower(512, sdk.DefaultPowerReduction)

@@ -30,6 +30,7 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
@@ -225,13 +226,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	//simulation.RandomizedGenState(simState)
-}
-
-// ProposalContents returns all the gov content functions used to
-// simulate governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return govsim.ProposalContents()
+	simulation.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for gov module.
@@ -241,6 +236,5 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.bankKeeper, am.keeper.CertKeeper, am.keeper, simState.Contents)
-	return []simtypes.WeightedOperation{}
+	return nil
 }
