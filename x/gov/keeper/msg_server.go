@@ -39,7 +39,7 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubm
 		return nil, err
 	}
 
-	// Skip deposit period for proposals from certifier memebers or shield claim proposals.
+	// Skip deposit period for proposals from certifier members or shield claim proposals.
 	proposer, _ := sdk.AccAddressFromBech32(msg.GetProposer())
 	votingStarted := false
 

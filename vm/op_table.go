@@ -38,7 +38,7 @@ type instruction struct {
 	dynamicGas gasFunc
 	staticGas  uint64
 
-	// memsize enum
+	// memSize enum
 	memSize uint
 }
 

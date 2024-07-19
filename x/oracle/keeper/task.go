@@ -184,7 +184,7 @@ func (k Keeper) DeleteClosingTaskIDs(ctx sdk.Context) {
 }
 
 // delete tasks whose expiration >= BlockTime
-// the taget task may already be gone due to explicitally removed by user
+// the target task may already be gone due to explicitly removed by user
 func (k Keeper) DeleteExpiredTasks(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	k.IteratorTaskIDsByEndTime(
@@ -241,7 +241,7 @@ func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.T
 
 	k.SetTask(ctx, task)
 	// if task's status is TaskStatusNil, it will not go to ClosingBlockStore,
-	// therefor will not be handled in EndBlocker
+	// therefore will not be handled in EndBlocker
 	if task.GetStatus() == types.TaskStatusPending {
 		k.AddToClosingTaskIDs(ctx, task)
 		if err := k.CollectBounty(ctx, task.GetBounty(), creator); err != nil {
