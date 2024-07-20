@@ -1,5 +1,5 @@
 syntax = "proto3";
-package shentu.auth.v1alpha1;
+package cosmos.auth.v1alpha1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
