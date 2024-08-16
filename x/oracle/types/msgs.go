@@ -73,7 +73,7 @@ func (m MsgCreateOperator) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateOperator) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Address)
+	addr := sdk.MustAccAddressFromBech32(m.Proposer)
 	return []sdk.AccAddress{addr}
 }
 
