@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 
+	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 )
@@ -28,7 +30,7 @@ func RandomReasonableFees(r *rand.Rand, ctx sdk.Context, spendableCoins sdk.Coin
 	//To limit the fee not exceeding ninth of remaining balances.
 	//Without this limitation, it's easy to run out of accounts balance
 	//  given so many simulate operations introduced by shentu modules.
-	amt, err := sim.RandPositiveInt(r, randCoin.Amount.Add(sdk.NewInt(8)).Quo(sdk.NewInt(9)))
+	amt, err := sim.RandPositiveInt(r, randCoin.Amount.Add(math.NewInt(8)).Quo(math.NewInt(9)))
 	if err != nil {
 		return nil, err
 	}

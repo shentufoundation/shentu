@@ -1,50 +1,53 @@
 package keeper
 
 import (
-	"cosmossdk.io/math"
+	"context"
 
+	"cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 // SetOperator sets an operator to store.
-func (k Keeper) SetOperator(ctx sdk.Context, operator types.Operator) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) SetOperator(ctx context.Context, operator types.Operator) error {
+	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshalLengthPrefixed(&operator)
 	addr := sdk.MustAccAddressFromBech32(operator.Address)
-	store.Set(types.OperatorStoreKey(addr), bz)
+	return store.Set(types.OperatorStoreKey(addr), bz)
 }
 
 // GetOperator gets an operator from store.
-func (k Keeper) GetOperator(ctx sdk.Context, address sdk.AccAddress) (types.Operator, error) {
-	store := ctx.KVStore(k.storeKey)
-	opBz := store.Get(types.OperatorStoreKey(address))
-	if opBz != nil {
-		var operator types.Operator
-		k.cdc.MustUnmarshalLengthPrefixed(opBz, &operator)
-		return operator, nil
+func (k Keeper) GetOperator(ctx context.Context, address sdk.AccAddress) (types.Operator, error) {
+	store := k.storeService.OpenKVStore(ctx)
+	opBz, err := store.Get(types.OperatorStoreKey(address))
+	if err != nil {
+		return types.Operator{}, err
 	}
-	return types.Operator{}, types.ErrNoOperatorFound
+	var operator types.Operator
+	k.cdc.MustUnmarshalLengthPrefixed(opBz, &operator)
+	return operator, nil
 }
 
 // IsOperator determines if an address belongs to an operator.
-func (k Keeper) IsOperator(ctx sdk.Context, address sdk.AccAddress) bool {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) IsOperator(ctx context.Context, address sdk.AccAddress) (bool, error) {
+	store := k.storeService.OpenKVStore(ctx)
 	return store.Has(types.OperatorStoreKey(address))
 }
 
 // DeleteOperators deletes an operator from store.
-func (k Keeper) DeleteOperator(ctx sdk.Context, address sdk.AccAddress) error {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.OperatorStoreKey(address))
-	return nil
+func (k Keeper) DeleteOperator(ctx context.Context, address sdk.AccAddress) error {
+	store := k.storeService.OpenKVStore(ctx)
+	return store.Delete(types.OperatorStoreKey(address))
 }
 
 // IterateAllOperators iterates all operators.
-func (k Keeper) IterateAllOperators(ctx sdk.Context, callback func(operator types.Operator) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.OperatorStoreKeyPrefix)
+func (k Keeper) IterateAllOperators(ctx context.Context, callback func(operator types.Operator) (stop bool)) {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, types.OperatorStoreKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -57,15 +60,16 @@ func (k Keeper) IterateAllOperators(ctx sdk.Context, callback func(operator type
 }
 
 // IsBelowMinCollateral determines if collateral is below the minimum requirement.
-func (k Keeper) IsBelowMinCollateral(ctx sdk.Context, currentCollateral sdk.Coins) bool {
+func (k Keeper) IsBelowMinCollateral(ctx context.Context, currentCollateral sdk.Coins) bool {
 	params := k.GetLockedPoolParams(ctx)
-	return currentCollateral.AmountOf(k.stakingKeeper.BondDenom(ctx)).LT(sdk.NewInt(params.MinimumCollateral))
+	return currentCollateral.AmountOf(k.stakingKeeper.BondDenom(ctx)).LT(math.NewInt(params.MinimumCollateral))
 }
 
 // CreateOperator creates an operator and deposits collateral.
-func (k Keeper) CreateOperator(ctx sdk.Context, address sdk.AccAddress, collateral sdk.Coins, proposer sdk.AccAddress, name string) error {
-	if k.IsOperator(ctx, address) {
-		return types.ErrOperatorAlreadyExists
+func (k Keeper) CreateOperator(ctx context.Context, address sdk.AccAddress, collateral sdk.Coins, proposer sdk.AccAddress, name string) error {
+	_, err := k.IsOperator(ctx, address)
+	if err != nil {
+		return err
 	}
 	if k.IsBelowMinCollateral(ctx, collateral) {
 		return types.ErrNoEnoughCollateral
@@ -74,7 +78,9 @@ func (k Keeper) CreateOperator(ctx sdk.Context, address sdk.AccAddress, collater
 		return types.ErrUnqualifiedCreator
 	}
 	operator := types.NewOperator(address, proposer, collateral, nil, name)
-	k.SetOperator(ctx, operator)
+	if err = k.SetOperator(ctx, operator); err != nil {
+		return err
+	}
 	if err := k.AddTotalCollateral(ctx, collateral); err != nil {
 		return err
 	}
@@ -85,7 +91,7 @@ func (k Keeper) CreateOperator(ctx sdk.Context, address sdk.AccAddress, collater
 }
 
 // RemoveOperator removes an operator, creates an withdrawal for collateral and gives back rewards immediately.
-func (k Keeper) RemoveOperator(ctx sdk.Context, operatorAddress, proposerAddress string) error {
+func (k Keeper) RemoveOperator(ctx context.Context, operatorAddress, proposerAddress string) error {
 	// Ensure that the sender of the tx is either the operator to be removed itself or a certifier.
 	proposerAddr, err := sdk.AccAddressFromBech32(proposerAddress)
 	if err != nil {
@@ -99,10 +105,9 @@ func (k Keeper) RemoveOperator(ctx sdk.Context, operatorAddress, proposerAddress
 	if err != nil {
 		return err
 	}
-	if !k.IsOperator(ctx, operatorAddr) {
-		return types.ErrNoOperatorFound
+	if _, err = k.IsOperator(ctx, operatorAddr); err != nil {
+		return err
 	}
-
 	operator, err := k.GetOperator(ctx, operatorAddr)
 	if err != nil {
 		return nil
@@ -121,7 +126,7 @@ func (k Keeper) RemoveOperator(ctx sdk.Context, operatorAddress, proposerAddress
 }
 
 // GetAllOperators gets all operators.
-func (k Keeper) GetAllOperators(ctx sdk.Context) types.Operators {
+func (k Keeper) GetAllOperators(ctx context.Context) types.Operators {
 	operators := types.Operators{}
 	k.IterateAllOperators(ctx, func(operator types.Operator) bool {
 		operators = append(operators, operator)
@@ -131,16 +136,18 @@ func (k Keeper) GetAllOperators(ctx sdk.Context) types.Operators {
 }
 
 // AddCollateral increases an operator's collateral, effective immediately.
-func (k Keeper) AddCollateral(ctx sdk.Context, address sdk.AccAddress, increment sdk.Coins) error {
-	if !k.IsOperator(ctx, address) {
-		return types.ErrNoOperatorFound
+func (k Keeper) AddCollateral(ctx context.Context, address sdk.AccAddress, increment sdk.Coins) error {
+	if _, err := k.IsOperator(ctx, address); err != nil {
+		return err
 	}
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
 		return err
 	}
 	operator.Collateral = operator.Collateral.Add(increment...)
-	k.SetOperator(ctx, operator)
+	if err = k.SetOperator(ctx, operator); err != nil {
+		return err
+	}
 	if err := k.AddTotalCollateral(ctx, increment); err != nil {
 		return err
 	}
@@ -151,9 +158,9 @@ func (k Keeper) AddCollateral(ctx sdk.Context, address sdk.AccAddress, increment
 }
 
 // ReduceCollateral reduces an operator's collateral and creates a withdrawal for it.
-func (k Keeper) ReduceCollateral(ctx sdk.Context, address sdk.AccAddress, decrement sdk.Coins) error {
-	if !k.IsOperator(ctx, address) {
-		return types.ErrNoOperatorFound
+func (k Keeper) ReduceCollateral(ctx context.Context, address sdk.AccAddress, decrement sdk.Coins) error {
+	if _, err := k.IsOperator(ctx, address); err != nil {
+		return err
 	}
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
@@ -163,7 +170,9 @@ func (k Keeper) ReduceCollateral(ctx sdk.Context, address sdk.AccAddress, decrem
 	if k.IsBelowMinCollateral(ctx, operator.Collateral) {
 		return types.ErrNoEnoughCollateral
 	}
-	k.SetOperator(ctx, operator)
+	if err = k.SetOperator(ctx, operator); err != nil {
+		return err
+	}
 	if err := k.ReduceTotalCollateral(ctx, decrement); err != nil {
 		return err
 	}
@@ -175,23 +184,25 @@ func (k Keeper) ReduceCollateral(ctx sdk.Context, address sdk.AccAddress, decrem
 }
 
 // AddReward increases an operators accumulated rewards.
-func (k Keeper) AddReward(ctx sdk.Context, address sdk.AccAddress, increment sdk.Coins) error {
-	if !k.IsOperator(ctx, address) {
-		return types.ErrNoOperatorFound
+func (k Keeper) AddReward(ctx context.Context, address sdk.AccAddress, increment sdk.Coins) error {
+	if _, err := k.IsOperator(ctx, address); err != nil {
+		return err
 	}
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
 		return err
 	}
 	operator.AccumulatedRewards = operator.AccumulatedRewards.Add(increment...)
-	k.SetOperator(ctx, operator)
+	if err = k.SetOperator(ctx, operator); err != nil {
+		return err
+	}
 	return nil
 }
 
 // WithdrawAllReward gives back all rewards of an operator.
-func (k Keeper) WithdrawAllReward(ctx sdk.Context, address sdk.AccAddress) (sdk.Coins, error) {
-	if !k.IsOperator(ctx, address) {
-		return nil, types.ErrNoOperatorFound
+func (k Keeper) WithdrawAllReward(ctx context.Context, address sdk.AccAddress) (sdk.Coins, error) {
+	if _, err := k.IsOperator(ctx, address); err != nil {
+		return nil, err
 	}
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
@@ -202,15 +213,17 @@ func (k Keeper) WithdrawAllReward(ctx sdk.Context, address sdk.AccAddress) (sdk.
 		return nil, err
 	}
 	operator.AccumulatedRewards = nil
-	k.SetOperator(ctx, operator)
+	if err = k.SetOperator(ctx, operator); err != nil {
+		return nil, err
+	}
 	return reward, nil
 }
 
 // GetCollateralAmount gets an operator's collateral.
-func (k Keeper) GetCollateralAmount(ctx sdk.Context, address sdk.AccAddress) (math.Int, error) {
+func (k Keeper) GetCollateralAmount(ctx context.Context, address sdk.AccAddress) (math.Int, error) {
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
-		return sdk.NewInt(0), err
+		return math.NewInt(0), err
 	}
 	return operator.Collateral[0].Amount, nil
 }

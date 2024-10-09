@@ -91,6 +91,10 @@ type AppModule struct {
 	bankKeeper    types.BankKeeper
 }
 
+func (am AppModule) IsOnePerModuleType() {}
+
+func (am AppModule) IsAppModule() {}
+
 // NewAppModule creates a new AppModule object.
 func NewAppModule(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) AppModule {
 	return AppModule{
@@ -138,18 +142,13 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 5 }
 
-// EndBlock returns the end blocker for the shield module.
-func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
-
 //____________________________________________________________________________
 
 // AppModuleSimulation functions
 
 func (am AppModule) GenerateGenesisState(input *module.SimulationState) {}
 
-func (am AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {}
+func (am AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry) {}
 
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return []simtypes.WeightedOperation{}

@@ -1,6 +1,8 @@
 package common
 
 import (
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -25,7 +27,7 @@ func GetCoinPercentage(coins sdk.Coins, percentage int64) sdk.Coins {
 	for _, coin := range coins {
 		res = res.Add(sdk.Coin{
 			Denom:  coin.Denom,
-			Amount: coin.Amount.Mul(sdk.NewInt(percentage)).Quo(sdk.NewInt(100)),
+			Amount: coin.Amount.Mul(sdkmath.NewInt(percentage)).Quo(sdkmath.NewInt(100)),
 		})
 	}
 	return res
@@ -37,7 +39,7 @@ func DivideCoins(coins sdk.Coins, dividend int64) sdk.Coins {
 	for _, coin := range coins {
 		res = res.Add(sdk.Coin{
 			Denom:  coin.Denom,
-			Amount: coin.Amount.Quo(sdk.NewInt(dividend)),
+			Amount: coin.Amount.Quo(sdkmath.NewInt(dividend)),
 		})
 	}
 	return res

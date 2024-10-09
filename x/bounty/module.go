@@ -81,6 +81,10 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
+func (am AppModule) IsOnePerModuleType() {}
+
+func (am AppModule) IsAppModule() {}
+
 // NewAppModule creates a new AppModule object. If initChainAssertInvariants is set,
 // we will call keeper.AssertInvariants during InitGenesis (it may take a significant time)
 // - which doesn't impact the chain security unless 66+% of validators have a wrongly
@@ -136,7 +140,7 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 // AppModuleSimulation functions
 func (am AppModule) GenerateGenesisState(input *module.SimulationState) {}
 
-func (am AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {}
+func (am AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry) {}
 
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return []simtypes.WeightedOperation{}

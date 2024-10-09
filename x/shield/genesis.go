@@ -11,13 +11,19 @@ import (
 
 // InitGenesis initialize store values with genesis states.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
-	k.SetRemainingServiceFees(ctx, data.RemainingServiceFees)
+	err := k.SetRemainingServiceFees(ctx, data.RemainingServiceFees)
+	if err != nil {
+		panic(err)
+	}
 	for _, provider := range data.Providers {
 		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
 		if err != nil {
 			panic(err)
 		}
-		k.SetProvider(ctx, providerAddr, provider)
+		err = k.SetProvider(ctx, providerAddr, provider)
+		if err != nil {
+			panic(err)
+		}
 	}
 	return []abci.ValidatorUpdate{}
 }
@@ -25,7 +31,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 // ExportGenesis writes the current store values to a genesis file,
 // which can be imported again with InitGenesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
-	remainingServiceFees := k.GetRemainingServiceFees(ctx)
+	remainingServiceFees, err := k.GetRemainingServiceFees(ctx)
+	if err != nil {
+		panic(err)
+	}
 	providers := k.GetAllProviders(ctx)
 	return types.NewGenesisState(remainingServiceFees, providers)
 }

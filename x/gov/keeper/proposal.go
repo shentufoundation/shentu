@@ -1,13 +1,16 @@
 package keeper
 
 import (
+	"context"
+
 	"cosmossdk.io/math"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
@@ -37,7 +40,7 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govtypesv1.Propos
 }
 
 // IsCertifier checks if the input address is a certifier.
-func (k Keeper) IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool {
+func (k Keeper) IsCertifier(ctx context.Context, addr sdk.AccAddress) (bool, error) {
 	return k.CertKeeper.IsCertifier(ctx, addr)
 }
 
@@ -57,7 +60,8 @@ func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) math.Int {
 	return bonded
 }
 
-func (k Keeper) CertifierVoteIsRequired(proposal govtypesv1.Proposal) bool {
+func (k Keeper) CertifierVoteIsRequired(ctx context.Context, proposalID uint64) bool {
+	proposal, err := k.Proposals.Get(ctx, proposalID)
 	proposalMsgs, err := proposal.GetMsgs()
 	if err != nil {
 		return false

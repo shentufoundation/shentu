@@ -8,7 +8,7 @@ package app
 //	"github.com/stretchr/testify/require"
 //
 //	dbm "github.com/cometbft/cometbft-db"
-//	"github.com/cometbft/cometbft/libs/log"
+//	"cosmossdk.io/log"
 //)
 //
 //func TestSimAppExport(t *testing.T) {

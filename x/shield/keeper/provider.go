@@ -1,23 +1,26 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // SetProvider sets data of a provider in the kv-store.
-func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider types.Provider) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider types.Provider) error {
+	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshalLengthPrefixed(&provider)
-	store.Set(types.GetProviderKey(delAddr), bz)
+	return store.Set(types.GetProviderKey(delAddr), bz)
 }
 
 // GetProvider returns data of a provider given its address.
 func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types.Provider, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetProviderKey(delegator))
-	if bz == nil {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.GetProviderKey(delegator))
+	if err != nil {
 		return types.Provider{}, false
 	}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &dt)
@@ -26,14 +29,12 @@ func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types
 
 // IterateProviders iterates through all providers.
 func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider types.Provider) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ProviderKey)
-
+	store := k.storeService.OpenKVStore(ctx)
+	iterator := storetypes.KVStorePrefixIterator(runtime.KVStoreAdapter(store), types.ProviderKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var provider types.Provider
 		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &provider)
-
 		if callback(provider) {
 			break
 		}
@@ -76,7 +77,7 @@ func (k Keeper) IterateProvidersPaginated(ctx sdk.Context, page, limit uint, cb 
 
 // GetProvidersIteratorPaginated returns an iterator to go over
 // providers based on pagination parameters.
-func (k Keeper) GetProvidersIteratorPaginated(ctx sdk.Context, page, limit uint) sdk.Iterator {
-	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIteratorPaginated(store, types.ProviderKey, page, limit)
+func (k Keeper) GetProvidersIteratorPaginated(ctx sdk.Context, page, limit uint) storetypes.Iterator {
+	store := k.storeService.OpenKVStore(ctx)
+	return storetypes.KVStorePrefixIteratorPaginated(runtime.KVStoreAdapter(store), types.ProviderKey, page, limit)
 }

@@ -1,9 +1,5 @@
 package types
 
-import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-)
-
 // Error Code Enums
 const (
 	errUnqualifiedCertifier uint32 = iota + 101

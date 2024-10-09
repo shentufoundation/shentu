@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -65,16 +64,16 @@ func (msg MsgCreateProgram) GetSignBytes() []byte {
 func (msg MsgCreateProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	if len(msg.Name) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty name")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty name")
 	}
 	if len(msg.Detail) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
 	}
 	return nil
 }
@@ -119,10 +118,10 @@ func (msg MsgEditProgram) GetSignBytes() []byte {
 func (msg MsgEditProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	return nil
 }
@@ -170,25 +169,25 @@ func (msg MsgSubmitFinding) GetSignBytes() []byte {
 func (msg MsgSubmitFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	if len(msg.FindingId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	if len(msg.Title) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty title")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty title")
 	}
 	if len(msg.FindingHash) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingHash")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingHash")
 	}
 	if len(msg.Detail) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
 	}
 	if !ValidFindingSeverityLevel(msg.SeverityLevel) {
-		return sdkerrors.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
+		return errorsmod.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
 	}
 	return nil
 }
@@ -236,13 +235,13 @@ func (msg MsgEditFinding) GetSignBytes() []byte {
 func (msg MsgEditFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.FindingId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	if !ValidFindingSeverityLevel(msg.SeverityLevel) {
-		return sdkerrors.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
+		return errorsmod.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
 	}
 	return nil
 }
@@ -277,10 +276,10 @@ func (msg MsgActivateProgram) GetSignBytes() []byte {
 func (msg MsgActivateProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	return nil
 }
@@ -315,10 +314,10 @@ func (msg MsgCloseProgram) GetSignBytes() []byte {
 func (msg MsgCloseProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	return nil
 }
@@ -358,10 +357,10 @@ func (msg MsgActivateFinding) GetSigners() []sdk.AccAddress {
 func (msg MsgActivateFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.FindingId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	return nil
 }
@@ -402,13 +401,13 @@ func (msg MsgConfirmFinding) GetSigners() []sdk.AccAddress {
 func (msg MsgConfirmFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.FindingId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	if len(msg.Fingerprint) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty fingerprint")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty fingerprint")
 	}
 	return nil
 }
@@ -448,11 +447,11 @@ func (msg MsgConfirmFindingPaid) GetSigners() []sdk.AccAddress {
 func (msg MsgConfirmFindingPaid) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if len(msg.FindingId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	return nil
 }
@@ -492,11 +491,11 @@ func (msg MsgCloseFinding) GetSigners() []sdk.AccAddress {
 func (msg MsgCloseFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if len(msg.FindingId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	return nil
 }
@@ -538,17 +537,17 @@ func (msg MsgPublishFinding) GetSignBytes() []byte {
 func (msg MsgPublishFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if len(msg.FindingId) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	if len(msg.Description) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "description")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "description")
 	}
 	if len(msg.ProofOfConcept) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty proofOfConcept")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty proofOfConcept")
 	}
 	return nil
 }

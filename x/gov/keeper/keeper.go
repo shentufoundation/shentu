@@ -2,9 +2,10 @@
 package keeper
 
 import (
+	"cosmossdk.io/core/store"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -16,7 +17,7 @@ import (
 type Keeper struct {
 	govkeeper.Keeper
 
-	// the SupplyKeeper to reduce the supply of the network
+	authKeeper types.AccountKeeper
 	bankKeeper govtypes.BankKeeper
 
 	// the reference to the DelegationSet and ValidatorSet to get information about validators and delegators
@@ -26,16 +27,16 @@ type Keeper struct {
 	CertKeeper types.CertKeeper
 
 	// the (unexposed) keys used to access the stores from the Context
-	storeKey storetypes.StoreKey
+	storeService store.KVStoreService
 
-	// codec for binary encoding/decoding
-	cdc codec.BinaryCodec
+	// The codec for binary encoding/decoding.
+	cdc codec.Codec
 
 	// Legacy Proposal router
 	legacyRouter v1beta1.Router
 
 	// Msg server router
-	router *baseapp.MsgServiceRouter
+	router baseapp.MessageRouter
 
 	config govtypes.Config
 
@@ -50,18 +51,19 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, bankKeeper govtypes.BankKeeper,
+	cdc codec.Codec, storeService store.KVStoreService, bankKeeper govtypes.BankKeeper,
 	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper,
-	authKeeper govtypes.AccountKeeper, legacyRouter v1beta1.Router, router *baseapp.MsgServiceRouter,
-	config govtypes.Config, authority string,
+	authKeeper govtypes.AccountKeeper, distrKeeper types.DistributionKeeper, legacyRouter v1beta1.Router,
+	router baseapp.MessageRouter, config govtypes.Config, authority string,
 ) Keeper {
-	cosmosKeeper := govkeeper.NewKeeper(cdc, key, authKeeper, bankKeeper, stakingKeeper, router, config, authority)
+	cosmosKeeper := govkeeper.NewKeeper(cdc, storeService, authKeeper, bankKeeper, stakingKeeper, distrKeeper, router, config, authority)
 	return Keeper{
 		Keeper:        *cosmosKeeper,
+		authKeeper:    authKeeper,
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,
-		storeKey:      key,
+		storeService:  storeService,
 		cdc:           cdc,
 		legacyRouter:  legacyRouter,
 		router:        router,

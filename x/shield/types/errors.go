@@ -1,6 +1,8 @@
 package types
 
-import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+import (
+	errorsmod "cosmossdk.io/errors"
+)
 
 // Error Code Enums
 const (
@@ -9,6 +11,6 @@ const (
 )
 
 var (
-	ErrEmptySender      = sdkerrors.Register(ModuleName, errEmptySender, "no sender provided")
-	ErrProviderNotFound = sdkerrors.Register(ModuleName, errProviderNotFound, "provider is not found")
+	ErrEmptySender      = errorsmod.Register(ModuleName, errEmptySender, "no sender provided")
+	ErrProviderNotFound = errorsmod.Register(ModuleName, errProviderNotFound, "provider is not found")
 )

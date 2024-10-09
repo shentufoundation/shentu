@@ -1,13 +1,17 @@
 package keeper
 
 import (
-	"github.com/shentufoundation/shentu/v2/x/mint/types"
+	"context"
+
+	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
+	"github.com/shentufoundation/shentu/v2/x/mint/types"
 )
 
 type Keeper struct {
@@ -19,11 +23,11 @@ type Keeper struct {
 
 // NewKeeper implements the wrapper newkeeper on top of the original newkeeper with distribution, supply and staking keeper.
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey,
+	cdc codec.BinaryCodec, storeService storetypes.KVStoreService,
 	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper, distributionKeeper types.DistributionKeeper,
 	feeCollectorName string, authority string) Keeper {
 	return Keeper{
-		Keeper:        mintkeeper.NewKeeper(cdc, key, sk, ak, bk, feeCollectorName, authority),
+		Keeper:        mintkeeper.NewKeeper(cdc, storeService, sk, ak, bk, feeCollectorName, authority),
 		dk:            distributionKeeper,
 		accountKeeper: ak,
 		stakingKeeper: sk,
@@ -31,8 +35,12 @@ func NewKeeper(
 }
 
 // SendToCommunityPool sends coins to the community pool using FundCommunityPool.
-func (k Keeper) SendToCommunityPool(ctx sdk.Context, amount sdk.Coins) error {
-	if amount.AmountOf(k.stakingKeeper.BondDenom(ctx)).Equal(sdk.ZeroInt()) {
+func (k Keeper) SendToCommunityPool(ctx context.Context, amount sdk.Coins) error {
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return err
+	}
+	if amount.AmountOf(bondDenom).Equal(math.ZeroInt()) {
 		return nil
 	}
 	mintAddress := k.accountKeeper.GetModuleAddress(minttypes.ModuleName)
@@ -40,21 +48,33 @@ func (k Keeper) SendToCommunityPool(ctx sdk.Context, amount sdk.Coins) error {
 }
 
 // GetCommunityPoolRatio returns the current ratio of the community pool compared to the total supply.
-func (k Keeper) GetCommunityPoolRatio(ctx sdk.Context) sdk.Dec {
+func (k Keeper) GetCommunityPoolRatio(ctx context.Context) (math.LegacyDec, error) {
 	communityPool := k.dk.GetFeePool(ctx).CommunityPool
 	for _, coin := range communityPool {
-		totalBondedTokensDec := sdk.NewDecFromInt(k.StakingTokenSupply(ctx))
-		if coin.Denom == k.stakingKeeper.BondDenom(ctx) {
+		denom, err := k.stakingKeeper.BondDenom(ctx)
+		if err != nil {
+			return math.LegacyDec{}, err
+		}
+		supply, err := k.StakingTokenSupply(ctx)
+		if err != nil {
+			return math.LegacyZeroDec(), err
+		}
+		totalBondedTokensDec := math.LegacyNewDecFromInt(supply)
+		if coin.Denom == denom {
 			ratio := coin.Amount.Quo(totalBondedTokensDec)
-			return ratio
+			return ratio, nil
 		}
 	}
-	return sdk.NewDec(0)
+	return math.LegacyZeroDec(), nil
 }
 
 // GetPoolMint returns Coins that are about to be minted towards the community pool.
-func (k Keeper) GetPoolMint(ctx sdk.Context, ratio sdk.Dec, mintedCoin sdk.Coin) sdk.Coin {
+func (k Keeper) GetPoolMint(ctx context.Context, ratio math.LegacyDec, mintedCoin sdk.Coin) (sdk.Coin, error) {
 	communityPoolMintDec := ratio.MulInt(mintedCoin.Amount)
 	amount := communityPoolMintDec.TruncateInt()
-	return sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), amount)
+	denom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	return sdk.NewCoin(denom, amount), nil
 }

@@ -233,7 +233,7 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypesv1.P
 
 // EndBlocker is called every block, removes inactive proposals, tallies active
 // proposals and deletes/refunds deposits.
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
+func EndBlocker(ctx sdk.Context, k keeper.Keeper) error {
 	// delete inactive proposal from store and its deposits
 	removeInactiveProposals(ctx, k)
 

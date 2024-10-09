@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -52,11 +54,11 @@ func (m MsgCreateOperator) ValidateBasic() error {
 	}
 
 	if !m.Collateral.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.Collateral.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Collateral.String())
 	}
 
 	if !m.Collateral.IsAllPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.Collateral.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Collateral.String())
 	}
 
 	return nil
@@ -143,11 +145,11 @@ func (m MsgAddCollateral) ValidateBasic() error {
 	}
 
 	if !m.CollateralIncrement.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralIncrement.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralIncrement.String())
 	}
 
 	if !m.CollateralIncrement.IsAllPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralIncrement.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralIncrement.String())
 	}
 
 	return nil
@@ -190,11 +192,11 @@ func (m MsgReduceCollateral) ValidateBasic() error {
 	}
 
 	if !m.CollateralDecrement.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralDecrement.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralDecrement.String())
 	}
 
 	if !m.CollateralDecrement.IsAllPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralDecrement.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralDecrement.String())
 	}
 
 	return nil

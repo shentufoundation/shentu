@@ -1,17 +1,18 @@
 package v2
 
 import (
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
-func migrateCertificate(store sdk.KVStore, cdc codec.BinaryCodec) error {
+func migrateCertificate(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 	oldStore := prefix.NewStore(store, types.CertificatesStoreKey())
 
 	iterator := oldStore.Iterator(nil, nil)
@@ -69,7 +70,7 @@ func setContentAny(certificate *types.Certificate, content types.Content) {
 	certificate.Content = any
 }
 
-func migrateCertifier(store sdk.KVStore, cdc codec.BinaryCodec) error {
+func migrateCertifier(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 	oldStore := prefix.NewStore(store, types.CertifiersStoreKey())
 
 	iterator := oldStore.Iterator(nil, nil)
@@ -99,7 +100,7 @@ func migrateCertifier(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	return nil
 }
 
-func migrateCertifierAlias(store sdk.KVStore, cdc codec.BinaryCodec) error {
+func migrateCertifierAlias(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 	oldStore := prefix.NewStore(store, types.CertifierAliasesStoreKey())
 
 	iterator := oldStore.Iterator(nil, nil)
@@ -129,7 +130,7 @@ func migrateCertifierAlias(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	return nil
 }
 
-func migrateLibrary(store sdk.KVStore, cdc codec.BinaryCodec) error {
+func migrateLibrary(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 	oldStore := prefix.NewStore(store, types.LibrariesStoreKey())
 
 	iterator := oldStore.Iterator(nil, nil)

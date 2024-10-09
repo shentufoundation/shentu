@@ -4,10 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-
-	abci "github.com/cometbft/cometbft/abci/types"
+	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,7 +16,6 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/shentufoundation/shentu/v2/x/auth/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/auth/keeper"
 	"github.com/shentufoundation/shentu/v2/x/auth/simulation"
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
@@ -46,7 +42,6 @@ func (AppModuleBasic) Name() string {
 // RegisterLegacyAminoCodec registers the module's types with the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
-	*authtypes.ModuleCdc = *types.ModuleCdc
 }
 
 // RegisterInterfaces registers the module's interfaces and implementations with
@@ -67,18 +62,8 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the auth module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *gwruntime.ServeMux) {
 	cosmosauth.AppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
-}
-
-// GetTxCmd returns the root tx command for the auth module.
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
-}
-
-// GetQueryCmd returns the root query command for the auth module.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cosmosauth.AppModuleBasic{}.GetQueryCmd()
 }
 
 //____________________________________________________________________________
@@ -97,6 +82,10 @@ type AppModule struct {
 	legacySubspace exported.Subspace
 }
 
+func (am AppModule) IsOnePerModuleType() {}
+
+func (am AppModule) IsAppModule() {}
+
 // NewAppModule creates a new AppModule object.
 func NewAppModule(cdc codec.Codec, keeper keeper.Keeper,
 	ak authkeeper.AccountKeeper, bk types.BankKeeper, ck types.CertKeeper,
@@ -112,15 +101,10 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper,
 	}
 }
 
-// RegisterInvariants performs a no-op.
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	am.cosmosAppModule.RegisterInvariants(ir)
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	authtypes.RegisterQueryServer(cfg.QueryServer(), am.authKeeper)
+	authtypes.RegisterQueryServer(cfg.QueryServer(), authkeeper.NewQueryServer(am.authKeeper))
 
 	m := keeper.NewMigrator(am.keeper, cfg.QueryServer(), am.legacySubspace)
 	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
@@ -139,8 +123,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // InitGenesis performs genesis initialization for the auth module. It returns no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.InitGenesis(ctx, cdc, data)
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
+	am.cosmosAppModule.InitGenesis(ctx, cdc, data)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the auth module.
@@ -161,11 +145,12 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for auth module's types.
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	am.cosmosAppModule.RegisterStoreDecoder(sdr)
+
 }
 
 // WeightedOperations returns auth operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper)
+	return nil
 }

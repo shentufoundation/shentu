@@ -110,7 +110,7 @@ func validateTallyParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	quorum, err := sdk.NewDecFromStr(v.Quorum)
+	quorum, err := math.LegacyNewDecFromStr(v.Quorum)
 	if err != nil {
 		return fmt.Errorf("invalid quorum string: %w", err)
 	}
@@ -121,7 +121,7 @@ func validateTallyParams(i interface{}) error {
 		return fmt.Errorf("quorom too large: %s", v)
 	}
 
-	threshold, err := sdk.NewDecFromStr(v.Threshold)
+	threshold, err := math.LegacyNewDecFromStr(v.Threshold)
 	if err != nil {
 		return fmt.Errorf("invalid threshold string: %w", err)
 	}
@@ -132,7 +132,7 @@ func validateTallyParams(i interface{}) error {
 		return fmt.Errorf("vote threshold too large: %s", v)
 	}
 
-	vetoThreshold, err := sdk.NewDecFromStr(v.VetoThreshold)
+	vetoThreshold, err := math.LegacyNewDecFromStr(v.VetoThreshold)
 	if err != nil {
 		return fmt.Errorf("invalid vetoThreshold string: %w", err)
 	}

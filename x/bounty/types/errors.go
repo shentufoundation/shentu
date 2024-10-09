@@ -1,9 +1,5 @@
 package types
 
-import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-)
-
 // Program
 const (
 	errProgramAlreadyExists uint32 = iota + 101

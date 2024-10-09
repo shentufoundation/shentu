@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -17,7 +19,7 @@ func (k Keeper) Tally(ctx sdk.Context, proposal govtypesv1.Proposal) (pass bool,
 
 	results := newResults()
 
-	totalVotingPower := sdk.ZeroDec()
+	totalVotingPower := math.LegacyZeroDec()
 	currValidators := make(map[string]govtypesv1.ValidatorGovInfo)
 
 	// fetches all the bonded validators
@@ -94,33 +96,41 @@ func (k Keeper) Tally(ctx sdk.Context, proposal govtypesv1.Proposal) (pass bool,
 
 // TallyHelper reduces number of arguments passed to passAndVetoStakeResult.
 type TallyHelper struct {
-	totalVotingPower sdk.Dec
+	totalVotingPower math.LegacyDec
 	tallyParams      govtypesv1.TallyParams
-	results          map[govtypesv1.VoteOption]sdk.Dec
+	results          map[govtypesv1.VoteOption]math.LegacyDec
 }
 
-func newResults() map[govtypesv1.VoteOption]sdk.Dec {
-	return map[govtypesv1.VoteOption]sdk.Dec{
-		govtypesv1.OptionYes:        sdk.ZeroDec(),
-		govtypesv1.OptionAbstain:    sdk.ZeroDec(),
-		govtypesv1.OptionNo:         sdk.ZeroDec(),
-		govtypesv1.OptionNoWithVeto: sdk.ZeroDec(),
+func newResults() map[govtypesv1.VoteOption]math.LegacyDec {
+	return map[govtypesv1.VoteOption]math.LegacyDec{
+		govtypesv1.OptionYes:        math.LegacyZeroDec(),
+		govtypesv1.OptionAbstain:    math.LegacyZeroDec(),
+		govtypesv1.OptionNo:         math.LegacyZeroDec(),
+		govtypesv1.OptionNoWithVeto: math.LegacyZeroDec(),
 	}
 }
 
 // fetchBondedValidators fetches all the bonded validators, insert them into currValidators.
-func fetchBondedValidators(ctx sdk.Context, k Keeper, validators map[string]govtypesv1.ValidatorGovInfo) {
-	k.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
-		validators[validator.GetOperator().String()] = govtypesv1.NewValidatorGovInfo(
-			validator.GetOperator(),
+func fetchBondedValidators(ctx sdk.Context, k Keeper, validators map[string]govtypesv1.ValidatorGovInfo) error {
+	err := k.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
+		valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+		if err != nil {
+			return false
+		}
+		validators[validator.GetOperator()] = govtypesv1.NewValidatorGovInfo(
+			valBz,
 			validator.GetBondedTokens(),
 			validator.GetDelegatorShares(),
-			sdk.ZeroDec(),
+			math.LegacyZeroDec(),
 			govtypesv1.WeightedVoteOptions{},
 		)
 
 		return false
 	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func delegatorVoting(ctx sdk.Context, k Keeper, vote govtypesv1.Vote, validators map[string]govtypesv1.ValidatorGovInfo, results map[govtypesv1.VoteOption]sdk.Dec, totalVotingPower *sdk.Dec) {

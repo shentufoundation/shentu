@@ -8,7 +8,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -44,7 +43,7 @@ func (m MsgProposeCertifier) ValidateBasic() error {
 		panic(err)
 	}
 	if certifierAddr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, certifierAddr.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, certifierAddr.String())
 	}
 	return nil
 }
@@ -133,7 +132,7 @@ func (m MsgRevokeCertificate) ValidateBasic() error {
 		panic(err)
 	}
 	if revokerAddr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, revokerAddr.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, revokerAddr.String())
 	}
 	return nil
 }
@@ -186,11 +185,11 @@ func (m MsgCertifyPlatform) ValidateBasic() error {
 		panic(err)
 	}
 	if certifierAddr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
 	}
 
 	if m.ValidatorPubkey == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
 	}
 	return nil
 }

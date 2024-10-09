@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
@@ -32,12 +31,12 @@ func (m MsgUnlock) Type() string { return "unlock" }
 func (m MsgUnlock) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Issuer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err)
 	}
 
 	_, err = sdk.AccAddressFromBech32(m.Account)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid account address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid account address (%s)", err)
 	}
 
 	return nil

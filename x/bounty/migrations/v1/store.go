@@ -1,16 +1,18 @@
 package v1
 
 import (
+	"cosmossdk.io/core/store"
+	"cosmossdk.io/store/prefix"
+
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
-	store := ctx.KVStore(storeKey)
+func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.BinaryCodec) error {
+	store := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
 	findingStore := prefix.NewStore(store, types.FindingKey)
 
 	iter := findingStore.Iterator(nil, nil)
