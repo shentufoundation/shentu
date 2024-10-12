@@ -2,7 +2,6 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -19,7 +18,6 @@ import (
 	"github.com/spf13/cast"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/store/streaming"
 	storetypes "cosmossdk.io/store/types"
 
 	"cosmossdk.io/x/evidence"
@@ -263,41 +261,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
-	ks := []string{
-		authtypes.StoreKey,
-		authzkeeper.StoreKey,
-		sdkbanktypes.StoreKey,
-		stakingtypes.StoreKey,
-		crisistypes.StoreKey,
-		distrtypes.StoreKey,
-		sdkfeegrant.StoreKey,
-		sdkminttypes.StoreKey,
-		slashingtypes.StoreKey,
-		paramstypes.StoreKey,
-		consensusparamtypes.StoreKey,
-		upgradetypes.StoreKey,
-		sdkgovtypes.StoreKey,
-		certtypes.StoreKey,
-		oracletypes.StoreKey,
-		shieldtypes.StoreKey,
-		evidencetypes.StoreKey,
-		ibcexported.StoreKey,
-		ibctransfertypes.StoreKey,
-		icahosttypes.StoreKey,
-		capabilitytypes.StoreKey,
-		bountytypes.StoreKey,
-		group.StoreKey,
-	}
-
-	keys := sdk.NewKVStoreKeys(ks...)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
-	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
-
-	// load state streaming if enabled
-	if _, _, err := streaming.LoadStreamingServices(bApp, appOpts, appCodec, logger, keys); err != nil {
-		fmt.Printf("failed to load state streaming: %s", err)
-		os.Exit(1)
-	}
+	keys, memKeys, tkeys := StoreKeys()
 
 	// initialize application with its store keys
 	var app = &ShentuApp{
@@ -522,7 +486,11 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
-		appCodec, keys[evidencetypes.StoreKey], app.StakingKeeper, app.SlashingKeeper,
+		appCodec,
+		runtime.NewKVStoreService(keys[evidencetypes.StoreKey]),
+		app.StakingKeeper, app.SlashingKeeper,
+		app.AccountKeeper.AddressCodec(),
+		runtime.ProvideCometInfoService(),
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
@@ -535,7 +503,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// NOTE: Any module instantiated in the module manager that is
 	// later modified must be passed by reference here.
 	app.mm = module.NewManager(
-		genutil.NewAppModule(app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
+		genutil.NewAppModule(app.AccountKeeper, app.StakingKeeper, app, encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 		authz.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(sdkbanktypes.ModuleName)),
@@ -543,10 +511,10 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // skip genesis invariant check for now
 		distribution.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, *app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
 		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, *app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName)),
+		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, *app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(sdkminttypes.ModuleName)),
-		upgrade.NewAppModule(app.UpgradeKeeper),
+		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(sdkgovtypes.ModuleName)),
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
@@ -651,7 +619,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
 		distribution.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, *app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
 		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, *app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName)),
+		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, *app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),
 		params.NewAppModule(app.ParamsKeeper),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(sdkminttypes.ModuleName)),
@@ -709,22 +677,21 @@ func (app *ShentuApp) Name() string { return app.BaseApp.Name() }
 
 // PreBlocker updates every pre begin block
 func (app *ShentuApp) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
-	return app.ModuleManager.PreBlock(ctx)
+	return app.mm.PreBlock(ctx)
 }
 
-// BeginBlocker processes application updates at the beginning of each block.
-func (app *ShentuApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	BeginBlockForks(ctx, app)
-	return app.mm.BeginBlock(ctx, req)
+// BeginBlocker application updates every begin block
+func (app *ShentuApp) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
+	return app.mm.BeginBlock(ctx)
 }
 
-// EndBlocker processes application updates at the end of each block.
-func (app *ShentuApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+// EndBlocker application updates every end block
+func (app *ShentuApp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+	return app.mm.EndBlock(ctx)
 }
 
-// InitChainer defines application update at chain initialization
-func (app *ShentuApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+// InitChainer application update at chain initialization
+func (app *ShentuApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	var genesisState GenesisState
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
@@ -856,8 +823,8 @@ func (app *ShentuApp) RegisterTendermintService(clientCtx client.Context) {
 	)
 }
 
-func (app ShentuApp) RegisterNodeService(context client.Context) {
-	nodeservice.RegisterNodeService(context, app.GRPCQueryRouter())
+func (app *ShentuApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
+	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
 // RegisterUpgradeHandlers registers necessary upgrade handlers
@@ -895,4 +862,43 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 
 	return paramsKeeper
+}
+
+// StoreKeys returns all the store keys to register in current app
+func StoreKeys() (
+	map[string]*storetypes.KVStoreKey,
+	map[string]*storetypes.MemoryStoreKey,
+	map[string]*storetypes.TransientStoreKey,
+) {
+	storeKeys := []string{
+		authtypes.StoreKey,
+		authzkeeper.StoreKey,
+		sdkbanktypes.StoreKey,
+		stakingtypes.StoreKey,
+		crisistypes.StoreKey,
+		distrtypes.StoreKey,
+		sdkfeegrant.StoreKey,
+		sdkminttypes.StoreKey,
+		slashingtypes.StoreKey,
+		paramstypes.StoreKey,
+		consensusparamtypes.StoreKey,
+		upgradetypes.StoreKey,
+		sdkgovtypes.StoreKey,
+		certtypes.StoreKey,
+		oracletypes.StoreKey,
+		shieldtypes.StoreKey,
+		evidencetypes.StoreKey,
+		ibcexported.StoreKey,
+		ibctransfertypes.StoreKey,
+		icahosttypes.StoreKey,
+		capabilitytypes.StoreKey,
+		bountytypes.StoreKey,
+		group.StoreKey,
+	}
+
+	keys := storetypes.NewKVStoreKeys(storeKeys...)
+	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
+	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+
+	return keys, memKeys, tkeys
 }

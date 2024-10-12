@@ -5,17 +5,16 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 type (
 	AccountKeeper interface {
-		GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+		GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	}
 
 	BankKeeper interface {
-		SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+		SpendableCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 	}
 
 	StakingKeeper interface {
