@@ -141,9 +141,6 @@ func (k msgServer) CreateTask(goCtx context.Context, msg *types.MsgCreateTask) (
 	if err != nil {
 		return nil, err
 	}
-	if !k.CertKeeper.IsCertifier(ctx, creatorAddr) {
-		return nil, types.ErrUnqualifiedCreator
-	}
 
 	taskParams := k.Keeper.GetTaskParams(ctx)
 	var windowSize int64

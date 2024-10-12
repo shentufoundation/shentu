@@ -62,7 +62,11 @@ func (k Keeper) IterateAllOperators(ctx context.Context, callback func(operator 
 // IsBelowMinCollateral determines if collateral is below the minimum requirement.
 func (k Keeper) IsBelowMinCollateral(ctx context.Context, currentCollateral sdk.Coins) bool {
 	params := k.GetLockedPoolParams(ctx)
-	return currentCollateral.AmountOf(k.stakingKeeper.BondDenom(ctx)).LT(math.NewInt(params.MinimumCollateral))
+	denom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return false
+	}
+	return currentCollateral.AmountOf(denom).LT(math.NewInt(params.MinimumCollateral))
 }
 
 // CreateOperator creates an operator and deposits collateral.
@@ -74,8 +78,12 @@ func (k Keeper) CreateOperator(ctx context.Context, address sdk.AccAddress, coll
 	if k.IsBelowMinCollateral(ctx, collateral) {
 		return types.ErrNoEnoughCollateral
 	}
-	if !k.CertKeeper.IsCertifier(ctx, proposer) {
-		return types.ErrUnqualifiedCreator
+	isCertifier, err := k.CertKeeper.IsCertifier(ctx, proposer)
+	if err != nil {
+		return err
+	}
+	if !isCertifier {
+		return types.ErrUnqualifiedRemover
 	}
 	operator := types.NewOperator(address, proposer, collateral, nil, name)
 	if err = k.SetOperator(ctx, operator); err != nil {
@@ -97,7 +105,11 @@ func (k Keeper) RemoveOperator(ctx context.Context, operatorAddress, proposerAdd
 	if err != nil {
 		return err
 	}
-	if operatorAddress != proposerAddress && !k.CertKeeper.IsCertifier(ctx, proposerAddr) {
+	isCertifier, err := k.CertKeeper.IsCertifier(ctx, proposerAddr)
+	if err != nil {
+		return err
+	}
+	if operatorAddress != proposerAddress && !isCertifier {
 		return types.ErrUnqualifiedRemover
 	}
 

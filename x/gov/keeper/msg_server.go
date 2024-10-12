@@ -385,7 +385,11 @@ func (k legacyMsgServer) Deposit(goCtx context.Context, msg *govtypesv1beta1.Msg
 func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypesv1beta1.MsgSubmitProposal) error {
 	switch c := msg.GetContent().(type) {
 	case *certtypes.CertifierUpdateProposal:
-		if c.Alias != "" && k.CertKeeper.HasCertifierAlias(ctx, c.Alias) {
+		hasAlias, err := k.CertKeeper.HasCertifierAlias(ctx, c.Alias)
+		if err != nil {
+			return err
+		}
+		if c.Alias != "" && hasAlias {
 			return certtypes.ErrRepeatedAlias
 		}
 	default:

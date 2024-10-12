@@ -29,7 +29,7 @@ type CertKeeper interface {
 	//GetAllCertifiers(ctx context.Context) (certifiers certtypes.Certifiers, err error)
 	GetCertifier(ctx context.Context, certifierAddress sdk.AccAddress) (certtypes.Certifier, error)
 	HasCertifierAlias(ctx context.Context, alias string) (bool, error)
-	//IsCertified(ctx context.Context, content string, certType string) bool
+	IsCertified(ctx context.Context, content string, certType string) bool
 	//GetCertifiedIdentities(ctx context.Context) []sdk.AccAddress
 }
 

@@ -36,7 +36,11 @@ func NewKeeper(cdc codec.BinaryCodec, storeService store.KVStoreService, slashin
 
 // CertifyPlatform certifies a validator host platform by a certifier.
 func (k Keeper) CertifyPlatform(ctx context.Context, certifier sdk.AccAddress, validator cryptotypes.PubKey, description string) error {
-	if _, err := k.IsCertifier(ctx, certifier); err != nil {
+	isCertifier, err := k.IsCertifier(ctx, certifier)
+	if err != nil {
+		return err
+	}
+	if !isCertifier {
 		return types.ErrRejectedValidator
 	}
 

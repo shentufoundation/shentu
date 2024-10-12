@@ -19,10 +19,18 @@ func HandleCertifierUpdateProposal(ctx sdk.Context, k Keeper, p *types.Certifier
 
 	switch p.AddOrRemove {
 	case types.Add:
-		if _, err := k.IsCertifier(ctx, certifierAddr); err != nil {
+		isCertifier, err := k.IsCertifier(ctx, certifierAddr)
+		if err != nil {
+			return err
+		}
+		if !isCertifier {
 			return types.ErrCertifierAlreadyExists
 		}
-		if found, _ := k.HasCertifierAlias(ctx, p.Alias); found {
+		found, err := k.HasCertifierAlias(ctx, p.Alias)
+		if err != nil {
+			return err
+		}
+		if found {
 			return types.ErrRepeatedAlias
 		}
 
