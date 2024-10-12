@@ -13,14 +13,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	cosmosauth "github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/shentufoundation/shentu/v2/x/auth/keeper"
 	"github.com/shentufoundation/shentu/v2/x/auth/simulation"
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
-
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 )
 
 var (

@@ -2,94 +2,84 @@ package keeper
 
 import (
 	"context"
+	"time"
 
-	"cosmossdk.io/math"
-
+	"cosmossdk.io/collections"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
-func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govtypesv1.Proposal) {
-	startTime := ctx.BlockHeader().Time
+// ActivateVotingPeriod activates the voting period of a proposal
+func (k Keeper) ActivateVotingPeriod(ctx context.Context, proposal govtypesv1.Proposal) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	startTime := sdkCtx.BlockHeader().Time
 	proposal.VotingStartTime = &startTime
-	votingPeriod := k.GetParams(ctx).VotingPeriod
-	oldVotingEndTime := proposal.VotingEndTime
+	var votingPeriod *time.Duration
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	if proposal.Expedited {
+		votingPeriod = params.ExpeditedVotingPeriod
+	} else {
+		votingPeriod = params.VotingPeriod
+	}
 	endTime := proposal.VotingStartTime.Add(*votingPeriod)
 	proposal.VotingEndTime = &endTime
-	oldDepositEndTime := proposal.DepositEndTime
-
-	// Default case: for plain text proposals, community pool spend proposals;
-	// and second round of software upgrade, certifier update and shield claim
-	// proposals.
-	if k.GetCertifierVoted(ctx, proposal.Id) {
-		k.RemoveFromActiveProposalQueue(ctx, proposal.Id, *oldVotingEndTime)
-	} else {
-		proposal.DepositEndTime = &endTime
-	}
 	proposal.Status = govtypesv1.StatusVotingPeriod
+	err = k.SetProposal(ctx, proposal)
+	if err != nil {
+		return err
+	}
 
-	k.SetProposal(ctx, proposal)
-	k.RemoveFromInactiveProposalQueue(ctx, proposal.Id, *oldDepositEndTime)
-	k.InsertActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
+	err = k.InactiveProposalsQueue.Remove(ctx, collections.Join(*proposal.DepositEndTime, proposal.Id))
+	if err != nil {
+		return err
+	}
+	return k.ActiveProposalsQueue.Set(ctx, collections.Join(*proposal.VotingEndTime, proposal.Id), proposal.Id)
 }
 
 // IsCertifier checks if the input address is a certifier.
 func (k Keeper) IsCertifier(ctx context.Context, addr sdk.AccAddress) (bool, error) {
-	return k.CertKeeper.IsCertifier(ctx, addr)
+	return k.certKeeper.IsCertifier(ctx, addr)
 }
 
-// TotalBondedByCertifiedIdentities calculates the amount of total bonded stakes by certified identities.
-func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) math.Int {
-	bonded := sdk.ZeroInt()
-	for _, identity := range k.CertKeeper.GetCertifiedIdentities(ctx) {
-		k.stakingKeeper.IterateDelegations(ctx, identity, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
-			val, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
-			if !found {
-				return false
-			}
-			bonded = bonded.Add(delegation.GetShares().Quo(val.GetDelegatorShares()).MulInt(val.GetBondedTokens()).TruncateInt())
-			return false
-		})
-	}
-	return bonded
-}
-
-func (k Keeper) CertifierVoteIsRequired(ctx context.Context, proposalID uint64) bool {
+func (k Keeper) CertifierVoteIsRequired(ctx context.Context, proposalID uint64) (bool, error) {
 	proposal, err := k.Proposals.Get(ctx, proposalID)
 	proposalMsgs, err := proposal.GetMsgs()
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	for _, proposalmsg := range proposalMsgs {
 		// upgrade msg need certifier vote
 		if sdk.MsgTypeURL(proposalmsg) == sdk.MsgTypeURL(&upgradetypes.MsgSoftwareUpgrade{}) {
-			return true
+			return true, nil
 		}
 
 		if legacyMsg, ok := proposalmsg.(*govtypesv1.MsgExecLegacyContent); ok {
 			// check that the content struct can be unmarshalled
 			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
 			if err != nil {
-				return false
+				return false, err
 			}
 			switch content.(type) {
 			// nolint
 			case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal:
-				return true
+				return true, nil
 			default:
-				return false
+				return false, nil
 			}
 		}
 	}
 
-	return false
+	return false, nil
 }
 
 // assertMetadataLength returns an error if given metadata length

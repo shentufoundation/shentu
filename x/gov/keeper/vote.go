@@ -2,12 +2,10 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
-	"github.com/cometbft/cometbft/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -41,7 +39,15 @@ func (k Keeper) AddVote(ctx context.Context, proposalID uint64, voterAddr sdk.Ac
 	}
 
 	// Add certifier vote
-	if k.CertifierVoteIsRequired(ctx, proposalID) && !k.GetCertifierVoted(ctx, proposalID) {
+	voted, err := k.GetCertifierVoted(ctx, proposalID)
+	if err != nil {
+		return err
+	}
+	required, err := k.CertifierVoteIsRequired(ctx, proposalID)
+	if err != nil {
+		return err
+	}
+	if required && !voted {
 		return k.AddCertifierVote(ctx, proposalID, voterAddr, options)
 	}
 
@@ -77,31 +83,37 @@ func (keeper Keeper) deleteVotes(ctx context.Context, proposalID uint64) error {
 
 // AddCertifierVote add a certifier vote
 func (k Keeper) AddCertifierVote(ctx context.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypesv1.WeightedVoteOptions) error {
-	if !k.IsCertifier(ctx, voterAddr) {
+	isCertifier, err := k.IsCertifier(ctx, voterAddr)
+	if err != nil {
+		return err
+	}
+	if !isCertifier {
 		return errors.Wrapf(govtypes.ErrInvalidVote, "%s is not a certified identity", voterAddr)
 	}
 
-	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
 	vote := govtypesv1.NewVote(proposalID, voterAddr, options, "")
-	err := k.Votes.Set(ctx, collections.Join(proposalID, voterAddr), vote)
+	err = k.Votes.Set(ctx, collections.Join(proposalID, voterAddr), vote)
 	if err != nil {
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCertVote,
 			sdk.NewAttribute(govtypes.AttributeKeyOption, options.String()),
 			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
 			sdk.NewAttribute(govtypes.AttributeKeyVoter, voterAddr.String()),
-			sdk.NewAttribute(types.AttributeTxHash, txhash),
 		),
 	)
 	return nil
 }
 
-func (k Keeper) SetCertifierVoted(ctx sdk.Context, proposalID uint64) {
-	k.SetCertVote(ctx, proposalID)
+func (k Keeper) SetCertifierVoted(ctx sdk.Context, proposalID uint64) error {
+	err := k.SetCertVote(ctx, proposalID)
+	if err != nil {
+		return err
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -109,17 +121,17 @@ func (k Keeper) SetCertifierVoted(ctx sdk.Context, proposalID uint64) {
 			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
 		),
 	)
+	return nil
 }
 
 // SetCertVote sets a cert vote to the gov store
-func (k Keeper) SetCertVote(ctx context.Context, proposalID uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(typesv1.CertVotesKey(proposalID), govtypes.GetProposalIDBytes(proposalID))
+func (k Keeper) SetCertVote(ctx context.Context, proposalID uint64) error {
+	store := k.storeService.OpenKVStore(ctx)
+	return store.Set(typesv1.CertVotesKey(proposalID), typesv1.GetProposalIDBytes(proposalID))
 }
 
 // GetCertifierVoted determine cert vote for custom proposal types have finished
-func (k Keeper) GetCertifierVoted(ctx context.Context, proposalID uint64) bool {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(typesv1.CertVotesKey(proposalID))
-	return bz != nil
+func (k Keeper) GetCertifierVoted(ctx context.Context, proposalID uint64) (bool, error) {
+	store := k.storeService.OpenKVStore(ctx)
+	return store.Has(typesv1.CertVotesKey(proposalID))
 }

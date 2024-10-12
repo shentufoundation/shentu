@@ -1,12 +1,12 @@
 package v1
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
@@ -161,5 +161,12 @@ func validateVotingParams(i interface{}) error {
 
 // CertVotesKey gets the first part of the cert votes key based on the proposalID
 func CertVotesKey(proposalID uint64) []byte {
-	return append(CertVotesKeyPrefix, govtypes.GetProposalIDBytes(proposalID)...)
+	return append(CertVotesKeyPrefix, GetProposalIDBytes(proposalID)...)
+}
+
+// GetProposalIDBytes returns the byte representation of the proposalID
+func GetProposalIDBytes(proposalID uint64) (proposalIDBz []byte) {
+	proposalIDBz = make([]byte, 8)
+	binary.BigEndian.PutUint64(proposalIDBz, proposalID)
+	return
 }

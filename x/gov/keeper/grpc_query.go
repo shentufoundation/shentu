@@ -3,18 +3,72 @@ package keeper
 import (
 	"context"
 
-	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
+	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
-var _ typesv1.QueryServer = Keeper{}
+var _ typesv1.QueryServer = queryServer{}
+
+type queryServer struct{ k *Keeper }
+
+func NewQueryServer(k *Keeper) typesv1.QueryServer {
+	return queryServer{k: k}
+}
+
+func (q queryServer) Constitution(ctx context.Context, request *govtypesv1.QueryConstitutionRequest) (*govtypesv1.QueryConstitutionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q queryServer) Proposal(ctx context.Context, request *govtypesv1.QueryProposalRequest) (*govtypesv1.QueryProposalResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q queryServer) Proposals(ctx context.Context, request *govtypesv1.QueryProposalsRequest) (*govtypesv1.QueryProposalsResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q queryServer) Vote(ctx context.Context, request *govtypesv1.QueryVoteRequest) (*govtypesv1.QueryVoteResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q queryServer) Votes(ctx context.Context, request *govtypesv1.QueryVotesRequest) (*govtypesv1.QueryVotesResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q queryServer) Params(ctx context.Context, request *govtypesv1.QueryParamsRequest) (*typesv1.QueryParamsResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q queryServer) Deposit(ctx context.Context, request *govtypesv1.QueryDepositRequest) (*govtypesv1.QueryDepositResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q queryServer) Deposits(ctx context.Context, request *govtypesv1.QueryDepositsRequest) (*govtypesv1.QueryDepositsResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q queryServer) TallyResult(ctx context.Context, request *govtypesv1.QueryTallyResultRequest) (*govtypesv1.QueryTallyResultResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
 
 // CertVoted returns certifier voting
-func (k Keeper) CertVoted(c context.Context, req *typesv1.QueryCertVotedRequest) (*typesv1.QueryCertVotedResponse, error) {
+func (q queryServer) CertVoted(c context.Context, req *typesv1.QueryCertVotedRequest) (*typesv1.QueryCertVotedResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	voted := k.GetCertifierVoted(ctx, req.ProposalId)
-
+	voted, err := q.k.GetCertifierVoted(ctx, req.ProposalId)
+	if err != nil {
+		return nil, err
+	}
 	return &typesv1.QueryCertVotedResponse{CertVoted: voted}, nil
 }
 

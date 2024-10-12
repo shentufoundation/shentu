@@ -24,7 +24,7 @@ type Keeper struct {
 	stakingKeeper types.StakingKeeper
 
 	// the reference to get information about certifiers
-	CertKeeper types.CertKeeper
+	certKeeper types.CertKeeper
 
 	// the (unexposed) keys used to access the stores from the Context
 	storeService store.KVStoreService
@@ -62,7 +62,7 @@ func NewKeeper(
 		authKeeper:    authKeeper,
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
-		CertKeeper:    certKeeper,
+		certKeeper:    certKeeper,
 		storeService:  storeService,
 		cdc:           cdc,
 		legacyRouter:  legacyRouter,

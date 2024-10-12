@@ -29,6 +29,7 @@ func NewMsgServerImpl(keeper Keeper) govtypesv1.MsgServer {
 
 var _ govtypesv1.MsgServer = msgServer{}
 
+// SubmitProposal implements the MsgServer.SubmitProposal method.
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubmitProposal) (*govtypesv1.MsgSubmitProposalResponse, error) {
 	if msg.Title == "" {
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proposal title cannot be empty")
@@ -101,7 +102,6 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubm
 		"submit proposal",
 	)
 
-	// Skip deposit period for proposals from certifier memebers or shield claim proposals.
 	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.Id, proposer, msg.GetInitialDeposit())
 	if err != nil {
 		return nil, err
@@ -120,6 +120,34 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubm
 	}, nil
 }
 
+// CancelProposal implements the MsgServer.CancelProposal method.
+func (k msgServer) CancelProposal(goCtx context.Context, msg *govtypesv1.MsgCancelProposal) (*govtypesv1.MsgCancelProposalResponse, error) {
+	_, err := k.authKeeper.AddressCodec().StringToBytes(msg.Proposer)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := k.Keeper.CancelProposal(ctx, msg.ProposalId, msg.Proposer); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			govtypes.EventTypeCancelProposal,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Proposer),
+			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprint(msg.ProposalId)),
+		),
+	)
+
+	return &govtypesv1.MsgCancelProposalResponse{
+		ProposalId:     msg.ProposalId,
+		CanceledTime:   ctx.BlockTime(),
+		CanceledHeight: uint64(ctx.BlockHeight()),
+	}, nil
+}
+
+// ExecLegacyContent implements the MsgServer.ExecLegacyContent method.
 func (k msgServer) ExecLegacyContent(goCtx context.Context, msg *govtypesv1.MsgExecLegacyContent) (*govtypesv1.MsgExecLegacyContentResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -254,32 +282,6 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *govtypesv1.MsgUpdate
 	return &govtypesv1.MsgUpdateParamsResponse{}, nil
 }
 
-func (k msgServer) CancelProposal(goCtx context.Context, msg *govtypesv1.MsgCancelProposal) (*govtypesv1.MsgCancelProposalResponse, error) {
-	_, err := k.authKeeper.AddressCodec().StringToBytes(msg.Proposer)
-	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
-	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := k.Keeper.CancelProposal(ctx, msg.ProposalId, msg.Proposer); err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			govtypes.EventTypeCancelProposal,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Proposer),
-			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprint(msg.ProposalId)),
-		),
-	)
-
-	return &govtypesv1.MsgCancelProposalResponse{
-		ProposalId:     msg.ProposalId,
-		CanceledTime:   ctx.BlockTime(),
-		CanceledHeight: uint64(ctx.BlockHeight()),
-	}, nil
-}
-
 type legacyMsgServer struct {
 	govAcct string
 	server  govtypesv1.MsgServer
@@ -385,7 +387,7 @@ func (k legacyMsgServer) Deposit(goCtx context.Context, msg *govtypesv1beta1.Msg
 func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypesv1beta1.MsgSubmitProposal) error {
 	switch c := msg.GetContent().(type) {
 	case *certtypes.CertifierUpdateProposal:
-		hasAlias, err := k.CertKeeper.HasCertifierAlias(ctx, c.Alias)
+		hasAlias, err := k.certKeeper.HasCertifierAlias(ctx, c.Alias)
 		if err != nil {
 			return err
 		}
