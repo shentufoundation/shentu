@@ -19,7 +19,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
-	"github.com/shentufoundation/shentu/v2/x/bank/simulation"
 	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
 
@@ -142,5 +141,6 @@ func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
+	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
+	return nil
 }
