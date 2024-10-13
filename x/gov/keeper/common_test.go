@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -23,7 +25,7 @@ func getTestProposal() []sdk.Msg {
 	}
 
 	return []sdk.Msg{
-		banktypes.NewMsgSend(govAcct, addr, sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(1000)))),
+		banktypes.NewMsgSend(govAcct, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1000)))),
 		legacyProposalMsg,
 	}
 }

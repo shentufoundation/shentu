@@ -19,7 +19,6 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
-	"github.com/shentufoundation/shentu/v2/x/oracle/simulation"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
@@ -167,12 +166,12 @@ func (am AppModule) EndBlock(ctx context.Context) error {
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
+	//simulation.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for oracle module.
 func (am AppModuleBasic) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+	//sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns oracle operations for use in simulations.

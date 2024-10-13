@@ -27,7 +27,6 @@ import (
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
@@ -227,7 +226,7 @@ func (am AppModule) EndBlock(ctx context.Context) error {
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
+	//simulation.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for gov module.

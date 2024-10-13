@@ -1,33 +1,30 @@
 package cmd
 
 import (
-	"context"
 	"io"
 	"os"
 	"path/filepath"
 
-	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/rs/zerolog"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/snapshots"
+	snapshottypes "cosmossdk.io/store/snapshots/types"
+	storetypes "cosmossdk.io/store/types"
+
 	tmcmds "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
+	tmtypes "github.com/cometbft/cometbft/types"
 
-	"cosmossdk.io/store"
-
-	"cosmossdk.io/store/snapshots"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
-
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -36,12 +33,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingcli "github.com/cosmos/cosmos-sdk/x/auth/vesting/client/cli"
-	sdkbankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/app/params"
@@ -129,45 +122,21 @@ func initAppConfig() (string, interface{}) {
 	return AppTemplate, CustomAppConfig{*srvCfg}
 }
 
-// Execute executes the root command of an application. It handles creating a
-// server context object with the appropriate server and client objects injected
-// into the underlying stdlib Context. It also handles adding core CLI flags,
-// specifically the logging flags. It returns an error upon execution failure.
-func Execute(rootCmd *cobra.Command, defaultHome string) error {
-	// Create and set a client.Context on the command's Context. During the pre-run
-	// of the root command, a default initialized client.Context is provided to
-	// seed child command execution with values such as AccountRetriver, Keyring,
-	// and a Tendermint RPC. This requires the use of a pointer reference when
-	// getting and setting the client.Context. Ideally, we utilize
-	// https://github.com/spf13/cobra/pull/1118.
-	srvCtx := server.NewDefaultContext()
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, client.ClientContextKey, &client.Context{})
-	ctx = context.WithValue(ctx, server.ServerContextKey, srvCtx)
-
-	rootCmd.PersistentFlags().String(flags.FlagLogLevel, zerolog.InfoLevel.String(), "The logging level (trace|debug|info|warn|error|fatal|panic)")
-	rootCmd.PersistentFlags().String(flags.FlagLogFormat, tmcfg.LogFormatPlain, "The logging format (json|plain)")
-
-	executor := tmcli.PrepareBaseCmd(rootCmd, "", defaultHome)
-	return executor.ExecuteContext(ctx)
-}
-
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, genutiltypes.DefaultMessageValidator),
-		genutilcli.MigrateGenesisCmd(),
-		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		//genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, genutiltypes.DefaultMessageValidator),
+		//genutilcli.MigrateGenesisCmd(),
+		//genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		AddGenesisCertifierCmd(app.DefaultNodeHome),
 		AddGenesisShieldAdminCmd(app.DefaultNodeHome),
-		RotateValKeysCmd(),
+		//RotateValKeysCmd(),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		//testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		tmcmds.RollbackStateCmd,
 		debug.Cmd(),
-		config.Cmd(),
 	)
 
 	rootCmd.Flags().StringP(shentuinit.DocFlag, shentuinit.DocFlagAbbr, "", shentuinit.DocFlagUsage)
@@ -176,10 +145,10 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		//rpc.StatusCommand(),
 		queryCommand(),
 		txCommand(),
-		keys.Commands(app.DefaultNodeHome),
+		//keys.Commands(app.DefaultNodeHome),
 	)
 
 	// add rosetta
@@ -195,21 +164,20 @@ func queryCommand() *cobra.Command {
 		Use:                        "query",
 		Aliases:                    []string{"q"},
 		Short:                      "Querying subcommands",
-		DisableFlagParsing:         true,
+		DisableFlagParsing:         false,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
 	cmd.AddCommand(
-		sdkauthcli.GetAccountCmd(),
+		rpc.QueryEventForTxCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		server.QueryBlockCmd(),
+		server.QueryBlocksCmd(),
+		server.QueryBlockResultsCmd(),
 		sdkauthcli.QueryTxsByEventsCmd(),
 		sdkauthcli.QueryTxCmd(),
 	)
-
-	app.ModuleBasics.AddQueryCommands(cmd)
-	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
@@ -218,14 +186,14 @@ func txCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
-		DisableFlagParsing:         true,
+		DisableFlagParsing:         false,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
 	cmd.AddCommand(
 		bankcli.LockedSendTxCmd(),
-		sdkbankcli.NewSendTxCmd(),
+		//sdkbankcli.NewSendTxCmd(),
 		flags.LineBreak,
 		sdkauthcli.GetSignCommand(),
 		sdkauthcli.GetSignBatchCommand(),
@@ -236,7 +204,7 @@ func txCommand() *cobra.Command {
 		sdkauthcli.GetDecodeCommand(),
 		authcli.GetCmdUnlock(),
 		flags.LineBreak,
-		vestingcli.GetTxCmd(),
+		//vestingcli.GetTxCmd(),
 		flags.LineBreak,
 		flags.LineBreak,
 	)
@@ -248,7 +216,7 @@ func txCommand() *cobra.Command {
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
-	var cache sdk.MultiStorePersistentCache
+	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
 		cache = store.NewCommitKVStoreCacheManager()

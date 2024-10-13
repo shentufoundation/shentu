@@ -62,7 +62,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	platforms := k.GetAllPlatforms(ctx)
 	certificates := k.GetAllCertificates(ctx)
 	libraries := k.GetAllLibraries(ctx)
-	nextCertificateID := k.GetNextCertificateID(ctx)
+	nextCertificateID, _ := k.GetNextCertificateID(ctx)
 
 	return &types.GenesisState{
 		Certifiers:        certifiers,
