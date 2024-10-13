@@ -55,6 +55,29 @@ import (
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	sdkbanktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	appparams "github.com/shentufoundation/shentu/v2/app/params"
+	"github.com/shentufoundation/shentu/v2/x/auth"
+	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bank"
+	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bounty"
+	bountykeeper "github.com/shentufoundation/shentu/v2/x/bounty/keeper"
+	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
+	"github.com/shentufoundation/shentu/v2/x/cert"
+	certclient "github.com/shentufoundation/shentu/v2/x/cert/client"
+	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/gov"
+	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	"github.com/shentufoundation/shentu/v2/x/mint"
+	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
+	"github.com/shentufoundation/shentu/v2/x/oracle"
+	oraclekeeper "github.com/shentufoundation/shentu/v2/x/oracle/keeper"
+	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/shield"
+	shieldkeeper "github.com/shentufoundation/shentu/v2/x/shield/keeper"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
+
 	consensus "github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
@@ -84,31 +107,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-
-	appparams "github.com/shentufoundation/shentu/v2/app/params"
-	"github.com/shentufoundation/shentu/v2/x/auth"
-	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
-	"github.com/shentufoundation/shentu/v2/x/bank"
-	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
-	"github.com/shentufoundation/shentu/v2/x/bounty"
-	bountykeeper "github.com/shentufoundation/shentu/v2/x/bounty/keeper"
-	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
-	"github.com/shentufoundation/shentu/v2/x/cert"
-	certclient "github.com/shentufoundation/shentu/v2/x/cert/client"
-	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	"github.com/shentufoundation/shentu/v2/x/gov"
-	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	"github.com/shentufoundation/shentu/v2/x/mint"
-	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
-	"github.com/shentufoundation/shentu/v2/x/oracle"
-	oraclekeeper "github.com/shentufoundation/shentu/v2/x/oracle/keeper"
-	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
-	"github.com/shentufoundation/shentu/v2/x/shield"
-	shieldkeeper "github.com/shentufoundation/shentu/v2/x/shield/keeper"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -137,42 +135,6 @@ const (
 var (
 	// DefaultNodeHome specifies where the node daemon data is stored.
 	DefaultNodeHome = os.ExpandEnv("$HOME/.shentud")
-
-	// ModuleBasics is in charge of setting up basic, non-dependant module
-	// elements, such as codec registration and genesis verification.
-	ModuleBasics = module.NewBasicManager(
-		genutil.AppModuleBasic{},
-		auth.AppModuleBasic{},
-		authz.AppModuleBasic{},
-		bank.AppModuleBasic{},
-		capability.AppModuleBasic{},
-		crisis.AppModuleBasic{},
-		staking.AppModuleBasic{},
-		mint.AppModuleBasic{},
-		distribution.AppModuleBasic{},
-		feegrant.AppModuleBasic{},
-		gov.NewAppModuleBasic(
-			[]govclient.ProposalHandler{
-				paramsclient.ProposalHandler,
-				certclient.LegacyProposalHandler,
-			},
-		),
-		groupmodule.AppModuleBasic{},
-		params.AppModuleBasic{},
-		slashing.AppModuleBasic{},
-		upgrade.AppModuleBasic{},
-		cert.NewAppModuleBasic(),
-		oracle.NewAppModuleBasic(),
-		shield.NewAppModuleBasic(),
-		evidence.AppModuleBasic{},
-		ibc.AppModuleBasic{},
-		ibctm.AppModuleBasic{},
-		solomachine.AppModuleBasic{},
-		transfer.AppModuleBasic{},
-		ica.AppModuleBasic{},
-		bounty.AppModuleBasic{},
-		consensus.AppModuleBasic{},
-	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
@@ -240,7 +202,8 @@ type ShentuApp struct {
 	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
 
 	// module manager
-	mm *module.Manager
+	mm                 *module.Manager
+	BasicModuleManager module.BasicManager
 
 	// simulation manager
 	sm           *module.SimulationManager
@@ -529,6 +492,24 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	)
 
+	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
+	// non-dependant module elements, such as codec registration and genesis verification.
+	// By default it is composed of all the module from the module manager.
+	// Additionally, app module basics can be overwritten by passing them as argument.
+	app.BasicModuleManager = module.NewBasicManagerFromManager(
+		app.mm,
+		map[string]module.AppModuleBasic{
+			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+			sdkgovtypes.ModuleName: gov.NewAppModuleBasic(
+				[]govclient.ProposalHandler{
+					paramsclient.ProposalHandler,
+					certclient.LegacyProposalHandler,
+				},
+			),
+		})
+	app.BasicModuleManager.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
+
 	app.mm.SetOrderPreBlockers(
 		upgradetypes.ModuleName,
 	)
@@ -798,9 +779,6 @@ func (app *ShentuApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 
 	// Register node gRPC service for grpc-gateway.
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
-	// Register grpc-gateway routes for all modules.
-	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
