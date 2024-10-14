@@ -23,7 +23,6 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/mint/keeper"
 	"github.com/shentufoundation/shentu/v2/x/mint/types"
-	"github.com/shentufoundation/shentu/v2/x/oracle/simulation"
 )
 
 const ConsensusVersion = 2
@@ -162,7 +161,7 @@ func (am AppModule) BeginBlock(ctx context.Context) error {
 
 // GenerateGenesisState creates a randomized GenState of the mint module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
+	//simulation.RandomizedGenState(simState)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
@@ -172,7 +171,7 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 
 // RegisterStoreDecoder registers a decoder for mint module's types.
 func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	sdr[minttypes.StoreKey] = simulation.NewDecodeStore(am.cdc)
+	//sdr[minttypes.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations doesn't return any mint module operation.

@@ -49,22 +49,22 @@ func (k Keeper) SendToCommunityPool(ctx context.Context, amount sdk.Coins) error
 
 // GetCommunityPoolRatio returns the current ratio of the community pool compared to the total supply.
 func (k Keeper) GetCommunityPoolRatio(ctx context.Context) (math.LegacyDec, error) {
-	communityPool := k.dk.GetFeePool(ctx).CommunityPool
-	for _, coin := range communityPool {
-		denom, err := k.stakingKeeper.BondDenom(ctx)
-		if err != nil {
-			return math.LegacyDec{}, err
-		}
-		supply, err := k.StakingTokenSupply(ctx)
-		if err != nil {
-			return math.LegacyZeroDec(), err
-		}
-		totalBondedTokensDec := math.LegacyNewDecFromInt(supply)
-		if coin.Denom == denom {
-			ratio := coin.Amount.Quo(totalBondedTokensDec)
-			return ratio, nil
-		}
-	}
+	//communityPool := k.dk.GetFeePool(ctx).CommunityPool
+	//for _, coin := range communityPool {
+	//	denom, err := k.stakingKeeper.BondDenom(ctx)
+	//	if err != nil {
+	//		return math.LegacyDec{}, err
+	//	}
+	//	supply, err := k.StakingTokenSupply(ctx)
+	//	if err != nil {
+	//		return math.LegacyZeroDec(), err
+	//	}
+	//	totalBondedTokensDec := math.LegacyNewDecFromInt(supply)
+	//	if coin.Denom == denom {
+	//		ratio := coin.Amount.Quo(totalBondedTokensDec)
+	//		return ratio, nil
+	//	}
+	//}
 	return math.LegacyZeroDec(), nil
 }
 
