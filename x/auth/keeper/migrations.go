@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	v5 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v5"
 	"github.com/cosmos/gogoproto/grpc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,14 +13,20 @@ import (
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
+	authkeeper.AccountKeeper
 	keeper         Keeper
 	queryServer    grpc.Server
 	legacySubspace exported.Subspace
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper, queryServer grpc.Server, ss exported.Subspace) Migrator {
-	return Migrator{keeper: keeper, queryServer: queryServer, legacySubspace: ss}
+func NewMigrator(am authkeeper.AccountKeeper, keeper Keeper, queryServer grpc.Server, ss exported.Subspace) Migrator {
+	return Migrator{
+		AccountKeeper:  am,
+		keeper:         keeper,
+		queryServer:    queryServer,
+		legacySubspace: ss,
+	}
 }
 
 // Migrate1to2 migrates from version 1 to 2.
@@ -75,4 +83,11 @@ func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 // module state.
 func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 	return v4.Migrate(ctx, m.keeper.storeService, m.legacySubspace, m.keeper.cdc)
+}
+
+// Migrate4To5 migrates the x/auth module state from the consensus version 4 to 5.
+// It migrates the GlobalAccountNumber from being a protobuf defined value to a
+// big-endian encoded uint64, it also migrates it to use a more canonical prefix.
+func (m Migrator) Migrate4To5(ctx sdk.Context) error {
+	return v5.Migrate(ctx, m.keeper.storeService, m.AccountKeeper.AccountNumber)
 }
