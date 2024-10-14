@@ -45,15 +45,16 @@ const EnvPrefix = "SHENTU"
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
 func NewRootCmd() *cobra.Command {
-	tempApp := app.NewShentuApp(
-		log.NewNopLogger(), dbm.NewMemDB(), nil, true,
-		simtestutil.NewAppOptionsWithFlagHome(app.DefaultNodeHome),
-	)
 	cfg := sdk.GetConfig()
 	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
 	cfg.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
 	cfg.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
 	cfg.Seal()
+
+	tempApp := app.NewShentuApp(
+		log.NewNopLogger(), dbm.NewMemDB(), nil, true,
+		simtestutil.NewAppOptionsWithFlagHome(app.DefaultNodeHome),
+	)
 
 	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
@@ -135,12 +136,6 @@ func initAppConfig() (string, interface{}) {
 }
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, basicManager module.BasicManager) {
-	//cfg := sdk.GetConfig()
-	//cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
-	//cfg.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
-	//cfg.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
-	//cfg.Seal()
-
 	initCmd := genutilcli.InitCmd(basicManager, app.DefaultNodeHome)
 
 	rootCmd.AddCommand(
