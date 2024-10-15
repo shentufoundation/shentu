@@ -41,7 +41,7 @@ func NewShentuAppWithCustomOptions(t *testing.T, isCheckTx bool, options simapp.
 
 	shentuApp := NewShentuApp(options.Logger, options.DB, nil, true, options.AppOpts)
 	genesisState := shentuApp.DefaultGenesis()
-	genesisState, err = simtestutil.GenesisStateWithValSet(shentuApp.Codec(), genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
+	genesisState, err = simtestutil.GenesisStateWithValSet(shentuApp.AppCodec(), genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
 	require.NoError(t, err)
 
 	if !isCheckTx {

@@ -292,7 +292,6 @@ func SecurityTally(ctx context.Context, k Keeper, proposal govtypesv1.Proposal) 
 		if len(vote.Options) != 1 {
 			continue
 		}
-
 		results[vote.Options[0].Option] = results[vote.Options[0].Option].Add(math.LegacyNewDec(1))
 		totalHeadCounts = totalHeadCounts.Add(math.LegacyNewDec(1))
 	}
@@ -328,7 +327,6 @@ func SecurityTally(ctx context.Context, k Keeper, proposal govtypesv1.Proposal) 
 			if content.ProposalType() == certtypes.ProposalTypeCertifierUpdate {
 				isCertifierUpdateProposal = true
 			}
-
 		}
 	}
 

@@ -384,6 +384,14 @@ func (k legacyMsgServer) Deposit(goCtx context.Context, msg *govtypesv1beta1.Msg
 	return &govtypesv1beta1.MsgDepositResponse{}, nil
 }
 
+// validateDeposit validates the deposit amount, do not use for initial deposit.
+func validateDeposit(amount sdk.Coins) error {
+	if !amount.IsValid() || !amount.IsAllPositive() {
+		return sdkerrors.ErrInvalidCoins.Wrap(amount.String())
+	}
+	return nil
+}
+
 func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypesv1beta1.MsgSubmitProposal) error {
 	switch c := msg.GetContent().(type) {
 	case *certtypes.CertifierUpdateProposal:
@@ -397,14 +405,5 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypesv1beta1.MsgS
 	default:
 		return nil
 	}
-	return nil
-}
-
-// validateDeposit validates the deposit amount, do not use for initial deposit.
-func validateDeposit(amount sdk.Coins) error {
-	if !amount.IsValid() || !amount.IsAllPositive() {
-		return sdkerrors.ErrInvalidCoins.Wrap(amount.String())
-	}
-
 	return nil
 }

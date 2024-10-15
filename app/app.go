@@ -56,30 +56,7 @@ import (
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	sdkbanktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/shentufoundation/shentu/v2/x/auth"
-	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
-	"github.com/shentufoundation/shentu/v2/x/bank"
-	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
-	"github.com/shentufoundation/shentu/v2/x/bounty"
-	bountykeeper "github.com/shentufoundation/shentu/v2/x/bounty/keeper"
-	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
-	"github.com/shentufoundation/shentu/v2/x/cert"
-	certclient "github.com/shentufoundation/shentu/v2/x/cert/client"
-	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	"github.com/shentufoundation/shentu/v2/x/gov"
-	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	"github.com/shentufoundation/shentu/v2/x/mint"
-	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
-	"github.com/shentufoundation/shentu/v2/x/oracle"
-	oraclekeeper "github.com/shentufoundation/shentu/v2/x/oracle/keeper"
-	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
-	"github.com/shentufoundation/shentu/v2/x/shield"
-	shieldkeeper "github.com/shentufoundation/shentu/v2/x/shield/keeper"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
-
-	consensus "github.com/cosmos/cosmos-sdk/x/consensus"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
@@ -108,12 +85,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-
-	// ibc-go imports
 	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
 	icahost "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host"
 	icahostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
@@ -130,6 +104,28 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+
+	"github.com/shentufoundation/shentu/v2/x/auth"
+	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bank"
+	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bounty"
+	bountykeeper "github.com/shentufoundation/shentu/v2/x/bounty/keeper"
+	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
+	"github.com/shentufoundation/shentu/v2/x/cert"
+	certclient "github.com/shentufoundation/shentu/v2/x/cert/client"
+	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/gov"
+	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	"github.com/shentufoundation/shentu/v2/x/mint"
+	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
+	"github.com/shentufoundation/shentu/v2/x/oracle"
+	oraclekeeper "github.com/shentufoundation/shentu/v2/x/oracle/keeper"
+	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/shield"
+	shieldkeeper "github.com/shentufoundation/shentu/v2/x/shield/keeper"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 const (
@@ -537,7 +533,7 @@ func NewShentuApp(
 				},
 			),
 		})
-	app.BasicModuleManager.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
 
 	app.mm.SetOrderPreBlockers(
@@ -736,9 +732,6 @@ func (app *ShentuApp) BlockedAddrs() map[string]bool {
 		blockedAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
-	// allow the following addresses to receive funds
-	delete(blockedAddrs, authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String())
-
 	return blockedAddrs
 }
 
@@ -758,14 +751,21 @@ func (app *ShentuApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	return subspace
 }
 
-// Codec returns app.legacyAmino.
-func (app *ShentuApp) Codec() codec.Codec {
+// AppCodec returns Chain's app codec.
+//
+// NOTE: This is solely to be used for testing purposes as it may be desirable
+// for modules to register their own custom testing types.
+func (app *ShentuApp) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
 // InterfaceRegistry returns the app's InterfaceRegistry
 func (app *ShentuApp) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
+}
+
+func (app *ShentuApp) TxConfig() client.TxConfig {
+	return app.txConfig
 }
 
 // AutoCliOpts returns the autocli options for the app.

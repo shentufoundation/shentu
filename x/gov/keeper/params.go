@@ -3,6 +3,10 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/errors"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
@@ -25,7 +29,7 @@ func (k Keeper) GetCustomParams(ctx context.Context) (customParams typesv1.Custo
 		return customParams, err
 	}
 	if bz == nil {
-		return customParams, nil
+		return customParams, errors.Wrapf(sdkerrors.ErrInvalidAddress, "customParams does not exist")
 	}
 
 	k.cdc.MustUnmarshal(bz, &customParams)

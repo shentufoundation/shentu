@@ -16,6 +16,31 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 )
 
+// EndBlocker called every block, process inflation, update validator set.
+// proposals and deletes/refunds deposits.
+func EndBlocker(ctx sdk.Context, k keeper.Keeper) error {
+	logger := ctx.Logger().With("module", "x/"+govtypes.ModuleName)
+
+	// delete dead proposals from store and returns theirs deposits.
+	// A proposal is dead when it's inactive and didn't get enough deposit on time to get into voting phase.
+	if err := removeInactiveProposals(ctx, &k, logger); err != nil {
+		return err
+	}
+
+	// fetch active proposals whose voting periods have ended (are passed the block time)
+	if err := processActiveProposal(ctx, &k, logger); err != nil {
+		return err
+	}
+
+	//// Iterate over all active proposals, regardless of end time, so that
+	//// security voting can end as soon as a passing threshold is met.
+	if err := processSecurityVote(ctx, &k, logger); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func removeInactiveProposals(ctx sdk.Context, k *keeper.Keeper, logger log.Logger) error {
 	rng := collections.NewPrefixUntilPairRange[time.Time, uint64](ctx.BlockTime())
 	err := k.InactiveProposalsQueue.Walk(ctx, rng, func(key collections.Pair[time.Time, uint64], _ uint64) (bool, error) {
@@ -57,7 +82,24 @@ func removeInactiveProposals(ctx sdk.Context, k *keeper.Keeper, logger log.Logge
 			return false, err
 		}
 
-		return true, nil
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				govtypes.EventTypeInactiveProposal,
+				sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
+				sdk.NewAttribute(govtypes.AttributeKeyProposalResult, govtypes.AttributeValueProposalDropped),
+			),
+		)
+
+		logger.Info(
+			"proposal did not meet minimum deposit; deleted",
+			"proposal", proposal.Id,
+			"expedited", proposal.Expedited,
+			"title", proposal.Title,
+			"min_deposit", sdk.NewCoins(proposal.GetMinDepositFromParams(params)...).String(),
+			"total_deposit", sdk.NewCoins(proposal.TotalDeposit...).String(),
+		)
+
+		return false, nil
 	})
 
 	if err != nil {
@@ -67,52 +109,6 @@ func removeInactiveProposals(ctx sdk.Context, k *keeper.Keeper, logger log.Logge
 	return nil
 }
 
-// failUnsupportedProposal fails a proposal that cannot be processed by gov
-func failUnsupportedProposal(
-	logger log.Logger,
-	ctx sdk.Context,
-	keeper *keeper.Keeper,
-	proposal govtypesv1.Proposal,
-	errMsg string,
-	active bool,
-) error {
-	proposal.Status = govtypesv1.StatusFailed
-	proposal.FailedReason = fmt.Sprintf("proposal failed because it cannot be processed by gov: %s", errMsg)
-	proposal.Messages = nil // clear out the messages
-
-	if err := keeper.SetProposal(ctx, proposal); err != nil {
-		return err
-	}
-
-	if err := keeper.RefundAndDeleteDeposits(ctx, proposal.Id); err != nil {
-		return err
-	}
-
-	eventType := govtypes.EventTypeInactiveProposal
-	if active {
-		eventType = govtypes.EventTypeActiveProposal
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			eventType,
-			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
-			sdk.NewAttribute(govtypes.AttributeKeyProposalResult, govtypes.AttributeValueProposalFailed),
-		),
-	)
-
-	logger.Info(
-		"proposal failed to decode; deleted",
-		"proposal", proposal.Id,
-		"expedited", proposal.Expedited,
-		"title", proposal.Title,
-		"results", errMsg,
-	)
-
-	return nil
-}
-
-// fetch active proposals whose voting periods have ended (are passed the block time)
 func processActiveProposal(ctx sdk.Context, k *keeper.Keeper, logger log.Logger) error {
 	var (
 		tagValue, logMsg     string
@@ -153,17 +149,20 @@ func processActiveProposal(ctx sdk.Context, k *keeper.Keeper, logger log.Logger)
 			}
 			if !certifierVoted {
 				var endVoting bool
-				passes, endVoting, tallyResults = keeper.SecurityTally(ctx, *k, proposal)
+				_, endVoting, tallyResults = keeper.SecurityTally(ctx, *k, proposal)
 				if !endVoting {
 					// Skip the rest of this iteration, because the proposal needs to go
 					// through the validator voting period now.
-					err := k.SetCertifierVoted(ctx, proposal.Id)
+					err = k.SetCertifierVoted(ctx, proposal.Id)
 					if err != nil {
 						return false, err
 					}
-					//k.VotesDeleteAllVotes(ctx, proposal.Id)
-					return true, nil
+					err = k.DeleteVotes(ctx, proposal.Id)
+					if err != nil {
+						return false, err
+					}
 				}
+				return true, nil
 			}
 		}
 
@@ -306,6 +305,137 @@ func processActiveProposal(ctx sdk.Context, k *keeper.Keeper, logger log.Logger)
 	return nil
 }
 
+func processSecurityVote(ctx sdk.Context, k *keeper.Keeper, logger log.Logger) error {
+	var (
+		tagValue, logMsg string
+		passes           bool
+		tallyResults     govtypesv1.TallyResult
+	)
+	rng := collections.NewPrefixUntilPairRange[time.Time, uint64](ctx.BlockTime())
+	err := k.ActiveProposalsQueue.Walk(ctx, rng, func(key collections.Pair[time.Time, uint64], _ uint64) (bool, error) {
+		proposal, err := k.Proposals.Get(ctx, key.K2())
+		if err != nil {
+			// if the proposal has an encoding error, this means it cannot be processed by x/gov
+			// this could be due to some types missing their registration
+			// instead of returning an error (i.e, halting the chain), we fail the proposal
+			if errors.Is(err, collections.ErrEncoding) {
+				proposal.Id = key.K2()
+				if err := failUnsupportedProposal(logger, ctx, k, proposal, err.Error(), true); err != nil {
+					return false, err
+				}
+
+				if err = k.ActiveProposalsQueue.Remove(ctx, collections.Join(*proposal.VotingEndTime, proposal.Id)); err != nil {
+					return false, err
+				}
+
+				return false, nil
+			}
+
+			return false, err
+		}
+
+		certifierVoteIsRequired, err := k.CertifierVoteIsRequired(ctx, proposal.Id)
+		if err != nil {
+			return false, err
+		}
+		// Only process security proposals
+		if !certifierVoteIsRequired {
+			return false, nil
+		}
+		// Only process proposals in the security voting period.
+		certifierVoted, err := k.GetCertifierVoted(ctx, proposal.Id)
+		if err != nil {
+			return false, err
+		}
+		if certifierVoted {
+			return false, nil
+		}
+
+		var endVoting bool
+		passes, endVoting, tallyResults = keeper.SecurityTally(ctx, *k, proposal)
+		if !passes {
+			// Do nothing, because the proposal still has time before the voting period ends.
+			return false, nil
+		}
+		//Else: the proposal passed the certifier voting period.
+		if endVoting {
+			var (
+				//idx    int
+				events sdk.Events
+				msg    sdk.Msg
+			)
+
+			cacheCtx, writeCache := ctx.CacheContext()
+			messages, err := proposal.GetMsgs()
+			if err != nil {
+				proposal.Status = govtypesv1.StatusFailed
+				proposal.FailedReason = err.Error()
+				tagValue = govtypes.AttributeValueProposalFailed
+				logMsg = fmt.Sprintf("passed proposal (%v) failed to execute; msgs: %s", proposal, err)
+			} else {
+				for _, msg = range messages {
+					handler := k.Router().Handler(msg)
+
+					var res *sdk.Result
+					res, err = handler(cacheCtx, msg)
+					if err != nil {
+						break
+					}
+
+					events = append(events, res.GetEvents()...)
+				}
+
+				proposal.Status = govtypesv1.StatusPassed
+				tagValue = govtypes.AttributeValueProposalPassed
+				logMsg = "passed"
+
+				// write state to the underlying multi-store
+				writeCache()
+
+				// propagate the msg events to the current context
+				ctx.EventManager().EmitEvents(events)
+			}
+
+			proposal.FinalTallyResult = &tallyResults
+			err = k.SetProposal(ctx, proposal)
+			if err != nil {
+				return false, err
+			}
+			if err = k.ActiveProposalsQueue.Remove(ctx, collections.Join(*proposal.VotingEndTime, proposal.Id)); err != nil {
+				return false, err
+			}
+
+			logger.Info(
+				"proposal tallied",
+				"proposal", proposal.Id,
+				"result", logMsg,
+			)
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					govtypes.EventTypeActiveProposal,
+					sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
+					sdk.NewAttribute(govtypes.AttributeKeyProposalResult, tagValue),
+				),
+			)
+		} else {
+			// Activate validator voting period
+			err = k.SetCertifierVoted(ctx, proposal.Id)
+			if err != nil {
+				return false, err
+			}
+			err = k.DeleteVotes(ctx, proposal.Id)
+			if err != nil {
+				return false, err
+			}
+		}
+
+		return true, nil
+	})
+
+	return err
+}
+
 // executes handle(msg) and recovers from panic.
 func safeExecuteHandler(ctx sdk.Context, msg sdk.Msg, handler baseapp.MsgServiceHandler,
 ) (res *sdk.Result, err error) {
@@ -318,118 +448,47 @@ func safeExecuteHandler(ctx sdk.Context, msg sdk.Msg, handler baseapp.MsgService
 	return
 }
 
-//func processSecurityVote(ctx sdk.Context, k *keeper.Keeper) bool {
-//	var (
-//		tagValue, logMsg string
-//		pass             bool
-//		tallyResults     govtypesv1.TallyResult
-//	)
-//	logger := k.Logger(ctx)
-//
-//	// Only process security proposals
-//	if !k.CertifierVoteIsRequired(proposal) {
-//		return false
-//	}
-//	// Only process proposals in the security voting period.
-//	if k.CertifierVoteIsRequired(proposal) && k.GetCertifierVoted(ctx, proposal.Id) {
-//		return false
-//	}
-//
-//	var endVoting bool
-//	pass, endVoting, tallyResults = keeper.SecurityTally(ctx, k, proposal)
-//	if !pass {
-//		// Do nothing, because the proposal still has time before the voting period ends.
-//		return false
-//	}
-//	// Else: the proposal passed the certifier voting period.
-//
-//	if endVoting {
-//		var (
-//			idx    int
-//			events sdk.Events
-//			msg    sdk.Msg
-//		)
-//
-//		cacheCtx, writeCache := ctx.CacheContext()
-//		messages, err := proposal.GetMsgs()
-//		if err == nil {
-//			for idx, msg = range messages {
-//				handler := k.Router().Handler(msg)
-//
-//				var res *sdk.Result
-//				res, err = handler(cacheCtx, msg)
-//				if err != nil {
-//					break
-//				}
-//
-//				events = append(events, res.GetEvents()...)
-//			}
-//		}
-//
-//		if err == nil {
-//			proposal.Status = govtypesv1.StatusPassed
-//			tagValue = govtypes.AttributeValueProposalPassed
-//			logMsg = "passed"
-//
-//			// write state to the underlying multi-store
-//			writeCache()
-//
-//			// propagate the msg events to the current context
-//			ctx.EventManager().EmitEvents(events)
-//		} else {
-//			proposal.Status = govtypesv1.StatusFailed
-//			tagValue = govtypes.AttributeValueProposalFailed
-//			logMsg = fmt.Sprintf("passed, but msg %d (%s) failed on execution: %s", idx, sdk.MsgTypeURL(msg), err)
-//		}
-//
-//		proposal.FinalTallyResult = &tallyResults
-//
-//		k.SetProposal(ctx, proposal)
-//		k.RemoveFromActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
-//
-//		logger.Info(
-//			"proposal tallied",
-//			"proposal", proposal.Id,
-//			"result", logMsg,
-//		)
-//
-//		ctx.EventManager().EmitEvent(
-//			sdk.NewEvent(
-//				govtypes.EventTypeActiveProposal,
-//				sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
-//				sdk.NewAttribute(govtypes.AttributeKeyProposalResult, tagValue),
-//			),
-//		)
-//	} else {
-//		// Activate validator voting period
-//		k.SetCertifierVoted(ctx, proposal.Id)
-//		k.DeleteAllVotes(ctx, proposal.Id)
-//		k.ActivateVotingPeriod(ctx, proposal)
-//	}
-//	return false
-//}
+// failUnsupportedProposal fails a proposal that cannot be processed by gov
+func failUnsupportedProposal(
+	logger log.Logger,
+	ctx sdk.Context,
+	keeper *keeper.Keeper,
+	proposal govtypesv1.Proposal,
+	errMsg string,
+	active bool,
+) error {
+	proposal.Status = govtypesv1.StatusFailed
+	proposal.FailedReason = fmt.Sprintf("proposal failed because it cannot be processed by gov: %s", errMsg)
+	proposal.Messages = nil // clear out the messages
 
-// EndBlocker called every block, process inflation, update validator set.
-// proposals and deletes/refunds deposits.
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) error {
-	logger := ctx.Logger().With("module", "x/"+govtypes.ModuleName)
-
-	// delete dead proposals from store and returns theirs deposits.
-	// A proposal is dead when it's inactive and didn't get enough deposit on time to get into voting phase.
-	if err := removeInactiveProposals(ctx, &k, logger); err != nil {
+	if err := keeper.SetProposal(ctx, proposal); err != nil {
 		return err
 	}
 
-	// fetch active proposals whose voting periods have ended (are passed the block time)
-	if err := processActiveProposal(ctx, &k, logger); err != nil {
+	if err := keeper.RefundAndDeleteDeposits(ctx, proposal.Id); err != nil {
 		return err
 	}
 
-	//// Iterate over all active proposals, regardless of end time, so that
-	//// security voting can end as soon as a passing threshold is met.
-	//k.IterateActiveProposalsQueue(ctx, time.Unix(common.MaxTimestamp, 0), func(proposal govtypesv1.Proposal) bool {
-	//	return processSecurityVote(ctx, k, proposal)
-	//})
+	eventType := govtypes.EventTypeInactiveProposal
+	if active {
+		eventType = govtypes.EventTypeActiveProposal
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			eventType,
+			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
+			sdk.NewAttribute(govtypes.AttributeKeyProposalResult, govtypes.AttributeValueProposalFailed),
+		),
+	)
+
+	logger.Info(
+		"proposal failed to decode; deleted",
+		"proposal", proposal.Id,
+		"expedited", proposal.Expedited,
+		"title", proposal.Title,
+		"results", errMsg,
+	)
 
 	return nil
 }

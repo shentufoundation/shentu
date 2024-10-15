@@ -26,6 +26,7 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
@@ -91,7 +92,6 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runti
 	if err := govtypesv1beta1.RegisterQueryHandlerClient(context.Background(), mux, govtypesv1beta1.NewQueryClient(ctx)); err != nil {
 		panic(err)
 	}
-
 }
 
 // GetTxCmd gets the root tx command of this module.
@@ -102,6 +102,11 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	}
 
 	return govcli.NewTxCmd(proposalCLIHandlers)
+}
+
+// GetQueryCmd gets the root query command of this module.
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
@@ -192,10 +197,14 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err != nil {
 		panic(err)
 	}
+
+	err = cfg.RegisterMigration(govtypes.ModuleName, 5, m.Migrate5to6)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis performs genesis initialization for the governance module.
-
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState typesv1.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)

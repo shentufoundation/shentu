@@ -71,3 +71,12 @@ func NewKeeper(
 		authority:     authority,
 	}
 }
+
+// assertMetadataLength returns an error if given metadata length
+// is greater than a pre-defined maxMetadataLen.
+func (k Keeper) assertMetadataLength(metadata string) error {
+	if metadata != "" && uint64(len(metadata)) > k.config.MaxMetadataLen {
+		return govtypes.ErrMetadataTooLong.Wrapf("got metadata with length %d", len(metadata))
+	}
+	return nil
+}
