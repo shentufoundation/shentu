@@ -24,13 +24,13 @@ func NewKeeper(cdc codec.BinaryCodec, storeService store.KVStoreService, authKee
 	stakingKeeper types.StakingKeeper, bankKeeper types.BankKeeper, certKeeper types.CertKeeper, paramSpace paramtypes.Subspace) Keeper {
 	return Keeper{
 		cdc:           cdc,
-		paramSpace:    paramSpace,
 		storeService:  storeService,
 		accountKeeper: authKeeper,
+		bankKeeper:    bankKeeper,
 		distrKeeper:   distriKeeper,
 		stakingKeeper: stakingKeeper,
-		bankKeeper:    bankKeeper,
 		CertKeeper:    certKeeper,
+		paramSpace:    paramSpace,
 	}
 }
 
