@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
 // AccountKeeper defines the contract required for account APIs.
@@ -36,4 +37,5 @@ type BankKeeper interface {
 // DistributionKeeper defines the expected distribution keeper.
 type DistributionKeeper interface {
 	FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error
+	GetFeePool(ctx context.Context) (distrtypes.FeePool, error)
 }
