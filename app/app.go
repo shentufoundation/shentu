@@ -105,6 +105,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
+	appparams "github.com/shentufoundation/shentu/v2/app/params"
 	"github.com/shentufoundation/shentu/v2/x/auth"
 	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bank"
@@ -766,6 +767,15 @@ func (app *ShentuApp) InterfaceRegistry() types.InterfaceRegistry {
 
 func (app *ShentuApp) TxConfig() client.TxConfig {
 	return app.txConfig
+}
+
+func (app *ShentuApp) EncodingConfig() appparams.EncodingConfig {
+	return appparams.EncodingConfig{
+		InterfaceRegistry: app.InterfaceRegistry(),
+		Codec:             app.AppCodec(),
+		TxConfig:          app.TxConfig(),
+		Amino:             app.LegacyAmino(),
+	}
 }
 
 // AutoCliOpts returns the autocli options for the app.

@@ -56,7 +56,7 @@ func NewRootCmd() *cobra.Command {
 		simtestutil.NewAppOptionsWithFlagHome(app.DefaultNodeHome),
 	)
 
-	encodingConfig := app.MakeEncodingConfig()
+	encodingConfig := tempApp.EncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
