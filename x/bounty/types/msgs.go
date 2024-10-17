@@ -130,15 +130,13 @@ func (msg MsgEditProgram) ValidateBasic() error {
 }
 
 // NewMsgSubmitFinding submit a new finding.
-func NewMsgSubmitFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, level SeverityLevel) *MsgSubmitFinding {
+func NewMsgSubmitFinding(pid, fid, hash string, operator sdk.AccAddress, level SeverityLevel) *MsgSubmitFinding {
 	return &MsgSubmitFinding{
 		ProgramId:       pid,
 		FindingId:       fid,
-		Title:           title,
 		FindingHash:     hash,
 		OperatorAddress: operator.String(),
 		SeverityLevel:   level,
-		Detail:          detail,
 	}
 }
 
@@ -180,14 +178,8 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 	if len(msg.FindingId) == 0 {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
-	if len(msg.Title) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty title")
-	}
 	if len(msg.FindingHash) == 0 {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingHash")
-	}
-	if len(msg.Detail) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
 	}
 	if !ValidFindingSeverityLevel(msg.SeverityLevel) {
 		return errorsmod.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
@@ -196,14 +188,12 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 }
 
 // NewMsgEditFinding submit a new finding.
-func NewMsgEditFinding(fid, title, detail, hash, paymentHash string, operator sdk.AccAddress, level SeverityLevel) *MsgEditFinding {
+func NewMsgEditFinding(fid, hash, paymentHash string, operator sdk.AccAddress, level SeverityLevel) *MsgEditFinding {
 	return &MsgEditFinding{
 		FindingId:       fid,
-		Title:           title,
 		FindingHash:     hash,
 		OperatorAddress: operator.String(),
 		SeverityLevel:   level,
-		Detail:          detail,
 		PaymentHash:     paymentHash,
 	}
 }
