@@ -31,7 +31,7 @@ import (
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
-const ConsensusVersion = 5
+const ConsensusVersion = 6
 
 var (
 	_ module.AppModuleBasic      = AppModuleBasic{}
