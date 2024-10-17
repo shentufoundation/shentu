@@ -36,13 +36,6 @@ func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.
 			CreateTime:       finding.CreateTime,
 		}
 
-		if finding.Status == types.FindingStatusActive {
-			newFinding.Title = finding.Title
-			newFinding.Detail = finding.Detail
-			newFinding.Description = finding.Description
-			newFinding.ProofOfConcept = finding.ProofOfConcept
-		}
-
 		// set the new proposal with proposer
 		bz, err := cdc.Marshal(&newFinding)
 		if err != nil {
