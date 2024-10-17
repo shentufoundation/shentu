@@ -20,10 +20,7 @@ func (app ShentuApp) setUpgradeHandler(cdc codec.BinaryCodec, clientKeeper clien
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			//ctx.Logger().Info("Start to run module migrations...")
-			newVersionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
-
-			return newVersionMap, err
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
 
