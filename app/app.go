@@ -4,7 +4,6 @@ package app
 import (
 	"encoding/json"
 	"io"
-	"net/http"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
@@ -23,8 +22,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmos "github.com/cometbft/cometbft/libs/os"
-	"github.com/gorilla/mux"
-	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 
 	dbm "github.com/cosmos/cosmos-db"
@@ -853,8 +850,8 @@ func (app *ShentuApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
-	if apiConfig.Swagger {
-		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
+		panic(err)
 	}
 }
 
@@ -880,17 +877,6 @@ func (app *ShentuApp) RegisterNodeService(clientCtx client.Context, cfg config.C
 // RegisterUpgradeHandlers registers necessary upgrade handlers
 func (app *ShentuApp) RegisterUpgradeHandlers() {
 	app.setUpgradeHandler(app.appCodec, app.IBCKeeper.ClientKeeper)
-}
-
-// RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(ctx client.Context, rtr *mux.Router) {
-	statikFS, err := fs.New()
-	if err != nil {
-		panic(err)
-	}
-
-	staticServer := http.FileServer(statikFS)
-	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
 }
 
 // initParamsKeeper init params keeper and its subspaces
