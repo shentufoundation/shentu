@@ -1,12 +1,12 @@
 package v1
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
@@ -110,7 +110,7 @@ func validateTallyParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	quorum, err := sdk.NewDecFromStr(v.Quorum)
+	quorum, err := math.LegacyNewDecFromStr(v.Quorum)
 	if err != nil {
 		return fmt.Errorf("invalid quorum string: %w", err)
 	}
@@ -121,7 +121,7 @@ func validateTallyParams(i interface{}) error {
 		return fmt.Errorf("quorom too large: %s", v)
 	}
 
-	threshold, err := sdk.NewDecFromStr(v.Threshold)
+	threshold, err := math.LegacyNewDecFromStr(v.Threshold)
 	if err != nil {
 		return fmt.Errorf("invalid threshold string: %w", err)
 	}
@@ -132,7 +132,7 @@ func validateTallyParams(i interface{}) error {
 		return fmt.Errorf("vote threshold too large: %s", v)
 	}
 
-	vetoThreshold, err := sdk.NewDecFromStr(v.VetoThreshold)
+	vetoThreshold, err := math.LegacyNewDecFromStr(v.VetoThreshold)
 	if err != nil {
 		return fmt.Errorf("invalid vetoThreshold string: %w", err)
 	}
@@ -161,5 +161,12 @@ func validateVotingParams(i interface{}) error {
 
 // CertVotesKey gets the first part of the cert votes key based on the proposalID
 func CertVotesKey(proposalID uint64) []byte {
-	return append(CertVotesKeyPrefix, govtypes.GetProposalIDBytes(proposalID)...)
+	return append(CertVotesKeyPrefix, GetProposalIDBytes(proposalID)...)
+}
+
+// GetProposalIDBytes returns the byte representation of the proposalID
+func GetProposalIDBytes(proposalID uint64) (proposalIDBz []byte) {
+	proposalIDBz = make([]byte, 8)
+	binary.BigEndian.PutUint64(proposalIDBz, proposalID)
+	return
 }

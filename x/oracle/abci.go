@@ -1,6 +1,7 @@
 package oracle
 
 import (
+	"context"
 	"encoding/hex"
 	"strconv"
 
@@ -10,13 +11,18 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
-func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
-	k.FinalizeMatureWithdraws(ctx)
+func BeginBlocker(ctx context.Context, k keeper.Keeper) error {
+	return k.FinalizeMatureWithdraws(ctx)
 }
 
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
+func EndBlocker(ctx context.Context, k keeper.Keeper) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	closingTaskIDs := k.GetInvalidTaskIDs(ctx)
-	toAggTaskIDs := append(k.GetShortcutTasks(ctx), closingTaskIDs...)
+	tasks, err := k.GetShortcutTasks(ctx)
+	if err != nil {
+		return err
+	}
+	toAggTaskIDs := append(tasks, closingTaskIDs...)
 	for _, taskID := range toAggTaskIDs {
 		err := k.Aggregate(ctx, taskID.Tid)
 		if err != nil {
@@ -37,14 +43,24 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 		switch task := task.(type) {
 		case *types.Task:
-			EmitEventsForTask(ctx, task)
+			EmitEventsForTask(sdkCtx, task)
 		case *types.TxTask:
-			EmitEventsForTxTask(ctx, task)
+			EmitEventsForTxTask(sdkCtx, task)
 		}
 	}
-	k.DeleteClosingTaskIDs(ctx)
-	k.DeleteShortcutTasks(ctx)
-	k.DeleteExpiredTasks(ctx)
+	err = k.DeleteClosingTaskIDs(ctx)
+	if err != nil {
+		return err
+	}
+	err = k.DeleteShortcutTasks(ctx)
+	if err != nil {
+		return err
+	}
+	err = k.DeleteExpiredTasks(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func EmitEventsForTask(ctx sdk.Context, task *types.Task) {

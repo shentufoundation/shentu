@@ -1,7 +1,7 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 )
 
 // NewGenesisState creates a new GenesisState object
@@ -27,7 +27,7 @@ func ValidateGenesis(data *GenesisState) error {
 		programIndex, ok := programs[program.ProgramId]
 		if ok {
 			//repeat programId
-			return sdkerrors.Wrapf(ErrProgramID, "already program[%s], this program[%s]",
+			return errorsmod.Wrapf(ErrProgramID, "already program[%s], this program[%s]",
 				data.Programs[programIndex].String(), program.String())
 		}
 

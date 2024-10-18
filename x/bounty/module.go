@@ -81,6 +81,10 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
+func (am AppModule) IsOnePerModuleType() {}
+
+func (am AppModule) IsAppModule() {}
+
 // NewAppModule creates a new AppModule object. If initChainAssertInvariants is set,
 // we will call keeper.AssertInvariants during InitGenesis (it may take a significant time)
 // - which doesn't impact the chain security unless 66+% of validators have a wrongly
@@ -110,6 +114,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to migrate x/bounty from version 1 to 2: %v", err))
 	}
+	err = cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3)
+	if err != nil {
+		panic(fmt.Sprintf("failed to migrate x/bounty from version 2 to 3: %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the bounty module. It returns
@@ -129,14 +137,14 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
+func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 //____________________________________________________________________________
 
 // AppModuleSimulation functions
 func (am AppModule) GenerateGenesisState(input *module.SimulationState) {}
 
-func (am AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {}
+func (am AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry) {}
 
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return []simtypes.WeightedOperation{}

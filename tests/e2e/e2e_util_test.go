@@ -10,11 +10,12 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/ory/dockertest/v3/docker"
+
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ory/dockertest/v3/docker"
 )
 
 func (s *IntegrationTestSuite) connectIBCChains() {
@@ -109,11 +110,11 @@ func (s *IntegrationTestSuite) sendIBC(srcChainID, dstChainID, recipient string,
 }
 
 func (s *IntegrationTestSuite) getLatestBlockHeight(endpoint string) (int64, error) {
-	grpcReq := &tmservice.GetLatestBlockRequest{}
+	grpcReq := &cmtservice.GetLatestBlockRequest{}
 
 	conn, _ := connectGrpc(endpoint)
 	defer conn.Close()
-	client := tmservice.NewServiceClient(conn)
+	client := cmtservice.NewServiceClient(conn)
 
 	grpcRsp, err := client.GetLatestBlock(context.Background(), grpcReq)
 	if err != nil {

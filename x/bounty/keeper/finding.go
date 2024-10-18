@@ -5,15 +5,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (k Keeper) GetFinding(ctx sdk.Context, id string) (types.Finding, bool) {
-	store := ctx.KVStore(k.storeKey)
-
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	findingData := store.Get(types.GetFindingKey(id))
+
 	if findingData == nil {
 		return types.Finding{}, false
 	}
@@ -24,18 +27,18 @@ func (k Keeper) GetFinding(ctx sdk.Context, id string) (types.Finding, bool) {
 }
 
 func (k Keeper) SetFinding(ctx sdk.Context, finding types.Finding) {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	bz := k.cdc.MustMarshal(&finding)
 	store.Set(types.GetFindingKey(finding.FindingId), bz)
 }
 
 func (k Keeper) DeleteFinding(ctx sdk.Context, id string) {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store.Delete(types.GetFindingKey(id))
 }
 
 func (k Keeper) SetPidFindingIDList(ctx sdk.Context, pid string, findingIds []string) error {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	bytes, err := StringsToBytes(findingIds)
 	if err != nil {
 		return err
@@ -45,9 +48,8 @@ func (k Keeper) SetPidFindingIDList(ctx sdk.Context, pid string, findingIds []st
 }
 
 func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid string) ([]string, error) {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	findingIDs := store.Get(types.GetProgramIDFindingListKey(pid))
-
 	if findingIDs == nil {
 		return []string{}, nil
 	}
@@ -79,7 +81,7 @@ func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid string) error {
 		if id == fid {
 			if len(fids) == 1 {
 				// Delete fid list if empty
-				store := ctx.KVStore(k.storeKey)
+				store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 				store.Delete(types.GetProgramIDFindingListKey(pid))
 				return nil
 			}
@@ -91,8 +93,8 @@ func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid string) error {
 }
 
 func (k Keeper) GetAllFindings(ctx sdk.Context) []types.Finding {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.FindingKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, types.FindingKey)
 
 	var findings []types.Finding
 	var finding types.Finding

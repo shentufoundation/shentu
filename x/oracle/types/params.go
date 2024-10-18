@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -16,16 +16,16 @@ var (
 
 // Default parameters
 var (
-	MinScore                 = sdk.NewInt(0)
-	MaxScore                 = sdk.NewInt(100)
-	DefaultThresholdScore    = sdk.NewInt(50)
-	DefaultAggregationResult = sdk.NewInt(50)
+	MinScore                 = math.NewInt(0)
+	MaxScore                 = math.NewInt(100)
+	DefaultThresholdScore    = math.NewInt(50)
+	DefaultAggregationResult = math.NewInt(50)
 
 	DefaultExpirationDuration = time.Duration(24) * time.Hour
 	DefaultAggregationWindow  = int64(20)
-	DefaultEpsilon1           = sdk.NewInt(1)
-	DefaultEpsilon2           = sdk.NewInt(100)
-	DefaultShortcutQuorum     = sdk.NewDecWithPrec(50, 2)
+	DefaultEpsilon1           = math.NewInt(1)
+	DefaultEpsilon2           = math.NewInt(100)
+	DefaultShortcutQuorum     = math.LegacyNewDecWithPrec(50, 2)
 
 	DefaultLockedInBlocks    = int64(30)
 	DefaultMinimumCollateral = int64(50000)
@@ -41,7 +41,7 @@ func ParamKeyTable() params.KeyTable {
 
 // NewTaskParams returns a TaskParams object.
 func NewTaskParams(expirationDuration time.Duration, aggregationWindow int64, aggregationResult,
-	thresholdScore, epsilon1, epsilon2 math.Int, shortcutQuorum sdk.Dec) TaskParams {
+	thresholdScore, epsilon1, epsilon2 math.Int, shortcutQuorum math.LegacyDec) TaskParams {
 	return TaskParams{
 		ExpirationDuration: expirationDuration,
 		AggregationWindow:  aggregationWindow,
@@ -67,10 +67,10 @@ func validateTaskParams(i interface{}) error {
 	if taskParams.ExpirationDuration < 0 ||
 		taskParams.AggregationWindow < 0 ||
 		taskParams.ThresholdScore.GT(MaxScore) ||
-		taskParams.Epsilon1.LT(sdk.NewInt(0)) ||
-		taskParams.Epsilon2.LT(sdk.NewInt(0)) ||
-		taskParams.ShortcutQuorum.LTE(sdk.ZeroDec()) ||
-		taskParams.ShortcutQuorum.GT(sdk.OneDec()) {
+		taskParams.Epsilon1.LT(math.NewInt(0)) ||
+		taskParams.Epsilon2.LT(math.NewInt(0)) ||
+		taskParams.ShortcutQuorum.LTE(math.LegacyZeroDec()) ||
+		taskParams.ShortcutQuorum.GT(math.LegacyOneDec()) {
 		return ErrInvalidTaskParams
 	}
 	return nil

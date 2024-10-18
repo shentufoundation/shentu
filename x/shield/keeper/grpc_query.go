@@ -14,7 +14,7 @@ import (
 var _ types.QueryServer = Keeper{}
 
 // Provider queries a provider given the address.
-func (q Keeper) Provider(c context.Context, req *types.QueryProviderRequest) (*types.QueryProviderResponse, error) {
+func (k Keeper) Provider(c context.Context, req *types.QueryProviderRequest) (*types.QueryProviderResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -25,7 +25,7 @@ func (q Keeper) Provider(c context.Context, req *types.QueryProviderRequest) (*t
 		return nil, err
 	}
 
-	provider, found := q.GetProvider(ctx, address)
+	provider, found := k.GetProvider(ctx, address)
 	if !found {
 		return nil, types.ErrProviderNotFound
 	}
@@ -34,23 +34,27 @@ func (q Keeper) Provider(c context.Context, req *types.QueryProviderRequest) (*t
 }
 
 // Providers queries all providers.
-func (q Keeper) Providers(c context.Context, req *types.QueryProvidersRequest) (*types.QueryProvidersResponse, error) {
+func (k Keeper) Providers(c context.Context, req *types.QueryProvidersRequest) (*types.QueryProvidersResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryProvidersResponse{Providers: q.GetAllProviders(ctx)}, nil
+	return &types.QueryProvidersResponse{Providers: k.GetAllProviders(ctx)}, nil
 }
 
 // ShieldStatus queries the global status of the shield module.
-func (q Keeper) ShieldStatus(c context.Context, req *types.QueryShieldStatusRequest) (*types.QueryShieldStatusResponse, error) {
+func (k Keeper) ShieldStatus(c context.Context, req *types.QueryShieldStatusRequest) (*types.QueryShieldStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	grs, err := k.GetRemainingServiceFees(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &types.QueryShieldStatusResponse{
-		RemainingServiceFees: q.GetRemainingServiceFees(ctx),
+		RemainingServiceFees: grs,
 	}, nil
 }

@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -36,12 +38,12 @@ func (k msgServer) Unlock(goCtx context.Context, msg *types.MsgUnlock) (*types.M
 	// preliminary checks
 	acc := k.ak.GetAccount(ctx, accountAddr)
 	if acc == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", accountAddr)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", accountAddr)
 	}
 
 	mvacc, ok := acc.(*types.ManualVestingAccount)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a manual vesting account")
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a manual vesting account")
 	}
 
 	unlocker, err := sdk.AccAddressFromBech32(mvacc.Unlocker)
@@ -49,11 +51,11 @@ func (k msgServer) Unlock(goCtx context.Context, msg *types.MsgUnlock) (*types.M
 		return nil, err
 	}
 	if !issuerAddr.Equals(unlocker) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "sender of this transaction is not the designated unlocker")
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "sender of this transaction is not the designated unlocker")
 	}
 
 	if mvacc.VestedCoins.Add(msg.UnlockAmount...).IsAnyGT(mvacc.OriginalVesting) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "cannot unlock more than the original vesting amount")
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "cannot unlock more than the original vesting amount")
 	}
 
 	// update vested coins

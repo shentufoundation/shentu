@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -46,10 +48,10 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 	// preliminary checks
 	from := k.ak.GetAccount(ctx, fromAddr)
 	if from == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "sender account %s does not exist", msg.FromAddress)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "sender account %s does not exist", msg.FromAddress)
 	}
 	if toAddr.Equals(unlocker) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "recipient cannot be the unlocker")
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "recipient cannot be the unlocker")
 	}
 
 	acc := k.ak.GetAccount(ctx, toAddr)
@@ -64,17 +66,17 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 
 		baseAcc := authtypes.NewBaseAccount(toAddr, acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
 		if unlocker.Empty() {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unlocker address provided")
+			return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unlocker address provided")
 		}
 		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), sdk.NewCoins(), unlocker)
 	} else {
 		var ok bool
 		toAcc, ok = acc.(*vesting.ManualVestingAccount)
 		if !ok {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a ManualVestingAccount")
+			return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a ManualVestingAccount")
 		}
 		if !unlocker.Empty() {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "cannot change the unlocker for existing ManualVestingAccount")
+			return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "cannot change the unlocker for existing ManualVestingAccount")
 		}
 	}
 

@@ -1,8 +1,9 @@
 package keeper
 
 import (
+	"cosmossdk.io/core/store"
+
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -10,9 +11,9 @@ import (
 
 // Keeper - bounty keeper
 type Keeper struct {
-	storeKey   storetypes.StoreKey
-	cdc        codec.BinaryCodec
-	paramSpace paramtypes.Subspace
+	storeService store.KVStoreService
+	cdc          codec.BinaryCodec
+	paramSpace   paramtypes.Subspace
 
 	//authKeeper authtypes.AccountKeeper
 	certKeeper types.CertKeeper
@@ -20,7 +21,7 @@ type Keeper struct {
 
 // NewKeeper creates a new Keeper object
 func NewKeeper(
-	cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ck types.CertKeeper, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, storeService store.KVStoreService, ck types.CertKeeper, paramSpace paramtypes.Subspace,
 ) Keeper {
 
 	// set KeyTable if it has not already been set
@@ -29,9 +30,9 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		paramSpace: paramSpace,
-		certKeeper: ck,
+		cdc:          cdc,
+		storeService: storeService,
+		paramSpace:   paramSpace,
+		certKeeper:   ck,
 	}
 }

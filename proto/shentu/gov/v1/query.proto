@@ -12,6 +12,11 @@ option go_package = "github.com/shentufoundation/shentu/x/gov/types/v1";
 
 // Query defines the gRPC querier service for gov module
 service Query {
+  // Constitution queries the chain's constitution.
+  rpc Constitution(cosmos.gov.v1.QueryConstitutionRequest) returns (cosmos.gov.v1.QueryConstitutionResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1/constitution";
+  }
+
   // Proposal queries proposal details based on ProposalID.
   rpc Proposal(cosmos.gov.v1.QueryProposalRequest) returns (cosmos.gov.v1.QueryProposalResponse) {
     option (google.api.http).get = "/cosmos/gov/v1/proposals/{proposal_id}";
