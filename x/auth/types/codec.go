@@ -25,6 +25,12 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&ManualVestingAccount{},
 	)
 
+	registry.RegisterInterface(
+		"cosmos.auth.v1beta1.AccountI",
+		(*sdk.AccountI)(nil),
+		&ManualVestingAccount{},
+	)
+
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgUnlock{},
