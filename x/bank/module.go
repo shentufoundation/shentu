@@ -4,14 +4,18 @@ import (
 	"context"
 	"encoding/json"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/bank/exported"
@@ -19,6 +23,7 @@ import (
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	"github.com/shentufoundation/shentu/v2/x/bank/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
@@ -34,7 +39,9 @@ var (
 )
 
 // AppModuleBasic defines the basic application module used by the bank module.
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+	ac address.Codec
+}
 
 // Name returns the bank module's name.
 func (AppModuleBasic) Name() string {
@@ -60,6 +67,13 @@ func (am AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEn
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the bank module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	banktypes.RegisterQueryHandlerClient(context.Background(), mux, banktypes.NewQueryClient(clientCtx))
+}
+
+// GetTxCmd returns the root tx command for the bank module.
+func (am AppModuleBasic) GetTxCmd() *cobra.Command {
+	cmds := bankcli.NewTxCmd(am.ac)
+	cmds.AddCommand(cli.LockedSendTxCmd())
+	return cmds
 }
 
 // RegisterInterfaces registers interfaces and implementations of the bank module.
@@ -94,7 +108,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // NewAppModule creates a new AppModule object.
 func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, accountKeeper types.AccountKeeper, ss exported.Subspace) AppModule {
 	return AppModule{
-		AppModuleBasic:  AppModuleBasic{},
+		AppModuleBasic:  AppModuleBasic{ac: accountKeeper.AddressCodec()},
 		cosmosAppModule: sdkbank.NewAppModule(cdc, keeper.BaseKeeper, accountKeeper, ss),
 		keeper:          keeper,
 		accountKeeper:   accountKeeper,
@@ -110,6 +124,9 @@ func (am AppModule) Name() string {
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	am.cosmosAppModule.RegisterInvariants(ir)
 }
+
+// QuerierRoute returns the bank module's querier route name.
+func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
 
 // InitGenesis performs genesis initialization for the bank module.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
