@@ -455,6 +455,7 @@ $ %s query gov params
 				VotingParams:  votingRes.GetVotingParams(),
 				DepositParams: depositRes.GetDepositParams(),
 				TallyParams:   tallyRes.GetTallyParams(),
+				Params:        tallyRes.Params,
 				CustomParams:  customRes.GetCustomParams(),
 			}
 
