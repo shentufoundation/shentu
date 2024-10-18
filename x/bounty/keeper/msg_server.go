@@ -182,7 +182,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	}
 
 	createTime := ctx.BlockHeader().Time
-	finding, err := types.NewFinding(msg.ProgramId, msg.FindingId, msg.Title, msg.Detail, msg.FindingHash, operatorAddr, createTime, msg.SeverityLevel)
+	finding, err := types.NewFinding(msg.ProgramId, msg.FindingId, "", "", msg.FindingHash, operatorAddr, createTime, msg.SeverityLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -263,17 +263,11 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 	if finding.SubmitterAddress != msg.OperatorAddress {
 		return nil, types.ErrFindingOperatorNotAllowed
 	}
-	if len(msg.Title) > 0 {
-		finding.Title = msg.Title
-	}
 	if len(msg.FindingHash) > 0 {
 		finding.FindingHash = msg.FindingHash
 	}
 	if msg.SeverityLevel != types.Unspecified {
 		finding.SeverityLevel = msg.SeverityLevel
-	}
-	if len(msg.Detail) > 0 {
-		finding.Detail = msg.Detail
 	}
 
 	k.SetFinding(ctx, finding)
@@ -497,7 +491,8 @@ func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFi
 	if finding.FindingHash != hex.EncodeToString(hash[:]) {
 		return nil, types.ErrFindingHashInvalid
 	}
-
+	finding.Title = msg.Title
+	finding.Detail = msg.Detail
 	finding.Description = msg.Description
 	finding.ProofOfConcept = msg.ProofOfConcept
 	k.SetFinding(ctx, finding)

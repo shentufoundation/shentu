@@ -7,10 +7,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 // NewTxCmd returns the transaction commands for the certification module.
@@ -180,14 +181,6 @@ func NewSubmitFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			title, err := cmd.Flags().GetString(FlagFindingTitle)
-			if err != nil {
-				return err
-			}
-			detail, err := cmd.Flags().GetString(FlagDetail)
-			if err != nil {
-				return err
-			}
 			severityLevel, err := cmd.Flags().GetString(FlagFindingSeverityLevel)
 			if err != nil {
 				return err
@@ -207,17 +200,15 @@ func NewSubmitFindingCmd() *cobra.Command {
 			}
 			hash := sha256.Sum256([]byte(desc + poc + submitAddr.String()))
 
-			msg := types.NewMsgSubmitFinding(pid, fid, title, detail, hex.EncodeToString(hash[:]), submitAddr, byteSeverityLevel)
+			msg := types.NewMsgSubmitFinding(pid, fid, hex.EncodeToString(hash[:]), submitAddr, byteSeverityLevel)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	cmd.Flags().String(FlagProgramID, "", "The program's ID")
 	cmd.Flags().String(FlagFindingID, "", "The finding's ID")
-	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
 	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
 	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's proof of content")
-	cmd.Flags().String(FlagDetail, "", "The finding's detail")
 	cmd.Flags().String(FlagFindingSeverityLevel, "unspecified", "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -243,14 +234,6 @@ func NewEditFindingCmd() *cobra.Command {
 			submitAddr := clientCtx.GetFromAddress()
 
 			fid, err := cmd.Flags().GetString(FlagFindingID)
-			if err != nil {
-				return err
-			}
-			title, err := cmd.Flags().GetString(FlagFindingTitle)
-			if err != nil {
-				return err
-			}
-			detail, err := cmd.Flags().GetString(FlagDetail)
 			if err != nil {
 				return err
 			}
@@ -293,16 +276,14 @@ func NewEditFindingCmd() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgEditFinding(fid, title, detail, hashString, paymentHash, submitAddr, byteSeverityLevel)
+			msg := types.NewMsgEditFinding(fid, hashString, paymentHash, submitAddr, byteSeverityLevel)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	cmd.Flags().String(FlagFindingID, "", "The finding's ID")
-	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
 	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
 	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's proof of content")
-	cmd.Flags().String(FlagDetail, "", "The finding's detail")
 	cmd.Flags().String(FlagFindingSeverityLevel, "unspecified", "The finding's severity level")
 	cmd.Flags().String(FlagFindingPaymentHash, "", "The finding's payment hash")
 	flags.AddTxFlagsToCmd(cmd)

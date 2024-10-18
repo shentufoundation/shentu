@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	v5 "github.com/shentufoundation/shentu/v2/x/shield/legacy/v5"
-
 	"github.com/cosmos/gogoproto/grpc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,5 +18,5 @@ func NewMigrator(keeper Keeper, queryServer grpc.Server) Migrator {
 }
 
 func (m Migrator) Migrate4to5(ctx sdk.Context) error {
-	return v5.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
+	return nil
 }

@@ -1,34 +1,41 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 // SetLibrary sets a new Certificate library registry.
-func (k Keeper) SetLibrary(ctx sdk.Context, library sdk.AccAddress, publisher sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) SetLibrary(ctx sdk.Context, library sdk.AccAddress, publisher sdk.AccAddress) error {
+	store := k.storeService.OpenKVStore(ctx)
 	libraryData := types.Library{Address: library.String(), Publisher: publisher.String()}
-	store.Set(types.LibraryStoreKey(library), k.cdc.MustMarshalLengthPrefixed(&libraryData))
+	return store.Set(types.LibraryStoreKey(library), k.cdc.MustMarshalLengthPrefixed(&libraryData))
 }
 
 // deleteLibrary deletes a Certificate library registry.
-func (k Keeper) deleteLibrary(ctx sdk.Context, library sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.LibraryStoreKey(library))
+func (k Keeper) deleteLibrary(ctx sdk.Context, library sdk.AccAddress) error {
+	store := k.storeService.OpenKVStore(ctx)
+	return store.Delete(types.LibraryStoreKey(library))
 }
 
 // IsLibrary checks if an address is a Certificate library.
-func (k Keeper) IsLibrary(ctx sdk.Context, library sdk.AccAddress) bool {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) IsLibrary(ctx sdk.Context, library sdk.AccAddress) (bool, error) {
+	store := k.storeService.OpenKVStore(ctx)
 	return store.Has(types.LibraryStoreKey(library))
 }
 
 // getLibraryPublisher gets the library publisher.
 func (k Keeper) getLibraryPublisher(ctx sdk.Context, library sdk.AccAddress) (sdk.AccAddress, error) {
-	store := ctx.KVStore(k.storeKey)
-	if bPublisher := store.Get(types.LibraryStoreKey(library)); bPublisher != nil {
+	store := k.storeService.OpenKVStore(ctx)
+	bPublisher, err := store.Get(types.LibraryStoreKey(library))
+	if err != nil {
+		return nil, err
+	}
+	if bPublisher != nil {
 		var libraryData types.Library
 		k.cdc.MustUnmarshalLengthPrefixed(bPublisher, &libraryData)
 
@@ -43,35 +50,49 @@ func (k Keeper) getLibraryPublisher(ctx sdk.Context, library sdk.AccAddress) (sd
 
 // PublishLibrary publishes a new Certificate library.
 func (k Keeper) PublishLibrary(ctx sdk.Context, library sdk.AccAddress, publisher sdk.AccAddress) error {
-	if k.IsLibrary(ctx, library) {
+	isLibrary, err := k.IsLibrary(ctx, library)
+	if err != nil {
+		return err
+	}
+	if isLibrary {
 		return types.ErrLibraryAlreadyExists
 	}
-	k.SetLibrary(ctx, library, publisher)
-	return nil
+	return k.SetLibrary(ctx, library, publisher)
 }
 
 // InvalidateLibrary invalidate a Certificate library.
 func (k Keeper) InvalidateLibrary(ctx sdk.Context, library sdk.AccAddress, invalidator sdk.AccAddress) error {
-	if !k.IsCertifier(ctx, invalidator) {
-		return types.ErrUnqualifiedCertifier
+	isCertifier, err := k.IsCertifier(ctx, invalidator)
+	if err != nil {
+		return err
 	}
+	if !isCertifier {
+		return types.ErrRejectedValidator
+	}
+
 	publisher, err := k.getLibraryPublisher(ctx, library)
 	if err != nil {
 		return err
 	}
 	// Can only be invalidate if the invalidator is the original publisher, or that the original publisher is no longer certifier.
-	if !(publisher.Equals(invalidator) || !k.IsCertifier(ctx, publisher)) {
+	isCertifier, err = k.IsCertifier(ctx, invalidator)
+	if err != nil {
+		return err
+	}
+	if !isCertifier {
+		return types.ErrRejectedValidator
+	}
+
+	if !(publisher.Equals(invalidator) || !isCertifier) {
 		return types.ErrUnqualifiedCertifier
 	}
-	k.deleteLibrary(ctx, library)
-	return nil
+	return k.deleteLibrary(ctx, library)
 }
 
 // IterateAllLibraries iterates over the all the stored libraries and performs a callback function.
 func (k Keeper) IterateAllLibraries(ctx sdk.Context, callback func(library types.Library) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.LibrariesStoreKey())
-
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, types.LibrariesStoreKey())
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var library types.Library

@@ -37,7 +37,7 @@ func ValidateGenesis(genesisState GenesisState) error {
 			return ErrInvalidDueBlock
 		}
 	}
-	if !totalCollateral.IsEqual(genesisState.TotalCollateral) {
+	if !totalCollateral.Equal(genesisState.TotalCollateral) {
 		return ErrTotalCollateralNotEqual
 	}
 	if err := validatePoolParams(*genesisState.PoolParams); err != nil {

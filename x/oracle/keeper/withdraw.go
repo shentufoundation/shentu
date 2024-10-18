@@ -1,32 +1,35 @@
 package keeper
 
 import (
+	"context"
 	"encoding/binary"
 
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 // SetWithdraw sets a withdrawal in store.
-func (k Keeper) SetWithdraw(ctx sdk.Context, withdraw types.Withdraw) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) SetWithdraw(ctx context.Context, withdraw types.Withdraw) error {
+	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshalLengthPrefixed(&withdraw)
 	withdrawAddr := sdk.MustAccAddressFromBech32(withdraw.Address)
-	store.Set(types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), bz)
+	return store.Set(types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), bz)
 }
 
 // DeleteWithdraw deletes a withdrawal from store.
-func (k Keeper) DeleteWithdraw(ctx sdk.Context, address sdk.AccAddress, startTime int64) error {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.WithdrawStoreKey(address, startTime))
-	return nil
+func (k Keeper) DeleteWithdraw(ctx context.Context, address sdk.AccAddress, startTime int64) error {
+	store := k.storeService.OpenKVStore(ctx)
+	return store.Delete(types.WithdrawStoreKey(address, startTime))
 }
 
 // IterateAllWithdraws iterates all withdrawals in store.
-func (k Keeper) IterateAllWithdraws(ctx sdk.Context, callback func(withdraw types.Withdraw) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.WithdrawStoreKeyPrefix)
+func (k Keeper) IterateAllWithdraws(ctx context.Context, callback func(withdraw types.Withdraw) (stop bool)) {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, types.WithdrawStoreKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -39,13 +42,14 @@ func (k Keeper) IterateAllWithdraws(ctx sdk.Context, callback func(withdraw type
 }
 
 // IterateMatureWithdraws iterates all mature (unlocked) withdrawals in store.
-func (k Keeper) IterateMatureWithdraws(ctx sdk.Context, callback func(withdraw types.Withdraw) (stop bool)) {
+func (k Keeper) IterateMatureWithdraws(ctx context.Context, callback func(withdraw types.Withdraw) (stop bool)) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, uint64(ctx.BlockHeight()))
+	binary.LittleEndian.PutUint64(b, uint64(sdkCtx.BlockHeight()))
 
-	store := ctx.KVStore(k.storeKey)
-	iterator := store.Iterator(types.WithdrawStoreKeyPrefix,
-		sdk.PrefixEndBytes(append(types.WithdrawStoreKeyPrefix, b...)))
+	store := k.storeService.OpenKVStore(ctx)
+	iterator, _ := store.Iterator(types.WithdrawStoreKeyPrefix,
+		storetypes.PrefixEndBytes(append(types.WithdrawStoreKeyPrefix, b...)))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -58,16 +62,16 @@ func (k Keeper) IterateMatureWithdraws(ctx sdk.Context, callback func(withdraw t
 }
 
 // CreateWithdraw creates a withdrawal.
-func (k Keeper) CreateWithdraw(ctx sdk.Context, address sdk.AccAddress, amount sdk.Coins) error {
+func (k Keeper) CreateWithdraw(ctx context.Context, address sdk.AccAddress, amount sdk.Coins) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	params := k.GetLockedPoolParams(ctx)
-	dueBlock := ctx.BlockHeight() + params.LockedInBlocks
+	dueBlock := sdkCtx.BlockHeight() + params.LockedInBlocks
 	withdraw := types.NewWithdraw(address, amount, dueBlock)
-	k.SetWithdraw(ctx, withdraw)
-	return nil
+	return k.SetWithdraw(ctx, withdraw)
 }
 
 // GetAllWithdraws gets all withdrawals from store.
-func (k Keeper) GetAllWithdraws(ctx sdk.Context) types.Withdraws {
+func (k Keeper) GetAllWithdraws(ctx context.Context) types.Withdraws {
 	var withdraws types.Withdraws
 	k.IterateAllWithdraws(ctx, func(withdraw types.Withdraw) bool {
 		withdraws = append(withdraws, withdraw)
@@ -77,10 +81,11 @@ func (k Keeper) GetAllWithdraws(ctx sdk.Context) types.Withdraws {
 }
 
 // GetAllWithdrawsForExport gets all withdrawals from store and adjusts DueBlock value for import-export.
-func (k Keeper) GetAllWithdrawsForExport(ctx sdk.Context) types.Withdraws {
+func (k Keeper) GetAllWithdrawsForExport(ctx context.Context) types.Withdraws {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	var withdraws types.Withdraws
 	k.IterateAllWithdraws(ctx, func(withdraw types.Withdraw) bool {
-		withdraw.DueBlock -= ctx.BlockHeight()
+		withdraw.DueBlock -= sdkCtx.BlockHeight()
 		withdraws = append(withdraws, withdraw)
 		return false
 	})

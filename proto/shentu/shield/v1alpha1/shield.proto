@@ -24,15 +24,15 @@ message Provider {
 	// Address is the address of the provider.
     string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
 	// DelegationBonded is the amount of bonded delegation.
-    string delegation_bonded = 2 [ (gogoproto.moretags) = "yaml:\"provider\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string delegation_bonded = 2 [ (gogoproto.moretags) = "yaml:\"provider\"", (gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false ];
     // Collateral is amount of all collaterals for the provider, including
 	// those in withdraw queue but excluding those currently locked, in all
 	// pools.
-    string collateral = 3 [ (gogoproto.moretags) = "yaml:\"collateral\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string collateral = 3 [ (gogoproto.moretags) = "yaml:\"collateral\"", (gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false ];
 	// TotalLocked is the amount locked for pending claims.
-    string total_locked = 4 [ (gogoproto.moretags) = "yaml:\"total_locked\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string total_locked = 4 [ (gogoproto.moretags) = "yaml:\"total_locked\"", (gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false ];
 	// Withdrawing is the amount of collateral in withdraw queues.
-    string withdrawing = 5 [ (gogoproto.moretags) = "yaml:\"withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string withdrawing = 5 [ (gogoproto.moretags) = "yaml:\"withdrawing\"", (gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false ];
 	// Rewards is the pooling rewards to be collected.
     repeated cosmos.base.v1beta1.DecCoin rewards = 6 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
 }

@@ -15,7 +15,7 @@ import (
 var _ types.QueryServer = Keeper{}
 
 // Operator queries an operator based on its address.
-func (q Keeper) Operator(c context.Context, req *types.QueryOperatorRequest) (*types.QueryOperatorResponse, error) {
+func (k Keeper) Operator(c context.Context, req *types.QueryOperatorRequest) (*types.QueryOperatorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -26,7 +26,7 @@ func (q Keeper) Operator(c context.Context, req *types.QueryOperatorRequest) (*t
 		return nil, err
 	}
 
-	operator, err := q.GetOperator(ctx, address)
+	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
 		return nil, err
 	}
@@ -35,33 +35,33 @@ func (q Keeper) Operator(c context.Context, req *types.QueryOperatorRequest) (*t
 }
 
 // Operators queries all operators.
-func (q Keeper) Operators(c context.Context, req *types.QueryOperatorsRequest) (*types.QueryOperatorsResponse, error) {
+func (k Keeper) Operators(c context.Context, req *types.QueryOperatorsRequest) (*types.QueryOperatorsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryOperatorsResponse{Operators: q.GetAllOperators(ctx)}, nil
+	return &types.QueryOperatorsResponse{Operators: k.GetAllOperators(ctx)}, nil
 }
 
 // Withdraws queries all withdraws.
-func (q Keeper) Withdraws(c context.Context, req *types.QueryWithdrawsRequest) (*types.QueryWithdrawsResponse, error) {
+func (k Keeper) Withdraws(c context.Context, req *types.QueryWithdrawsRequest) (*types.QueryWithdrawsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryWithdrawsResponse{Withdraws: q.GetAllWithdraws(ctx)}, nil
+	return &types.QueryWithdrawsResponse{Withdraws: k.GetAllWithdraws(ctx)}, nil
 }
 
 // Task queries a task given its contract and function.
-func (q Keeper) Task(c context.Context, req *types.QueryTaskRequest) (*types.QueryTaskResponse, error) {
+func (k Keeper) Task(c context.Context, req *types.QueryTaskRequest) (*types.QueryTaskResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	task, err := q.GetTask(ctx, types.NewTaskID(req.Contract, req.Function))
+	task, err := k.GetTask(ctx, types.NewTaskID(req.Contract, req.Function))
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (q Keeper) Task(c context.Context, req *types.QueryTaskRequest) (*types.Que
 }
 
 // TxTask queries a tx task given its tx hash.
-func (q Keeper) TxTask(c context.Context, req *types.QueryTxTaskRequest) (*types.QueryTxTaskResponse, error) {
+func (k Keeper) TxTask(c context.Context, req *types.QueryTxTaskRequest) (*types.QueryTxTaskResponse, error) {
 	if req == nil || len(req.AtxHash) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -83,7 +83,7 @@ func (q Keeper) TxTask(c context.Context, req *types.QueryTxTaskRequest) (*types
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	task, err := q.GetTask(ctx, taskID)
+	task, err := k.GetTask(ctx, taskID)
 	if err != nil {
 		return nil, err
 	}
@@ -96,13 +96,13 @@ func (q Keeper) TxTask(c context.Context, req *types.QueryTxTaskRequest) (*types
 
 // Response queries a response based on its task contract, task function,
 // and operator address.
-func (q Keeper) Response(c context.Context, req *types.QueryResponseRequest) (*types.QueryResponseResponse, error) {
+func (k Keeper) Response(c context.Context, req *types.QueryResponseRequest) (*types.QueryResponseResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	task, err := q.GetTask(ctx, types.NewTaskID(req.Contract, req.Function))
+	task, err := k.GetTask(ctx, types.NewTaskID(req.Contract, req.Function))
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (q Keeper) Response(c context.Context, req *types.QueryResponseRequest) (*t
 
 // TxResponse queries a tx response based on its tx hash,
 // and operator address.
-func (q Keeper) TxResponse(c context.Context, req *types.QueryTxResponseRequest) (*types.QueryTxResponseResponse, error) {
+func (k Keeper) TxResponse(c context.Context, req *types.QueryTxResponseRequest) (*types.QueryTxResponseResponse, error) {
 	if req == nil || len(req.AtxHash) == 0 || len(req.OperatorAddress) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -128,7 +128,7 @@ func (q Keeper) TxResponse(c context.Context, req *types.QueryTxResponseRequest)
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	task, err := q.GetTask(ctx, taskID)
+	task, err := k.GetTask(ctx, taskID)
 	if err != nil {
 		return nil, err
 	}
@@ -142,14 +142,14 @@ func (q Keeper) TxResponse(c context.Context, req *types.QueryTxResponseRequest)
 }
 
 // Params queries all params
-func (q Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	taskParams := q.GetTaskParams(ctx)
-	poolParams := q.GetLockedPoolParams(ctx)
+	taskParams := k.GetTaskParams(ctx)
+	poolParams := k.GetLockedPoolParams(ctx)
 	return &types.QueryParamsResponse{TaskParams: taskParams, PoolParams: poolParams}, nil
 }

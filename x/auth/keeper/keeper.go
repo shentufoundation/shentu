@@ -1,24 +1,25 @@
 package keeper
 
 import (
+	"cosmossdk.io/core/store"
+
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 type Keeper struct {
-	cdc      codec.BinaryCodec
-	storeKey storetypes.StoreKey
-	ak       types.AccountKeeper
-	ck       types.CertKeeper
+	cdc          codec.BinaryCodec
+	storeService store.KVStoreService
+	ak           types.AccountKeeper
+	ck           types.CertKeeper
 }
 
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, ak types.AccountKeeper, ck types.CertKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService store.KVStoreService, ak types.AccountKeeper, ck types.CertKeeper) Keeper {
 	return Keeper{
-		cdc:      cdc,
-		storeKey: key,
-		ak:       ak,
-		ck:       ck,
+		cdc:          cdc,
+		storeService: storeService,
+		ak:           ak,
+		ck:           ck,
 	}
 }

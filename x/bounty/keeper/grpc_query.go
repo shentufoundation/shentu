@@ -6,7 +6,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -18,10 +20,9 @@ var _ types.QueryServer = Keeper{}
 // Programs implements the Query/Programs gRPC method
 func (k Keeper) Programs(c context.Context, req *types.QueryProgramsRequest) (*types.QueryProgramsResponse, error) {
 	var programs types.Programs
-	ctx := sdk.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(k.storeKey)
-	programStore := prefix.NewStore(store, types.ProgramKey)
+	kvStore := runtime.KVStoreAdapter(k.storeService.OpenKVStore(c))
+	programStore := prefix.NewStore(kvStore, types.ProgramKey)
 
 	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		var p types.Program
@@ -66,14 +67,13 @@ func (k Keeper) Program(c context.Context, req *types.QueryProgramRequest) (*typ
 
 func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*types.QueryFindingsResponse, error) {
 	var queryFindings types.Findings
-	ctx := sdk.UnwrapSDKContext(c)
 
 	if len(req.ProgramId) == 0 && len(req.SubmitterAddress) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	store := ctx.KVStore(k.storeKey)
-	programStore := prefix.NewStore(store, types.FindingKey)
+	kvStore := runtime.KVStoreAdapter(k.storeService.OpenKVStore(c))
+	programStore := prefix.NewStore(kvStore, types.FindingKey)
 
 	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		var finding types.Finding

@@ -19,14 +19,21 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // RegisterInterfaces registers the x/auth interfaces types with the interface registry
 func RegisterInterfaces(registry types.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgUnlock{},
-	)
-
 	registry.RegisterInterface(
 		"cosmos.vesting.v1beta1.VestingAccount",
 		(*exported.VestingAccount)(nil),
 		&ManualVestingAccount{},
+	)
+
+	registry.RegisterInterface(
+		"cosmos.auth.v1beta1.AccountI",
+		(*sdk.AccountI)(nil),
+		&ManualVestingAccount{},
+	)
+
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
+		&MsgUnlock{},
 	)
 
 	registry.RegisterImplementations(

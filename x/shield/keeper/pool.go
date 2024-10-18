@@ -6,33 +6,34 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
-func (k Keeper) GetBlockServiceFees(ctx sdk.Context) sdk.DecCoins {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetBlockServiceFeesKey())
-	if bz == nil {
-		return sdk.DecCoins{}
+func (k Keeper) GetBlockServiceFees(ctx sdk.Context) (sdk.DecCoins, error) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.GetBlockServiceFeesKey())
+	if err != nil {
+		return nil, err
 	}
 	var blockServiceFees types.Fees
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &blockServiceFees)
-	return blockServiceFees.Fees
+	return blockServiceFees.Fees, nil
 }
 
-func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, fees sdk.DecCoins) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, fees sdk.DecCoins) error {
+	store := k.storeService.OpenKVStore(ctx)
 	serviceFee := types.Fees{
 		Fees: fees,
 	}
 	bz := k.cdc.MustMarshalLengthPrefixed(&serviceFee)
-	store.Set(types.GetRemainingServiceFeesKey(), bz)
+	return store.Set(types.GetRemainingServiceFeesKey(), bz)
 }
 
-func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) sdk.DecCoins {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetRemainingServiceFeesKey())
-	if bz == nil {
-		panic("remaining service fees are not found")
+func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) (sdk.DecCoins, error) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.GetRemainingServiceFeesKey())
+	if err != nil {
+		return nil, err
 	}
+
 	var remainingServiceFees types.Fees
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &remainingServiceFees)
-	return remainingServiceFees.Fees
+	return remainingServiceFees.Fees, nil
 }

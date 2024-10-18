@@ -4,14 +4,16 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (k Keeper) GetProgram(ctx sdk.Context, id string) (types.Program, bool) {
-	store := ctx.KVStore(k.storeKey)
-
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	pBz := store.Get(types.GetProgramKey(id))
 	if pBz == nil {
 		return types.Program{}, false
@@ -23,12 +25,12 @@ func (k Keeper) GetProgram(ctx sdk.Context, id string) (types.Program, bool) {
 }
 
 func (k Keeper) GetAllPrograms(ctx sdk.Context) []types.Program {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
 	var programs []types.Program
 	var program types.Program
 
-	iterator := sdk.KVStorePrefixIterator(store, types.ProgramKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.ProgramKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		k.cdc.MustUnmarshal(iterator.Value(), &program)
@@ -38,7 +40,7 @@ func (k Keeper) GetAllPrograms(ctx sdk.Context) []types.Program {
 }
 
 func (k Keeper) SetProgram(ctx sdk.Context, program types.Program) {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	bz := k.cdc.MustMarshal(&program)
 	store.Set(types.GetProgramKey(program.ProgramId), bz)
 }
