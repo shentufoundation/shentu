@@ -13,6 +13,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
+	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 )
 
@@ -162,7 +163,7 @@ func processActiveProposal(ctx sdk.Context, k *keeper.Keeper, logger log.Logger)
 						return false, err
 					}
 				}
-				return true, nil
+				return false, nil
 			}
 		}
 
@@ -311,7 +312,9 @@ func processSecurityVote(ctx sdk.Context, k *keeper.Keeper, logger log.Logger) e
 		passes           bool
 		tallyResults     govtypesv1.TallyResult
 	)
-	rng := collections.NewPrefixUntilPairRange[time.Time, uint64](ctx.BlockTime())
+	// Iterate over all active proposals, regardless of end time, so that
+	// security voting can end as soon as a passing threshold is met.
+	rng := collections.NewPrefixUntilPairRange[time.Time, uint64](time.Unix(common.MaxTimestamp, 0))
 	err := k.ActiveProposalsQueue.Walk(ctx, rng, func(key collections.Pair[time.Time, uint64], _ uint64) (bool, error) {
 		proposal, err := k.Proposals.Get(ctx, key.K2())
 		if err != nil {
