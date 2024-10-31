@@ -1,155 +1,190 @@
 syntax = "proto3";
 package shentu.oracle.v1alpha1;
 
-import "gogoproto/gogo.proto";
-import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
 
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/oracle/types";
 
 // Msg defines the shield Msg service.
 service Msg {
-    rpc CreateOperator(MsgCreateOperator) returns (MsgCreateOperatorResponse);
-    rpc RemoveOperator(MsgRemoveOperator) returns (MsgRemoveOperatorResponse);
-    rpc AddCollateral(MsgAddCollateral) returns (MsgAddCollateralResponse);
-    rpc ReduceCollateral(MsgReduceCollateral) returns (MsgReduceCollateralResponse);
-    rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
-    rpc CreateTask(MsgCreateTask) returns (MsgCreateTaskResponse);
-    rpc TaskResponse(MsgTaskResponse) returns (MsgTaskResponseResponse);
-    rpc DeleteTask(MsgDeleteTask) returns (MsgDeleteTaskResponse);
-    rpc CreateTxTask(MsgCreateTxTask) returns (MsgCreateTxTaskResponse);
-    rpc TxTaskResponse(MsgTxTaskResponse) returns (MsgTxTaskResponseResponse);
-    rpc DeleteTxTask(MsgDeleteTxTask) returns (MsgDeleteTxTaskResponse);
+  rpc CreateOperator(MsgCreateOperator) returns (MsgCreateOperatorResponse);
+  rpc RemoveOperator(MsgRemoveOperator) returns (MsgRemoveOperatorResponse);
+  rpc AddCollateral(MsgAddCollateral) returns (MsgAddCollateralResponse);
+  rpc ReduceCollateral(MsgReduceCollateral) returns (MsgReduceCollateralResponse);
+  rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
+  rpc CreateTask(MsgCreateTask) returns (MsgCreateTaskResponse);
+  rpc TaskResponse(MsgTaskResponse) returns (MsgTaskResponseResponse);
+  rpc DeleteTask(MsgDeleteTask) returns (MsgDeleteTaskResponse);
+  rpc CreateTxTask(MsgCreateTxTask) returns (MsgCreateTxTaskResponse);
+  rpc TxTaskResponse(MsgTxTaskResponse) returns (MsgTxTaskResponseResponse);
+  rpc DeleteTxTask(MsgDeleteTxTask) returns (MsgDeleteTxTaskResponse);
 }
 
 message MsgCreateOperator {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "proposer";
+  option (amino.name) = "oracle/CreateOperator";
 
-    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
-    repeated cosmos.base.v1beta1.Coin collateral = 2 [ (gogoproto.moretags) = "yaml:\"collateral\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    string proposer = 3 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
-    string name = 4 [ (gogoproto.moretags) = "yaml:\"name\"" ];
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  repeated cosmos.base.v1beta1.Coin collateral = 2 [(gogoproto.moretags) = "yaml:\"collateral\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  string proposer = 3 [(gogoproto.moretags) = "yaml:\"proposer\""];
+  string name = 4 [(gogoproto.moretags) = "yaml:\"name\""];
 }
 
 message MsgCreateOperatorResponse {}
 
 message MsgRemoveOperator {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "proposer";
+  option (amino.name) = "oracle/RemoveOperator";
 
-    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
-    string proposer = 2 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  string proposer = 2 [(gogoproto.moretags) = "yaml:\"proposer\""];
 }
 
 message MsgRemoveOperatorResponse {}
 
 message MsgAddCollateral {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "address";
+  option (amino.name) = "oracle/AddCollateral";
 
-    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
-    repeated cosmos.base.v1beta1.Coin collateral_increment = 2 [ (gogoproto.moretags) = "yaml:\"collateral_increment\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  repeated cosmos.base.v1beta1.Coin collateral_increment = 2 [(gogoproto.moretags) = "yaml:\"collateral_increment\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
 message MsgAddCollateralResponse {}
 
 message MsgReduceCollateral {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "address";
+  option (amino.name) = "oracle/ReduceCollateral";
 
-    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
-    repeated cosmos.base.v1beta1.Coin collateral_decrement = 2 [ (gogoproto.moretags) = "yaml:\"collateral_decrement\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  repeated cosmos.base.v1beta1.Coin collateral_decrement = 2 [(gogoproto.moretags) = "yaml:\"collateral_decrement\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
 message MsgReduceCollateralResponse {}
 
 message MsgWithdrawReward {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "address";
+  option (amino.name) = "oracle/WithdrawReward";
 
-    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
 }
 
 message MsgWithdrawRewardResponse {}
 
 message MsgCreateTask {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "oracle/CreateTask";
 
-    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
-    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
-    repeated cosmos.base.v1beta1.Coin bounty = 3 [ (gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string creator = 5 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
-    int64 wait = 6 [ (gogoproto.moretags) = "yaml:\"wait\"" ];
-    google.protobuf.Duration valid_duration = 7 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"valid_duration\"" ];
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string contract = 1 [(gogoproto.moretags) = "yaml:\"contract\""];
+  string function = 2 [(gogoproto.moretags) = "yaml:\"function\""];
+  repeated cosmos.base.v1beta1.Coin bounty = 3 [(gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  string description = 4 [(gogoproto.moretags) = "yaml:\"description\""];
+  string creator = 5 [(gogoproto.moretags) = "yaml:\"creator\""];
+  int64 wait = 6 [(gogoproto.moretags) = "yaml:\"wait\""];
+  google.protobuf.Duration valid_duration = 7 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"valid_duration\""];
 }
 
 message MsgCreateTaskResponse {}
 
 message MsgTaskResponse {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "operator";
+  option (amino.name) = "oracle/RespondToTask";
 
-    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
-    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
-    int64 score = 3 [ (gogoproto.moretags) = "yaml:\"score\"" ];
-    string operator = 4 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string contract = 1 [(gogoproto.moretags) = "yaml:\"contract\""];
+  string function = 2 [(gogoproto.moretags) = "yaml:\"function\""];
+  int64 score = 3 [(gogoproto.moretags) = "yaml:\"score\""];
+  string operator = 4 [(gogoproto.moretags) = "yaml:\"operator\""];
 }
 
 message MsgTaskResponseResponse {}
 
 message MsgDeleteTask {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "from";
+  option (amino.name) = "oracle/DeleteTask";
 
-    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
-    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
-    bool force = 3 [ (gogoproto.moretags) = "yaml:\"force\"" ];
-    string from = 4 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string contract = 1 [(gogoproto.moretags) = "yaml:\"contract\""];
+  string function = 2 [(gogoproto.moretags) = "yaml:\"function\""];
+  bool force = 3 [(gogoproto.moretags) = "yaml:\"force\""];
+  string from = 4 [(gogoproto.moretags) = "yaml:\"from\""];
 }
 
 message MsgDeleteTaskResponse {}
 
 message MsgCreateTxTask {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "oracle/CreateTxTask";
 
-    string creator = 1 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
-    string chain_id = 2 [ (gogoproto.moretags) = "yaml:\"chain_id\"" ];
-    // the bytes of application chain transaction that is going to be evaluated
-    bytes atx_bytes = 3 [ (gogoproto.moretags) = "yaml:\"atx_bytes\"" ];
-    repeated cosmos.base.v1beta1.Coin bounty = 4 [ (gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    google.protobuf.Timestamp valid_time = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"valid_time\""];
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string creator = 1 [(gogoproto.moretags) = "yaml:\"creator\""];
+  string chain_id = 2 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  // the bytes of application chain transaction that is going to be evaluated
+  bytes atx_bytes = 3 [(gogoproto.moretags) = "yaml:\"atx_bytes\""];
+  repeated cosmos.base.v1beta1.Coin bounty = 4 [(gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  google.protobuf.Timestamp valid_time = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"valid_time\""];
 }
 
 message MsgCreateTxTaskResponse {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    // sha256 hash of the application chain transaction
-    bytes atx_hash = 1;
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  // sha256 hash of the application chain transaction
+  bytes atx_hash = 1;
 }
 
 message MsgTxTaskResponse {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    // sha256 hash of the application chain transaction
-    bytes atx_hash = 1 [ (gogoproto.moretags) = "yaml:\"atx_hash\"" ];
-    int64 score = 2 [ (gogoproto.moretags) = "yaml:\"score\"" ];
-    string operator = 3 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
+  option (cosmos.msg.v1.signer) = "operator";
+  option (amino.name) = "oracle/RespondToTxTask";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  // sha256 hash of the application chain transaction
+  bytes atx_hash = 1 [(gogoproto.moretags) = "yaml:\"atx_hash\""];
+  int64 score = 2 [(gogoproto.moretags) = "yaml:\"score\""];
+  string operator = 3 [(gogoproto.moretags) = "yaml:\"operator\""];
 }
 
 message MsgTxTaskResponseResponse {}
 
 message MsgDeleteTxTask {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    // sha256 hash of the application chain transaction
-    bytes atx_hash = 1 [ (gogoproto.moretags) = "yaml:\"atx_hash\"" ];
-    string from = 2 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+  option (cosmos.msg.v1.signer) = "from";
+  option (amino.name) = "oracle/DeleteTxTask";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  // sha256 hash of the application chain transaction
+  bytes atx_hash = 1 [(gogoproto.moretags) = "yaml:\"atx_hash\""];
+  string from = 2 [(gogoproto.moretags) = "yaml:\"from\""];
 }
 
 message MsgDeleteTxTaskResponse {}

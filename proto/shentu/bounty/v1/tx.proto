@@ -3,10 +3,13 @@ package shentu.bounty.v1;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
-import "cosmos_proto/cosmos.proto";
 import "google/protobuf/any.proto";
 
+import "cosmos_proto/cosmos.proto";
+import "cosmos/msg/v1/msg.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "amino/amino.proto";
+
 import "shentu/bounty/v1/bounty.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
@@ -49,6 +52,9 @@ service Msg {
 
 // MsgCreateProgram defines a SDK message for creating a new program.
 message MsgCreateProgram {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/CreateProgram";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -60,6 +66,9 @@ message MsgCreateProgram {
 
 // MsgEditProgram defines a SDK message for editing a program.
 message MsgEditProgram {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/EditProgram";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -77,6 +86,9 @@ message MsgCreateProgramResponse {
 message MsgEditProgramResponse {}
 
 message MsgActivateProgram {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/ActivateProgram";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -87,6 +99,9 @@ message MsgActivateProgram {
 message MsgActivateProgramResponse {}
 
 message MsgCloseProgram {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/CloseProgram";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -98,6 +113,9 @@ message MsgCloseProgramResponse {}
 
 // MsgSubmitFinding defines a message to submit a finding.
 message MsgSubmitFinding {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/SubmitFinding";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -113,6 +131,9 @@ message MsgSubmitFindingResponse {}
 
 // MsgEditFinding defines a message to edit a finding.
 message MsgEditFinding {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/EditFinding";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -128,6 +149,9 @@ message MsgEditFindingResponse {}
 
 // MsgConfirmFinding defines a message to confirm a finding to an existing finding.
 message MsgConfirmFinding {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/ConfirmFinding";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -141,6 +165,9 @@ message MsgConfirmFindingResponse {}
 
 // MsgActivateFinding defines a message to activate a finding to an existing finding.
 message MsgActivateFinding {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/ActivateFinding";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -153,6 +180,9 @@ message MsgActivateFindingResponse {}
 
 // MsgConfirmFindingPaid defines a message to close a finding to an existing finding.
 message MsgConfirmFindingPaid {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/ConfirmFindingPaid";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -165,6 +195,9 @@ message MsgConfirmFindingPaidResponse {}
 
 // MsgCloseFinding defines a message to close a finding to an existing finding.
 message MsgCloseFinding {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/CloseFinding";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -177,6 +210,9 @@ message MsgCloseFindingResponse {}
 
 // MsgPublishFinding defines a message to publish a finding.
 message MsgPublishFinding {
+  option (cosmos.msg.v1.signer) = "operator_address";
+  option (amino.name)           = "bounty/PublishFinding";
+
   option (gogoproto.equal) = false;
 
   string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
