@@ -96,6 +96,8 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -509,6 +511,7 @@ func NewShentuApp(
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
+		ibctm.AppModule{},
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		icaModule,
