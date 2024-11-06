@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -64,15 +63,6 @@ func (m MsgCreateOperator) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing.
-func (m MsgCreateOperator) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgCreateOperator) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Proposer)
@@ -106,15 +96,6 @@ func (m MsgRemoveOperator) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSignBytes encodes the message for signing.
-func (m MsgRemoveOperator) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
 }
 
 // GetSigners defines whose signature is required.
@@ -155,15 +136,6 @@ func (m MsgAddCollateral) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing.
-func (m MsgAddCollateral) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgAddCollateral) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Address)
@@ -202,15 +174,6 @@ func (m MsgReduceCollateral) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing.
-func (m MsgReduceCollateral) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgReduceCollateral) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Address)
@@ -238,15 +201,6 @@ func (m MsgWithdrawReward) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSignBytes encodes the message for signing.
-func (m MsgWithdrawReward) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
 }
 
 // GetSigners defines whose signature is required.
@@ -280,15 +234,6 @@ func (m MsgCreateTask) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing.
-func (m MsgCreateTask) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgCreateTask) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Creator)
@@ -316,15 +261,6 @@ func (m MsgTaskResponse) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing.
-func (m MsgTaskResponse) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgTaskResponse) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Operator)
@@ -350,15 +286,6 @@ func (MsgDeleteTask) Type() string { return TypeMsgDeleteTask }
 // ValidateBasic runs stateless checks on the message.
 func (m MsgDeleteTask) ValidateBasic() error {
 	return nil
-}
-
-// GetSignBytes encodes the message for signing.
-func (m MsgDeleteTask) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
 }
 
 // GetSigners defines whose signature is required.
@@ -404,16 +331,6 @@ func (m MsgCreateTxTask) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing.
-// LegacyMsg interface for Amino
-func (m MsgCreateTxTask) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgCreateTxTask) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Creator)
@@ -447,15 +364,6 @@ func (m MsgTxTaskResponse) ValidateBasic() error {
 	return nil
 }
 
-// LegacyMsg interface for Amino
-func (m MsgTxTaskResponse) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
 // Msg interface, return the account that should sign the tx
 func (m MsgTxTaskResponse) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.Operator)
@@ -485,15 +393,6 @@ func (m MsgDeleteTxTask) ValidateBasic() error {
 		return fmt.Errorf("atx_hash cannot be empty")
 	}
 	return nil
-}
-
-// LegacyMsg interface for Amino
-func (m MsgDeleteTxTask) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
 }
 
 // Msg interface, return the account that should sign the tx
