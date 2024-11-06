@@ -22,8 +22,8 @@ func EndBlocker(ctx context.Context, k keeper.Keeper) error {
 	if err != nil {
 		return err
 	}
-	toAggTaskIDs := append(tasks, closingTaskIDs...)
-	for _, taskID := range toAggTaskIDs {
+	tasks = append(tasks, closingTaskIDs...)
+	for _, taskID := range tasks {
 		err := k.Aggregate(ctx, taskID.Tid)
 		if err != nil {
 			continue

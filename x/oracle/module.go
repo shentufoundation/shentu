@@ -33,7 +33,6 @@ var (
 
 // AppModuleBasic specifies the app module basics object.
 type AppModuleBasic struct {
-	cdc codec.Codec
 }
 
 // NewAppModuleBasic creates a new AppModuleBasic object in oracle module.
@@ -165,12 +164,12 @@ func (am AppModule) EndBlock(ctx context.Context) error {
 // AppModuleSimulation functions
 
 // GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	//simulation.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for oracle module.
-func (am AppModuleBasic) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	//sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
@@ -179,13 +178,3 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	return nil
 	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAccountKeeper(), am.bankKeeper)
 }
-
-// ProposalContents returns functions that generate gov proposals for the module.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-//// RandomizedParams returns functions that generate params for the module.
-//func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-//	return simulation.ParamChanges(r)
-//}

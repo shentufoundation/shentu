@@ -150,11 +150,6 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	banksim.RandomizedGenState(simState)
 }
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
 // RegisterStoreDecoder performs a no-op.
 func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	//sdr[types.StoreKey] = simtypes.NewStoreDecoderFuncFromCollectionsSchema(am.keeper.(keeper.BaseKeeper).Schema)

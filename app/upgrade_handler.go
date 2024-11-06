@@ -16,7 +16,7 @@ const (
 	upgradeName = "v2.12.0"
 )
 
-func (app ShentuApp) setUpgradeHandler(cdc codec.BinaryCodec, clientKeeper clientkeeper.Keeper) {
+func (app ShentuApp) setUpgradeHandler(_ codec.BinaryCodec, clientKeeper clientkeeper.Keeper) {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {

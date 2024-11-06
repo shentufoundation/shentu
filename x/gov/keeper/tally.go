@@ -128,7 +128,7 @@ func (k Keeper) Tally(ctx context.Context, proposal govtypesv1.Proposal) (passes
 		}
 	}
 
-	pass, veto := passAndVetoStakeResult(k, ctx, th)
+	pass, veto := passAndVetoStakeResult(ctx, k, th)
 
 	return pass, veto, tallyResults, nil
 }
@@ -203,7 +203,7 @@ func delegatorVoting(ctx context.Context, k Keeper, vote govtypesv1.Vote, valida
 	})
 }
 
-func passAndVetoStakeResult(k Keeper, ctx context.Context, th TallyHelper) (pass bool, veto bool) {
+func passAndVetoStakeResult(ctx context.Context, k Keeper, th TallyHelper) (pass bool, veto bool) {
 	// If there is no staked coins, the proposal fails.
 	totalBonded, err := k.stakingKeeper.TotalBondedTokens(ctx)
 	if err != nil {
@@ -244,7 +244,7 @@ func passAndVetoStakeResult(k Keeper, ctx context.Context, th TallyHelper) (pass
 
 // passAndVetoSecurityResult has two storeKey differences from passAndVetoStakeResult:
 //  1. Every certifier has equal voting power (1 head =  1 vote)
-func passAndVetoSecurityResult(k Keeper, ctx context.Context, th TallyHelper) (pass bool) {
+func passAndVetoSecurityResult(ctx context.Context, k Keeper, th TallyHelper) (pass bool) {
 	// If no one votes (everyone abstains), proposal fails.
 	if th.totalVotingPower.IsZero() {
 		return false
@@ -287,6 +287,9 @@ func SecurityTally(ctx context.Context, k Keeper, proposal govtypesv1.Proposal) 
 		currVotes = append(currVotes, vote)
 		return true, nil
 	})
+	if err != nil {
+		return false, false, govtypesv1.TallyResult{}
+	}
 
 	for _, vote := range currVotes {
 		if len(vote.Options) != 1 {
@@ -296,6 +299,10 @@ func SecurityTally(ctx context.Context, k Keeper, proposal govtypesv1.Proposal) 
 		totalHeadCounts = totalHeadCounts.Add(math.LegacyNewDec(1))
 	}
 	customParams, err := k.GetCustomParams(ctx)
+	if err != nil {
+		return false, false, govtypesv1.TallyResult{}
+	}
+
 	tallyResults := govtypesv1.NewTallyResultFromMap(results)
 
 	ctally := customParams.CertifierUpdateSecurityVoteTally
@@ -309,7 +316,7 @@ func SecurityTally(ctx context.Context, k Keeper, proposal govtypesv1.Proposal) 
 		},
 		results,
 	}
-	pass := passAndVetoSecurityResult(k, ctx, th)
+	pass := passAndVetoSecurityResult(ctx, k, th)
 
 	var endVoting, isCertifierUpdateProposal bool
 	// For CertifierUpdateProposal: If security round didn't pass, continue to

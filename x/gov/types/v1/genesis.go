@@ -88,6 +88,7 @@ func ValidateGenesis(data *GenesisState) error {
 	// weed out duplicate votes
 	errGroup.Go(func() error {
 		type voteKey struct {
+			//nolint:revive
 			ProposalId uint64 //nolint:revive // staying consistent with main and v0.47
 			Voter      string
 		}

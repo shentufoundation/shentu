@@ -396,8 +396,8 @@ func (k Keeper) SetShortcutTasks(ctx context.Context, tid []byte) error {
 	if err != nil {
 		return err
 	}
-	taskIDs := append(tasks, types.TaskID{Tid: tid})
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
+	tasks = append(tasks, types.TaskID{Tid: tid})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: tasks})
 	return store.Set(types.ShortcutTasksKeyPrefix, bz)
 }
 

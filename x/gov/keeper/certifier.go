@@ -79,6 +79,9 @@ func (k Keeper) IsCertifier(ctx context.Context, addr sdk.AccAddress) (bool, err
 
 func (k Keeper) CertifierVoteIsRequired(ctx context.Context, proposalID uint64) (bool, error) {
 	proposal, err := k.Proposals.Get(ctx, proposalID)
+	if err != nil {
+		return false, err
+	}
 	proposalMsgs, err := proposal.GetMsgs()
 	if err != nil {
 		return false, err

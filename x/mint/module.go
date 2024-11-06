@@ -164,11 +164,6 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	//simulation.RandomizedGenState(simState)
 }
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
 // RegisterStoreDecoder registers a decoder for mint module's types.
 func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	//sdr[minttypes.StoreKey] = simulation.NewDecodeStore(am.cdc)

@@ -29,7 +29,6 @@ var (
 
 // AppModuleBasic specifies the app module basics object.
 type AppModuleBasic struct {
-	cdc codec.Codec
 }
 
 // NewAppModuleBasic create a new AppModuleBasic object in cert module
