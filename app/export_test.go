@@ -1,5 +1,10 @@
-package app
+package app_test
 
+//
+//import (
+//	"testing"
+//)
+//
 //func TestExportAppStateAndValidators(t *testing.T) {
 //	testCases := []struct {
 //		name          string
