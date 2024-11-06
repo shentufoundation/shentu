@@ -162,7 +162,7 @@ docker-build-debug:
 
 # in CI.
 docker-build-hermes:
-	@cd tests/e2e/docker; docker build -t cosmos/hermes-e2e:latest -f hermes.Dockerfile .
+	@cd tests/e2e/docker; docker build -t cosmos/hermes-e2e:1.0.0 -f hermes.Dockerfile .
 
 
 image: Dockerfile Dockerfile.update

@@ -1,242 +1,186 @@
 package e2e
 
 import (
-	"context"
-	"fmt"
-	"strings"
 	"time"
 
-	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
-
-	bountycli "github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, name, detail, creatorAddr, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+func (s *IntegrationTestSuite) testBounty() {
+	s.Run("test_bounty", func() {
+		var (
+			// err      error
+			valIdx       = 0
+			c            = s.chainA
+			grpcEndpoint = s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
+		)
 
-	s.T().Logf("Executing shentu bounty create program %s on %s", pid, c.id)
+		alice, _ := c.genesisAccounts[1].keyInfo.GetAddress()
+		bob, _ := c.genesisAccounts[2].keyInfo.GetAddress()
+		charlie, _ := c.genesisAccounts[3].keyInfo.GetAddress()
 
-	command := []string{
-		shentuBinary,
-		txCommand,
-		bountytypes.ModuleName,
-		"create-program",
-		fmt.Sprintf("--%s=%s", bountycli.FlagProgramID, pid),
-		fmt.Sprintf("--%s=%s", bountycli.FlagName, name),
-		fmt.Sprintf("--%s=%s", bountycli.FlagDetail, detail),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, creatorAddr),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
+		programID := "fc28a970-f977-4bcb-bbfb-560baaaf7dd2"
+		programName := "e2e-program-name"
+		programDetail := `{"desc":"Refer to https://bounty.desc/cosmos for more details.","targets":["https://github.com/bounty/repo"],"total_bounty":500000,"bounty_denom":"USDT","bounty_levels":[{"severity":"critical","bounty":{"min_amount":"1","max_amount":"25000"}},{"severity":"high","bounty":{"min_amount":"1","max_amount":"3000"}},{"severity":"medium","bounty":{"min_amount":"1","max_amount":"1000"}},{"severity":"low","bounty":{"min_amount":"1","max_amount":"500"}},{"severity":"informational","bounty":{"min_amount":"1","max_amount":"1"}}]}`
 
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
+		findingID := "4b34ff64-ad6a-4dda-98f5-6da02db7106c"
+		findingDesc := "e2e-finding-desc"
+		findingPoc := "e2e-finding-poc"
+		// Create a program
+		s.execCreateProgram(c, valIdx, programID, programName, programDetail, alice.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				program, err := queryProgram(grpcEndpoint, programID)
+				return err == nil && program.ProgramId == programID && program.Status == bountytypes.ProgramStatusInactive
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully create program", creatorAddr)
-}
+		// Create a duplicate program
+		s.execCreateProgram(c, valIdx, programID, "dupe-name", programDetail, alice.String(), feesAmountCoin, true)
 
-func (s *IntegrationTestSuite) executeActivateProgram(c *chain, valIdx int, pid, operatorAddr, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+		// Active a program by non-admin
+		s.execActivateProgram(c, valIdx, programID, alice.String(), feesAmountCoin, true)
 
-	s.T().Logf("Executing shentu bounty create program %s on %s", pid, c.id)
+		// Issue admin certificate
+		certifierAcct, _ := c.certifier.keyInfo.GetAddress()
+		s.execIssueCertificate(c, valIdx, charlie.String(), "bountyadmin", "set bounty admin", certifierAcct.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				ok, _ := queryCertificate(grpcEndpoint, charlie.String(), "bountyadmin")
+				return ok
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-	command := []string{
-		shentuBinary,
-		txCommand,
-		bountytypes.ModuleName,
-		"activate-program",
-		fmt.Sprintf("%s", pid),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, operatorAddr),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
+		// Submit finding to inactive program
+		s.execSubmitFinding(c, valIdx, programID, findingID, "MEDIUM", findingDesc, findingPoc, bob.String(), feesAmountCoin, true)
 
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
+		// Active a program by admin
+		s.execActivateProgram(c, valIdx, programID, charlie.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				program, err := queryProgram(grpcEndpoint, programID)
+				return err == nil && program.ProgramId == programID && program.Status == bountytypes.ProgramStatusActive
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully create program", operatorAddr)
-}
+		// Submit a finding
+		s.execSubmitFinding(c, valIdx, programID, findingID, "MEDIUM", findingDesc, findingPoc, bob.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				finding, err := queryFinding(grpcEndpoint, findingID)
+				return err == nil && finding.FindingId == findingID && finding.Status == bountytypes.FindingStatusSubmitted
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, fid, submitAddr, title, desc, poc, detail, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+		// Edit a finding
+		s.execEditFinding(c, valIdx, findingID, "LOW", findingDesc, findingPoc, bob.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				finding, err := queryFinding(grpcEndpoint, findingID)
+				return err == nil && finding.FindingId == findingID && finding.SeverityLevel == bountytypes.Low
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-	s.T().Logf("Executing shentu bounty submit finding on %s", c.id)
+		// Edit a finding by non-creator
+		s.execEditFinding(c, valIdx, findingID, "CRITICAL", findingDesc, findingPoc, alice.String(), feesAmountCoin, true)
 
-	command := []string{
-		shentuBinary,
-		txCommand,
-		bountytypes.ModuleName,
-		"submit-finding",
-		fmt.Sprintf("--%s=%s", bountycli.FlagProgramID, pid),
-		fmt.Sprintf("--%s=%s", bountycli.FlagFindingID, fid),
-		fmt.Sprintf("--%s=%s", bountycli.FlagFindingTitle, title),
-		fmt.Sprintf("--%s=%s", bountycli.FlagFindingDescription, desc),
-		fmt.Sprintf("--%s=%s", bountycli.FlagFindingProofOfContent, poc),
-		fmt.Sprintf("--%s=%s", bountycli.FlagDetail, detail),
-		fmt.Sprintf("--%s=%s", bountycli.FlagFindingSeverityLevel, bountytypes.Low.String()),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, submitAddr),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
+		// Active a finding by non-admin
+		s.execActivateFinding(c, valIdx, findingID, bob.String(), feesAmountCoin, true)
 
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully submit finding", submitAddr)
-}
+		// Active a finding by admin
+		s.execActivateFinding(c, valIdx, findingID, charlie.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				finding, err := queryFinding(grpcEndpoint, findingID)
+				return err == nil && finding.FindingId == findingID && finding.Status == bountytypes.FindingStatusActive
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-func (s *IntegrationTestSuite) executeConfirmFinding(c *chain, valIdx int, findingId, hostAddr, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+		// Close program by admin
+		s.execCloseProgram(c, valIdx, programID, charlie.String(), feesAmountCoin, true)
 
-	s.T().Logf("Executing shentu bounty acctpe finding on %s", c.id)
+		findingFingerprint, err := queryFindingFingerprint(grpcEndpoint, findingID)
+		s.Require().NoError(err)
+		// Confirm a finding by non-client
+		s.execConfirmFinding(c, valIdx, findingID, findingFingerprint, bob.String(), feesAmountCoin, true)
 
-	command := []string{
-		shentuBinary,
-		txCommand,
-		bountytypes.ModuleName,
-		"confirm-finding",
-		fmt.Sprintf("%s", findingId),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, hostAddr),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
+		// Confirm a finding by client
+		s.execConfirmFinding(c, valIdx, findingID, findingFingerprint, alice.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				finding, err := queryFinding(grpcEndpoint, findingID)
+				return err == nil && finding.FindingId == findingID && finding.Status == bountytypes.FindingStatusConfirmed
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
+		// Edit payment by creator
+		s.execEditPayment(c, valIdx, findingID, "payment-hash", bob.String(), feesAmountCoin, true)
 
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully accept finding", hostAddr)
-}
+		// Edit payment by client
+		s.execEditPayment(c, valIdx, findingID, "payment-hash", alice.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				finding, err := queryFinding(grpcEndpoint, findingID)
+				return err == nil && finding.FindingId == findingID && finding.PaymentHash == "payment-hash"
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-func (s *IntegrationTestSuite) executeCloseFinding(c *chain, valIdx int, findingId, hostAddr, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+		// Confirm paid by non-creator
+		s.execConfirmPayment(c, valIdx, findingID, alice.String(), feesAmountCoin, true)
 
-	s.T().Logf("Executing shentu bounty reject finding on %s", c.id)
+		// Confirm paid by creator
+		s.execConfirmPayment(c, valIdx, findingID, bob.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				finding, err := queryFinding(grpcEndpoint, findingID)
+				return err == nil && finding.FindingId == findingID && finding.Status == bountytypes.FindingStatusPaid
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-	command := []string{
-		shentuBinary,
-		txCommand,
-		bountytypes.ModuleName,
-		"close-finding",
-		fmt.Sprintf("%s", findingId),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, hostAddr),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
+		// Publish a finding by creator
+		s.execPublishFinding(c, valIdx, findingID, findingDesc, findingPoc, bob.String(), feesAmountCoin, true)
 
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
+		// Publish a finding by client
+		s.execPublishFinding(c, valIdx, findingID, findingDesc, findingPoc, alice.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				finding, err := queryFinding(grpcEndpoint, findingID)
+				return err == nil && finding.FindingId == findingID && finding.ProofOfConcept == findingPoc
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully reject finding", hostAddr)
-}
+		// Close a program by non-client
+		s.execCloseProgram(c, valIdx, programID, bob.String(), feesAmountCoin, true)
 
-//func (s *IntegrationTestSuite) executeReleaseFinding(c *chain, valIdx, findingId int, hostAddr, keyFile, fees string) {
-//	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-//	defer cancel()
-//
-//	s.T().Logf("Executing shentu bounty release finding on %s", c.id)
-//
-//	command := []string{
-//		shentuBinary,
-//		txCommand,
-//		bountytypes.ModuleName,
-//		"release-finding",
-//		fmt.Sprintf("%d", findingId),
-//		fmt.Sprintf("--%s=%s", bountycli.FlagEncKeyFile, keyFile),
-//		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, hostAddr),
-//		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
-//		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
-//		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
-//		"--keyring-backend=test",
-//		"--output=json",
-//		"-y",
-//	}
-//
-//	s.T().Logf("cmd: %s", strings.Join(command, " "))
-//
-//	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-//	s.T().Logf("%s successfully release finding", hostAddr)
-//}
-
-func (s *IntegrationTestSuite) executeEndProgram(c *chain, valIdx int, programId, hostAddr, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-
-	s.T().Logf("Executing shentu bounty close program on %s", c.id)
-
-	command := []string{
-		shentuBinary,
-		txCommand,
-		bountytypes.ModuleName,
-		"close-program",
-		fmt.Sprintf("%s", programId),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, hostAddr),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
-
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
-
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully end program", hostAddr)
-}
-
-func queryBountyProgram(endpoint, programID string) (*bountytypes.QueryProgramResponse, error) {
-	grpcReq := &bountytypes.QueryProgramRequest{
-		ProgramId: programID,
-	}
-	conn, err := connectGrpc(endpoint)
-	defer conn.Close()
-	client := bountytypes.NewQueryClient(conn)
-
-	grpcRsp, err := client.Program(context.Background(), grpcReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute request: %w", err)
-	}
-
-	return grpcRsp, nil
-}
-
-func queryBountyFinding(endpoint, findingID string) (*bountytypes.QueryFindingResponse, error) {
-	grpcReq := &bountytypes.QueryFindingRequest{
-		FindingId: findingID,
-	}
-	conn, err := connectGrpc(endpoint)
-	defer conn.Close()
-	client := bountytypes.NewQueryClient(conn)
-
-	grpcRsp, err := client.Finding(context.Background(), grpcReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute request: %w", err)
-	}
-
-	return grpcRsp, nil
+		// Close a program by client
+		s.execCloseProgram(c, valIdx, programID, alice.String(), feesAmountCoin, false)
+		s.Require().Eventually(
+			func() bool {
+				program, err := queryProgram(grpcEndpoint, programID)
+				return err == nil && program.ProgramId == programID && program.Status == bountytypes.ProgramStatusClosed
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
 }
