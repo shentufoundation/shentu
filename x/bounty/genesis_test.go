@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/require"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
@@ -38,14 +37,14 @@ func TestExportGenesis(t *testing.T) {
 	}
 
 	app1 := shentuapp.Setup(t, false)
-	ctx1 := app1.BaseApp.NewContext(false, tmproto.Header{})
+	ctx1 := app1.BaseApp.NewContext(false)
 	k1 := app1.BountyKeeper
 
 	bounty.InitGenesis(ctx1, k1, dataGS)
 	exported1 := bounty.ExportGenesis(ctx1, k1)
 
 	app2 := shentuapp.Setup(t, false)
-	ctx2 := app2.BaseApp.NewContext(false, tmproto.Header{})
+	ctx2 := app2.BaseApp.NewContext(false)
 	k2 := app2.BountyKeeper
 
 	exported2 := bounty.ExportGenesis(ctx2, k2)

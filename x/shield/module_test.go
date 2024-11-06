@@ -5,12 +5,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/log"
-	dbm "github.com/cometbft/cometbft-db"
-	abcitypes "github.com/cometbft/cometbft/abci/types"
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -25,24 +19,9 @@ func fauxMerkleModeOpt(bapp *baseapp.BaseApp) {
 }
 
 func TestItCreatesModuleAccountOnInitBlock(t *testing.T) {
-	db := dbm.NewMemDB()
-	encCdc := shentuapp.MakeEncodingConfig()
+	app := shentuapp.Setup(t, false)
 
-	app := shentuapp.NewShentuApp(log.NewNopLogger(), db, nil, true, map[int64]bool{},
-		shentuapp.DefaultNodeHome, 5, encCdc, shentuapp.EmptyAppOptions{}, fauxMerkleModeOpt, baseapp.SetChainID("test-chain-id"))
-
-	genesisState := shentuapp.GenesisStateWithSingleValidator(t, app)
-	stateBytes, err := tmjson.Marshal(genesisState)
-	require.NoError(t, err)
-
-	app.InitChain(
-		abcitypes.RequestInitChain{
-			AppStateBytes: stateBytes,
-			ChainId:       "test-chain-id",
-		},
-	)
-
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 	acc := app.AccountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	require.NotNil(t, acc)
 	acc1 := app.AccountKeeper.GetAccount(ctx, authtypes.NewModuleAddress(types.ModuleName))

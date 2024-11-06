@@ -4,13 +4,10 @@ import (
 	"math/rand"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/math"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
@@ -19,15 +16,15 @@ import (
 func Test_GetNewCertificateID(t *testing.T) {
 	t.Run("Testing GetNewCertificateID", func(t *testing.T) {
 		app := shentuapp.Setup(t, false)
-		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-		addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
+		ctx := app.BaseApp.NewContext(false)
+		addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 
 		// Set and Get a certificate
 		c1, err := types.NewCertificate("compilation", "sourcodehash0", "compiler1",
 			"bytecodehash1", "", addrs[0])
 		require.NoError(t, err)
 
-		id1 := app.CertKeeper.GetNextCertificateID(ctx)
+		id1, _ := app.CertKeeper.GetNextCertificateID(ctx)
 
 		c1.CertificateId = id1
 		app.CertKeeper.SetNextCertificateID(ctx, id1+1)
@@ -46,7 +43,7 @@ func Test_GetNewCertificateID(t *testing.T) {
 			"bytecodehash1", "", addrs[0])
 		require.NoError(t, err)
 
-		id2 := app.CertKeeper.GetNextCertificateID(ctx)
+		id2, _ := app.CertKeeper.GetNextCertificateID(ctx)
 		c2.CertificateId = id2
 		app.CertKeeper.SetNextCertificateID(ctx, id2+1)
 		app.CertKeeper.SetCertificate(ctx, c2)
@@ -66,7 +63,7 @@ func Test_GetNewCertificateID(t *testing.T) {
 		c3, err := types.NewCertificate("compilation", "sourcodehash0", "compiler1",
 			"bytecodehash1", "", addrs[0])
 		require.NoError(t, err)
-		id3 := app.CertKeeper.GetNextCertificateID(ctx)
+		id3, _ := app.CertKeeper.GetNextCertificateID(ctx)
 		require.Equal(t, id+2, id3)
 
 		c3.CertificateId = id3
@@ -91,8 +88,8 @@ func randomString(length int) string {
 func Test_IterationByCertifier(t *testing.T) {
 	t.Run("Testing certifier-based iteration", func(t *testing.T) {
 		app := shentuapp.Setup(t, false)
-		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-		addrs := shentuapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
+		ctx := app.BaseApp.NewContext(false)
+		addrs := shentuapp.AddTestAddrs(app, ctx, 5, math.NewInt(10000))
 		for _, addr := range addrs {
 			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
 		}
@@ -127,8 +124,8 @@ func Test_IterationByCertifier(t *testing.T) {
 func Test_CertificateQueries(t *testing.T) {
 	t.Run("Testing various queries on certifications", func(t *testing.T) {
 		app := shentuapp.Setup(t, false)
-		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-		addrs := shentuapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
+		ctx := app.BaseApp.NewContext(false)
+		addrs := shentuapp.AddTestAddrs(app, ctx, 5, math.NewInt(10000))
 		for _, addr := range addrs {
 			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
 		}
@@ -212,8 +209,8 @@ func Test_CertificateQueries(t *testing.T) {
 func Test_IsCertified(t *testing.T) {
 	t.Run("Testing the function IsCertified", func(t *testing.T) {
 		app := shentuapp.Setup(t, false)
-		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-		addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
+		ctx := app.BaseApp.NewContext(false)
+		addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))
 
 		certType := "auditing"
