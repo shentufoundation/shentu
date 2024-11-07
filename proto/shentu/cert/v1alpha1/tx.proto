@@ -23,7 +23,7 @@ service Msg {
 // MsgProposeCertifier is the message for proposing new certifier.
 message MsgProposeCertifier {
     option (cosmos.msg.v1.signer) = "proposer";
-    option (amino.name)           = "bounty/ProposeCertifier";
+    option (amino.name)           = "cert/ProposeCertifier";
 
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
@@ -39,7 +39,7 @@ message MsgProposeCertifierResponse {}
 // MsgCertifyGeneral is the message for issuing a general certificate.
 message MsgIssueCertificate {
     option (cosmos.msg.v1.signer) = "certifier";
-    option (amino.name)           = "bounty/IssueCertificate";
+    option (amino.name)           = "cert/IssueCertificate";
 
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
@@ -56,7 +56,7 @@ message MsgIssueCertificateResponse {}
 // MsgRevokeCertificate returns a certificate revoking operation.
 message MsgRevokeCertificate {
     option (cosmos.msg.v1.signer) = "revoker";
-    option (amino.name)           = "bounty/RevokeCertificate";
+    option (amino.name)           = "cert/RevokeCertificate";
 
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
@@ -71,7 +71,7 @@ message MsgRevokeCertificateResponse {}
 // MsgCertifyPlatform is the message for certifying a validator's host platform.
 message MsgCertifyPlatform {
     option (cosmos.msg.v1.signer) = "certifier";
-    option (amino.name)           = "bounty/CertifyPlatform";
+    option (amino.name)           = "cert/CertifyPlatform";
 
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
