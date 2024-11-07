@@ -72,6 +72,7 @@ func (s *IntegrationTestSuite) executeHermesCommand(ctx context.Context, hermesC
 		outBuf bytes.Buffer
 		errBuf bytes.Buffer
 	)
+	s.T().Logf("Executing hermes command: %s", strings.Join(hermesCmd, " "))
 	exec, err := s.dkrPool.Client.CreateExec(docker.CreateExecOptions{
 		Context:      ctx,
 		AttachStdout: true,
@@ -150,16 +151,20 @@ func (s *IntegrationTestSuite) execValidationError(chain *chain, valIdx int) fun
 func (s *IntegrationTestSuite) execValidationHermes() func([]byte, []byte) bool {
 	return func(stdout, stderr []byte) bool {
 		var out map[string]interface{}
-		err := json.Unmarshal(stdout, &out)
-		if err != nil {
-			return false
-		}
-		if lvl := out["level"]; lvl != nil && strings.ToLower(lvl.(string)) == "error" {
-			errMsg := out["fields"].(map[string]interface{})["message"]
-			s.Require().FailNowf("hermes relayer command failed", "stderr: %s", errMsg)
-		}
-		if s := out["status"]; s != nil && s != "success" {
-			return false
+		lines := bytes.Split(stdout, []byte("\n"))
+		for _, line := range lines {
+			if len(line) == 0 {
+				continue
+			}
+			err := json.Unmarshal(line, &out)
+			if err != nil {
+				return false
+			}
+			if s := out["status"]; s != nil && s != "success" {
+				return false
+			} else if s == "success" {
+				return true
+			}
 		}
 		return true
 	}

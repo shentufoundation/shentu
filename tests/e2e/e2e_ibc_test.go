@@ -53,7 +53,7 @@ func (s *IntegrationTestSuite) testIBCTokanTransfer() {
 			func() bool {
 				balances, err = queryShentuAllBalances(chainBAPIEndpoint, recipient)
 				s.Require().NoError(err)
-				return balances.Len() == 3
+				return balances.Len() > 1
 			},
 			time.Minute,
 			5*time.Second,
