@@ -1,7 +1,7 @@
 ARG IMG_TAG=latest
 
 # Compile the shentud binary
-FROM golang:1.22-alpine AS shentud-builder
+FROM golang:1.23-alpine AS shentud-builder
 WORKDIR /src/app/
 COPY go.mod go.sum* ./
 RUN go mod download
