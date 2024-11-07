@@ -26,6 +26,8 @@ const (
 	flagStatus    = "status"
 )
 
+// TODO remove
+
 // GetQueryCmd returns the cli query commands for this module.
 func GetQueryCmd() *cobra.Command {
 	// Group gov queries under a subcommand
@@ -46,6 +48,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryParams(),
 		GetCmdQueryTally(),
 		GetCmdCertVoted(),
+		GetCmdQueryCustomParam(),
 	)
 
 	return govQueryCmd
@@ -72,7 +75,7 @@ $ %[1]s query gov proposal 1
 			if err != nil {
 				return err
 			}
-			queryClient := typesv1.NewQueryClient(cliCtx)
+			queryClient := govtypesv1.NewQueryClient(cliCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -145,7 +148,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 			if err != nil {
 				return err
 			}
-			queryClient := typesv1.NewQueryClient(cliCtx)
+			queryClient := govtypesv1.NewQueryClient(cliCtx)
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
@@ -204,7 +207,7 @@ $ %s query gov vote 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 			if err != nil {
 				return err
 			}
-			queryClient := typesv1.NewQueryClient(clientCtx)
+			queryClient := govtypesv1.NewQueryClient(clientCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -279,7 +282,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 			if err != nil {
 				return err
 			}
-			queryClient := typesv1.NewQueryClient(cliCtx)
+			queryClient := govtypesv1.NewQueryClient(cliCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -360,7 +363,7 @@ $ %s query gov tally 1
 			if err != nil {
 				return err
 			}
-			queryClient := typesv1.NewQueryClient(clientCtx)
+			queryClient := govtypesv1.NewQueryClient(clientCtx)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -416,7 +419,7 @@ $ %s query gov params
 			if err != nil {
 				return err
 			}
-			queryClient := typesv1.NewQueryClient(cliCtx)
+			queryClient := govtypesv1.NewQueryClient(cliCtx)
 
 			// Query store for all 3 params
 			votingRes, err := queryClient.Params(
@@ -443,20 +446,11 @@ $ %s query gov params
 				return err
 			}
 
-			customRes, err := queryClient.Params(
-				cmd.Context(),
-				&govtypesv1.QueryParamsRequest{ParamsType: "custom"},
-			)
-			if err != nil {
-				return err
-			}
-
-			res := &typesv1.QueryParamsResponse{
+			res := &govtypesv1.QueryParamsResponse{
 				VotingParams:  votingRes.GetVotingParams(),
 				DepositParams: depositRes.GetDepositParams(),
 				TallyParams:   tallyRes.GetTallyParams(),
 				Params:        tallyRes.Params,
-				CustomParams:  customRes.GetCustomParams(),
 			}
 
 			return cliCtx.PrintProto(res)
@@ -490,7 +484,7 @@ $ %[1]s query gov param deposit
 			if err != nil {
 				return err
 			}
-			queryClient := typesv1.NewQueryClient(cliCtx)
+			queryClient := govtypesv1.NewQueryClient(cliCtx)
 
 			// Query store
 			res, err := queryClient.Params(
@@ -509,6 +503,53 @@ $ %[1]s query gov param deposit
 				out = res.GetTallyParams()
 			case govtypesv1.ParamDeposit:
 				out = res.GetDepositParams()
+			default:
+				return fmt.Errorf("argument must be one of (voting|tallying|deposit), was %s", args[0])
+			}
+
+			return cliCtx.PrintObjectLegacy(out)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryCustomParam implements the query param command.
+func GetCmdQueryCustomParam() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "custom-param [param-type]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query the parameters (voting|tallying|deposit) of the governance process",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the all the parameters for the governance process.
+
+Example:
+$ %[1]s query gov param voting
+$ %[1]s query gov param tallying
+$ %[1]s query gov param deposit
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := typesv1.NewCustomQueryClient(cliCtx)
+
+			// Query store
+			res, err := queryClient.CustomParams(
+				cmd.Context(),
+				&govtypesv1.QueryParamsRequest{ParamsType: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			var out fmt.Stringer
+			switch args[0] {
 			case typesv1.ParamCustom:
 				out = res.GetCustomParams()
 			default:
@@ -542,7 +583,7 @@ $ %[1]s query gov cert-voted 1
 			if err != nil {
 				return err
 			}
-			queryClient := typesv1.NewQueryClient(cliCtx)
+			queryClient := typesv1.NewCustomQueryClient(cliCtx)
 
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
 

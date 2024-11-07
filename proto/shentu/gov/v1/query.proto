@@ -11,50 +11,10 @@ import "shentu/gov/v1/gov.proto";
 option go_package = "github.com/shentufoundation/shentu/x/gov/types/v1";
 
 // Query defines the gRPC querier service for gov module
-service Query {
-  // Constitution queries the chain's constitution.
-  rpc Constitution(cosmos.gov.v1.QueryConstitutionRequest) returns (cosmos.gov.v1.QueryConstitutionResponse) {
-    option (google.api.http).get = "/cosmos/gov/v1/constitution";
-  }
-
-  // Proposal queries proposal details based on ProposalID.
-  rpc Proposal(cosmos.gov.v1.QueryProposalRequest) returns (cosmos.gov.v1.QueryProposalResponse) {
-    option (google.api.http).get = "/cosmos/gov/v1/proposals/{proposal_id}";
-  }
-
-  // Proposals queries all proposals based on given status.
-  rpc Proposals(cosmos.gov.v1.QueryProposalsRequest) returns (cosmos.gov.v1.QueryProposalsResponse) {
-    option (google.api.http).get = "/cosmos/gov/v1/proposals";
-  }
-
-  // Vote queries voted information based on proposalID, voterAddr.
-  rpc Vote(cosmos.gov.v1.QueryVoteRequest) returns (cosmos.gov.v1.QueryVoteResponse) {
-    option (google.api.http).get = "/cosmos/gov/v1/proposals/{proposal_id}/votes/{voter}";
-  }
-
-  // Votes queries votes of a given proposal.
-  rpc Votes(cosmos.gov.v1.QueryVotesRequest) returns (cosmos.gov.v1.QueryVotesResponse) {
-    option (google.api.http).get = "/cosmos/gov/v1/proposals/{proposal_id}/votes";
-  }
-
+service CustomQuery {
   // Params queries all parameters of the gov module.
-  rpc Params(cosmos.gov.v1.QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/cosmos/gov/v1/params/{params_type}";
-  }
-
-  // Deposit queries single deposit information based proposalID, depositAddr.
-  rpc Deposit(cosmos.gov.v1.QueryDepositRequest) returns (cosmos.gov.v1.QueryDepositResponse) {
-    option (google.api.http).get = "/cosmos/gov/v1/proposals/{proposal_id}/deposits/{depositor}";
-  }
-
-  // Deposits queries all deposits of a single proposal.
-  rpc Deposits(cosmos.gov.v1.QueryDepositsRequest) returns (cosmos.gov.v1.QueryDepositsResponse) {
-    option (google.api.http).get = "/cosmos/gov/v1/proposals/{proposal_id}/deposits";
-  }
-
-  // TallyResult queries the tally of a proposal vote.
-  rpc TallyResult(cosmos.gov.v1.QueryTallyResultRequest) returns (cosmos.gov.v1.QueryTallyResultResponse) {
-    option (google.api.http).get = "/cosmos/gov/v1/proposals/{proposal_id}/tally";
+  rpc CustomParams(cosmos.gov.v1.QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1/custom/params";
   }
 
   // Proposal queries proposal details based on ProposalID.
@@ -76,16 +36,5 @@ message QueryCertVotedResponse {
 
 // QueryParamsResponse is the response type for the Query/Params RPC method.
 message QueryParamsResponse {
-  // voting_params defines the parameters related to voting.
-  cosmos.gov.v1.VotingParams voting_params = 1;
-  // deposit_params defines the parameters related to deposit.
-  cosmos.gov.v1.DepositParams deposit_params = 2;
-  // tally_params defines the parameters related to tally.
-  cosmos.gov.v1.TallyParams tally_params = 3;
-  // custom_params defines the parameters related to custom.
-  // params defines all the paramaters of x/gov module.
-  //
-  // Since: cosmos-sdk 0.47
-  cosmos.gov.v1.Params params = 4;
-  CustomParams custom_params = 5;
+  CustomParams custom_params = 1;
 }

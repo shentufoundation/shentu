@@ -1,6 +1,9 @@
 package app
 
 import (
+	"bytes"
+	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -94,8 +97,57 @@ func createRandomAccounts(accNum int) []sdk.AccAddress {
 	return testAddrs
 }
 
+// CreateIncrementalAccounts is a strategy used by addTestAddrs() in order to generated addresses in ascending order.
+func CreateIncrementalAccounts(accNum int) []sdk.AccAddress {
+	var addresses []sdk.AccAddress
+	var buffer bytes.Buffer
+
+	// start at 100 so we can make up to 999 test addresses with valid test addresses
+	for i := 100; i < (accNum + 100); i++ {
+		numString := strconv.Itoa(i)
+		buffer.WriteString("A58856F0FD53BF058B4909A21AEC019107BA6") // base address string
+
+		buffer.WriteString(numString) // adding on final two digits to make addresses unique
+		res, _ := sdk.AccAddressFromHexUnsafe(buffer.String())
+		bech := res.String()
+		addr, _ := TestAddr(buffer.String(), bech)
+
+		addresses = append(addresses, addr)
+		buffer.Reset()
+	}
+
+	return addresses
+}
+
 func AddTestAddrs(app *ShentuApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, createRandomAccounts)
+}
+
+// AddTestAddrsIncremental constructs and returns accNum amount of accounts with an
+// initial balance of accAmt in random order
+func AddTestAddrsIncremental(app *ShentuApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
+	return addTestAddrs(app, ctx, accNum, accAmt, CreateIncrementalAccounts)
+}
+
+func TestAddr(addr, bech string) (sdk.AccAddress, error) {
+	res, err := sdk.AccAddressFromHexUnsafe(addr)
+	if err != nil {
+		return nil, err
+	}
+	bechexpected := res.String()
+	if bech != bechexpected {
+		return nil, fmt.Errorf("bech encoding doesn't match reference")
+	}
+
+	bechres, err := sdk.AccAddressFromBech32(bech)
+	if err != nil {
+		return nil, err
+	}
+	if !bytes.Equal(bechres, res) {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func addTestAddrs(app *ShentuApp, ctx sdk.Context, accNum int, accAmt math.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
