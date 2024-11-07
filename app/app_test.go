@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/log"
 	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/log"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	dbm "github.com/cosmos/cosmos-db"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -13,7 +15,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
-func TestSimAppExportAndBlockedAddrs(t *testing.T) {
+func TestShentuAppExportAndBlockedAddrs(t *testing.T) {
 	db := dbm.NewMemDB()
 	logger := log.NewTestLogger(t)
 	app := NewShentuAppWithCustomOptions(t, false, simapp.SetupOptions{
@@ -38,32 +40,20 @@ func TestSimAppExportAndBlockedAddrs(t *testing.T) {
 		)
 	}
 
-	t.Log(app.AuthKeeper)
-}
+	// finalize block so we have CheckTx state set
+	_, err := app.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height: 1,
+	})
+	require.NoError(t, err)
 
-func TestSimAppExport(t *testing.T) {
-	db := dbm.NewMemDB()
-	logger := log.NewTestLogger(t)
-	appOpts := simapp.SetupOptions{
-		Logger:  logger.With("instance", "first"),
-		DB:      db,
-		AppOpts: simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
-	}
-	app := NewShentuAppWithCustomOptions(t, false, appOpts)
+	_, err = app.Commit()
+	require.NoError(t, err)
 
-	for acc := range maccPerms {
-		require.True(
-			t,
-			app.BankKeeper.BlockedAddr(app.AccountKeeper.GetModuleAddress(acc)),
-			"ensure that blocked addresses are properly set in bank keeper",
-		)
-	}
+	// Making a new app object with the db, so that initchain hasn't been called
+	app2 := NewShentuApp(logger.With("instance", "second"), db, nil, true, simtestutil.NewAppOptionsWithFlagHome(t.TempDir()))
+	_, err = app2.ExportAppStateAndValidators(false, []string{}, []string{})
+	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 
-	//logger2 := log.NewTestLogger(t)
-	// make a new app object with the db so that initchain hasn't been called
-	//app2 := NewShentuApp(logger2, db, nil, true, simtestutil.NewAppOptionsWithFlagHome(""), baseapp.SetChainID("test"))
-	//_, err := app2.ExportAppStateAndValidators(false, []string{}, []string{})
-	//require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
-	//_, err = app2.ExportAppStateAndValidators(true, []string{}, []string{})
-	//require.NoError(t, err, "ExportAppStateAndValidators for zero height should not have an error")
+	_, err = app2.ExportAppStateAndValidators(true, []string{}, []string{})
+	require.NoError(t, err, "ExportAppStateAndValidators for zero height should not have an error")
 }
