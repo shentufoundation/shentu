@@ -12,13 +12,12 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 func TestShentuAppExportAndBlockedAddrs(t *testing.T) {
 	db := dbm.NewMemDB()
 	logger := log.NewTestLogger(t)
-	app := NewShentuAppWithCustomOptions(t, false, simapp.SetupOptions{
+	app := NewShentuAppWithCustomOptions(t, false, SetupOptions{
 		Logger:  logger.With("instance", "first"),
 		DB:      db,
 		AppOpts: simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
