@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -264,7 +265,7 @@ func (suite *KeeperTestSuite) TestOperator_Collateral() {
 			suite.Require().NoError(err, tc.name)
 			collateral, err := suite.keeper.GetCollateralAmount(suite.ctx, tc.args.senderAddr)
 			suite.Require().NoError(err, tc.name)
-			suite.Equal(sdk.NewInt(tc.args.collateral), collateral)
+			suite.Equal(math.NewInt(tc.args.collateral), collateral)
 			// add collateral
 			suite.NoError(suite.keeper.AddCollateral(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.collateralToAdd)}))
 			// check collateral amount
@@ -275,10 +276,10 @@ func (suite *KeeperTestSuite) TestOperator_Collateral() {
 					suite.NoError(suite.keeper.ReduceCollateral(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.collateralToReduce)}))
 					collateral, err = suite.keeper.GetCollateralAmount(suite.ctx, tc.args.senderAddr)
 					suite.Require().NoError(err, tc.name)
-					suite.Equal(sdk.NewInt(tc.args.collateral+tc.args.collateralToAdd-tc.args.collateralToReduce), collateral)
+					suite.Equal(math.NewInt(tc.args.collateral+tc.args.collateralToAdd-tc.args.collateralToReduce), collateral)
 				} else {
 					suite.Require().NoError(err, tc.name)
-					suite.Equal(sdk.NewInt(tc.args.collateral+tc.args.collateralToAdd), collateral)
+					suite.Equal(math.NewInt(tc.args.collateral+tc.args.collateralToAdd), collateral)
 				}
 			} else {
 				if tc.args.reduce {

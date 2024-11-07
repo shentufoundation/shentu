@@ -3,11 +3,11 @@ package e2e
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 )
 
-func copyFile(src, dst string) (int64, error) {
+// copyFile copy file from src to dst
+func copyFile(src, dst string) (int64, error) { //nolint:unparam
 	sourceFileStat, err := os.Stat(src)
 	if err != nil {
 		return 0, err
@@ -33,11 +33,9 @@ func copyFile(src, dst string) (int64, error) {
 	return nBytes, err
 }
 
+// writeFile write a byte slice into a file path
+// create the file if it doesn't exist
+// NOTE: this file can be write and read by everyone
 func writeFile(path string, body []byte) error {
-	_, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(path, body, 0600)
+	return os.WriteFile(path, body, 0o666) //nolint:gosec
 }

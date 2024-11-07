@@ -126,23 +126,21 @@ func TestMsgCloseProgram(t *testing.T) {
 
 func TestMsgSubmitFinding(t *testing.T) {
 	testCases := []struct {
-		pid, fid, title, hash, detail string
-		addr                          sdk.AccAddress
-		severityLevel                 SeverityLevel
-		expectPass                    bool
+		pid, fid, hash string
+		addr           sdk.AccAddress
+		severityLevel  SeverityLevel
+		expectPass     bool
 	}{
-		{"1", "1", "title", "hash", "detail", addrs[0], 3, true},
-		{"", "1", "title", "hash", "detail", addrs[0], 3, false},
-		{"1", "", "title", "hash", "detail", addrs[0], 3, false},
-		{"1", "1", "", "hash", "detail", addrs[0], 3, false},
-		{"1", "1", "title", "", "detail", addrs[0], 3, false},
-		{"1", "1", "title", "hash", "", addrs[0], 3, false},
-		{"1", "1", "title", "hash", "detail", sdk.AccAddress{}, 3, false},
-		{"1", "1", "title", "hash", "detail", addrs[0], 10, false},
+		{"1", "1", "hash", addrs[0], 3, true},
+		{"", "1", "hash", addrs[0], 3, false},
+		{"1", "", "hash", addrs[0], 3, false},
+		{"1", "1", "", addrs[0], 3, false},
+		{"1", "1", "hash", sdk.AccAddress{}, 3, false},
+		{"1", "1", "hash", addrs[0], 10, false},
 	}
 
 	for i, tc := range testCases {
-		msg := NewMsgSubmitFinding(tc.pid, tc.fid, tc.title, tc.detail, tc.hash, tc.addr, tc.severityLevel)
+		msg := NewMsgSubmitFinding(tc.pid, tc.fid, tc.hash, tc.addr, tc.severityLevel)
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgSubmitFinding)
 

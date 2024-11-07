@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -17,8 +16,6 @@ import (
 
 	"cosmossdk.io/math"
 
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-
 	tmconfig "github.com/cometbft/cometbft/config"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
@@ -26,9 +23,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distribtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -36,7 +35,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/shentufoundation/shentu/v2/common"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 const (
@@ -46,31 +44,32 @@ const (
 	queryCommand        = "query"
 	keysCommand         = "keys"
 	uctkDenom           = "uctk"
-	photonDenom         = "photon"
-	initBalanceStr      = "110000000000uctk,100000000000photon"
-	minGasPrice         = "0.00001"
+	ctkDenom            = "ctk"
+	initBalanceStr      = "100000000000000000uctk"
+	minGasPrice         = "0.005"
 	proposalBlockBuffer = 1000
-	shieldPoolName      = "testpool"
-	shieldPoolLimit     = "1000000000"
+
+	hermesBinary              = "hermes"
+	hermesConfigWithGasPrices = "/root/.hermes/config.toml"
+	hermesConfigNoGasPrices   = "/root/.hermes/config-zero.toml"
+	transferPort              = "transfer"
+	transferChannel           = "channel-0"
+
+	govAuthority = "shentu10d07y265gmmuvt4z0w9aw880jnsr700jjkhuyw"
 )
 
 var (
-	uctkAmount, _         = math.NewIntFromString("100000000000")
-	collateralAmount, _   = math.NewIntFromString("1000000000")
-	shieldAmount, _       = math.NewIntFromString("100000000")
-	depositAmount, _      = math.NewIntFromString("10000000")
-	feesAmount, _         = math.NewIntFromString("1000")
-	uctkAmountCoin        = sdk.NewCoin(uctkDenom, uctkAmount)
-	collateralAmountCoin  = sdk.NewCoin(uctkDenom, collateralAmount)
-	shieldAmountCoin      = sdk.NewCoin(uctkDenom, shieldAmount)
-	depositAmountCoin     = sdk.NewCoin(uctkDenom, depositAmount)
-	feesAmountCoin        = sdk.NewCoin(photonDenom, feesAmount)
-	proposalCounter       = 0
-	certificateCounter    = 0
-	shieldPoolCounter     = 0
-	shieldPurchaseCounter = 0
-	bountyProgramCounter  = 0
-	bountyFindingCounter  = 0
+	shentuConfigPath          = filepath.Join(shentuHome, "config")
+	depositAmount             = math.NewInt(512000000)
+	stakingAmount             = math.NewInt(100000000000)
+	feesAmount                = math.NewInt(5000)
+	depositAmountCoin         = sdk.NewCoin(uctkDenom, depositAmount)
+	stakingAmountCoin         = sdk.NewCoin(uctkDenom, stakingAmount)
+	feesAmountCoin            = sdk.NewCoin(uctkDenom, feesAmount)
+	distribModuleAcct         = authtypes.NewModuleAddress(distribtypes.ModuleName)
+	govModuleAcct             = authtypes.NewModuleAddress(govtypes.ModuleName)
+	proposalCounter    uint64 = 0
+	certificateCounter        = 0
 )
 
 type IntegrationTestSuite struct {
@@ -141,6 +140,7 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 		s.Require().NoError(err)
 
 		if skipCleanup {
+			s.T().Log("skipping e2e integration test suite cleanup...")
 			return
 		}
 	}
@@ -166,36 +166,31 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func (s *IntegrationTestSuite) initNodes(c *chain) {
+	var err error
 	s.Require().NoError(c.createAndInitValidators(2))
 
-	// create 4 accounts for test
-	accts, err := c.validators[0].createAccounts(4)
+	// create 6 accounts for test
+	s.Require().NoError(c.addAccountFromMnemonic(6))
+	certifierAddr, err := c.genesisAccounts[0].keyInfo.GetAddress()
+	c.certifier = c.genesisAccounts[0]
 	s.Require().NoError(err)
-	c.accounts = append(c.accounts, accts...)
 
 	// initialize a genesis file for the first validator
 	val0ConfigDir := c.validators[0].configDir()
+	var addrAll []sdk.AccAddress
 	for _, val := range c.validators {
-		key, err := val.keyInfo.GetAddress()
+		addr, err := val.keyInfo.GetAddress()
 		s.Require().NoError(err)
-
-		s.Require().NoError(
-			addGenesisAccount(val0ConfigDir, "", initBalanceStr, key),
-		)
-		s.Require().NoError(
-			addCertifierAccount(val0ConfigDir, "", key),
-		)
+		addrAll = append(addrAll, addr)
 	}
-	for _, val := range c.accounts {
-		key, err := val.keyInfo.GetAddress()
+	for _, val := range c.genesisAccounts {
+		addr, err := val.keyInfo.GetAddress()
 		s.Require().NoError(err)
-
-		s.T().Logf("Account %s : %s", val.moniker, key)
-		s.Require().NoError(
-			addGenesisAccount(val0ConfigDir, "", initBalanceStr, key),
-		)
+		addrAll = append(addrAll, addr)
 	}
-
+	s.Require().NoError(
+		modifyGenesis(val0ConfigDir, "", initBalanceStr, addrAll, certifierAddr, uctkDenom),
+	)
 	// copy the genesis file to the remaining validators
 	for _, val := range c.validators[1:] {
 		_, err := copyFile(
@@ -209,9 +204,10 @@ func (s *IntegrationTestSuite) initNodes(c *chain) {
 func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	serverCtx := server.NewDefaultContext()
 	config := serverCtx.Config
+	validator := c.validators[0]
 
-	config.SetRoot(c.validators[0].configDir())
-	config.Moniker = c.validators[0].moniker
+	config.SetRoot(validator.configDir())
+	config.Moniker = validator.moniker
 
 	genFilePath := config.GenesisFile()
 	appGenState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
@@ -221,15 +217,17 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState))
 
 	bankGenState.DenomMetadata = append(bankGenState.DenomMetadata, banktypes.Metadata{
-		Description: "An example stable token",
-		Display:     photonDenom,
-		Base:        photonDenom,
-		Symbol:      photonDenom,
-		Name:        photonDenom,
+		Description: "The native staking token of the Shentu Chain.",
+		Display:     ctkDenom,
+		Base:        uctkDenom,
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    photonDenom,
+				Denom:    uctkDenom,
 				Exponent: 0,
+			},
+			{
+				Denom:    ctkDenom,
+				Exponent: 6,
 			},
 		},
 	})
@@ -238,32 +236,13 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
 
-	shieldGenState := shieldtypes.GetGenesisStateFromAppState(cdc, appGenState)
-	//sa, err := c.validators[0].keyInfo.GetAddress()
-	//s.Require().NoError(err)
-	//shieldGenState.ShieldAdmin = sa.String()
-	bz, err = cdc.MarshalJSON(&shieldGenState)
-	s.Require().NoError(err)
-	appGenState[shieldtypes.ModuleName] = bz
-
-	var govGenState govtypesv1.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[sdkgovtypes.ModuleName], &govGenState))
-
-	votingPeriod := time.Second * 20
-	govGenState.VotingParams.VotingPeriod = &votingPeriod
-	minDepositTokens := sdk.TokensFromConsensusPower(0, math.NewIntFromUint64(10))
-	govGenState.DepositParams.MinDeposit = sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)}
-	bz, err = cdc.MarshalJSON(&govGenState)
-	s.Require().NoError(err)
-	appGenState[sdkgovtypes.ModuleName] = bz
-
 	var genUtilGenState genutiltypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
 
 	// generate genesis txs
 	genTxs := make([]json.RawMessage, len(c.validators))
 	for i, val := range c.validators {
-		createValmsg, err := val.buildCreateValidatorMsg(uctkAmountCoin)
+		createValmsg, err := val.buildCreateValidatorMsg(stakingAmountCoin)
 		s.Require().NoError(err)
 
 		signedTx, err := val.signMsg(createValmsg)
@@ -277,14 +256,11 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 
 	genUtilGenState.GenTxs = genTxs
 
-	bz, err = cdc.MarshalJSON(&genUtilGenState)
-	s.Require().NoError(err)
-	appGenState[genutiltypes.ModuleName] = bz
-
-	bz, err = json.MarshalIndent(appGenState, "", "  ")
+	appGenState[genutiltypes.ModuleName], err = cdc.MarshalJSON(&genUtilGenState)
 	s.Require().NoError(err)
 
-	genDoc.AppState = bz
+	genDoc.AppState, err = json.MarshalIndent(appGenState, "", "  ")
+	s.Require().NoError(err)
 
 	bz, err = tmjson.MarshalIndent(genDoc, "", "  ")
 	s.Require().NoError(err)
@@ -334,8 +310,11 @@ func (s *IntegrationTestSuite) initValidatorConfigs(c *chain) {
 
 		appConfig := srvconfig.DefaultConfig()
 		appConfig.API.Enable = true
-		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrice, photonDenom)
+		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrice, uctkDenom)
+		appConfig.GRPC.Address = "0.0.0.0:9090"
+		appConfig.API.Address = "tcp://0.0.0.0:1317"
 
+		srvconfig.SetConfigTemplate(srvconfig.DefaultConfigTemplate)
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)
 	}
 }
@@ -349,7 +328,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 			Name:      val.instanceName(),
 			NetworkID: s.dkrNet.Network.ID,
 			Mounts: []string{
-				fmt.Sprintf("%s/:/root/.shentud", val.configDir()),
+				fmt.Sprintf("%s/:%s", val.configDir(), shentuHome),
 			},
 			Repository: "shentuchain/shentud-e2e",
 		}
@@ -406,12 +385,14 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 func (s *IntegrationTestSuite) runIBCRelayer() {
 	s.T().Log("starting Hermes relayer container...")
 
-	tmpDir, err := ioutil.TempDir("", "shentu-e2e-testnet-hermes-")
+	tmpDir, err := os.MkdirTemp("", "shentu-e2e-testnet-hermes-")
 	s.Require().NoError(err)
 	s.tmpDirs = append(s.tmpDirs, tmpDir)
 
 	shentuAVal := s.chainA.validators[0]
 	shentuBVal := s.chainB.validators[0]
+	shentuARly := s.chainA.genesisAccounts[0]
+	shentuBRly := s.chainB.genesisAccounts[0]
 	hermesCfgPath := path.Join(tmpDir, "hermes")
 
 	s.Require().NoError(os.MkdirAll(hermesCfgPath, 0755))
@@ -424,8 +405,8 @@ func (s *IntegrationTestSuite) runIBCRelayer() {
 	s.hermesResource, err = s.dkrPool.RunWithOptions(
 		&dockertest.RunOptions{
 			Name:       fmt.Sprintf("%s-%s-relayer", s.chainA.id, s.chainB.id),
-			Repository: "ghcr.io/cosmos/hermes-e2e",
-			Tag:        "0.13.0",
+			Repository: "cosmos/hermes-e2e",
+			Tag:        "1.0.0",
 			NetworkID:  s.dkrNet.Network.ID,
 			Mounts: []string{
 				fmt.Sprintf("%s/:/root/hermes", hermesCfgPath),
@@ -438,13 +419,15 @@ func (s *IntegrationTestSuite) runIBCRelayer() {
 				fmt.Sprintf("SHENTU_B_E2E_CHAIN_ID=%s", s.chainB.id),
 				fmt.Sprintf("SHENTU_A_E2E_VAL_MNEMONIC=%s", shentuAVal.mnemonic),
 				fmt.Sprintf("SHENTU_B_E2E_VAL_MNEMONIC=%s", shentuBVal.mnemonic),
+				fmt.Sprintf("SHENTU_A_E2E_RLY_MNEMONIC=%s", shentuARly.mnemonic),
+				fmt.Sprintf("SHENTU_B_E2E_RLY_MNEMONIC=%s", shentuBRly.mnemonic),
 				fmt.Sprintf("SHENTU_A_E2E_VAL_HOST=%s", s.valResources[s.chainA.id][0].Container.Name[1:]),
 				fmt.Sprintf("SHENTU_B_E2E_VAL_HOST=%s", s.valResources[s.chainB.id][0].Container.Name[1:]),
 			},
 			Entrypoint: []string{
 				"sh",
 				"-c",
-				"chmod +x /root/hermes/hermes_bootstrap.sh && /root/hermes/hermes_bootstrap.sh",
+				"chmod +x /root/hermes/hermes_bootstrap.sh && /root/hermes/hermes_bootstrap.sh && tail -f /dev/null",
 			},
 		},
 		noRestart,
@@ -483,12 +466,12 @@ func (s *IntegrationTestSuite) runIBCRelayer() {
 
 	s.T().Logf("started Hermes relayer container: %s", s.hermesResource.Container.ID)
 
-	// XXX: Give time to both networks to start, otherwise we might see gRPC
-	// transport errors.
-	time.Sleep(10 * time.Second)
+	// Give time to both networks to start, otherwise we might see gRPC transport errors.
+	// time.Sleep(10 * time.Second)
 
 	// create the client, connection and channel between the two Shentu chains
-	s.connectIBCChains()
+	// s.createConnection()
+	// s.createChannel()
 }
 
 func noRestart(config *docker.HostConfig) {
@@ -496,4 +479,9 @@ func noRestart(config *docker.HostConfig) {
 	config.RestartPolicy = docker.RestartPolicy{
 		Name: "no",
 	}
+}
+
+func configFile(filename string) string {
+	filepath := filepath.Join(shentuConfigPath, filename)
+	return filepath
 }

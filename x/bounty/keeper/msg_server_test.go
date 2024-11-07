@@ -87,8 +87,6 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 					{
 						ProgramId:       pid,
 						FindingId:       fid,
-						Title:           "Test bug 1",
-						Detail:          "detail",
 						OperatorAddress: suite.whiteHatAddr.String(),
 						SeverityLevel:   types.Critical,
 					},
@@ -104,8 +102,6 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 					{
 						ProgramId:       pid,
 						FindingId:       fid,
-						Title:           "Test bug 1",
-						Detail:          "detail",
 						OperatorAddress: suite.whiteHatAddr.String(),
 						SeverityLevel:   types.Critical,
 					},
@@ -121,8 +117,6 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 					{
 						ProgramId:       "not exist pid",
 						FindingId:       "1",
-						Title:           "Test bug 1",
-						Detail:          "detail",
 						OperatorAddress: suite.whiteHatAddr.String(),
 						SeverityLevel:   types.Critical,
 					},
@@ -429,11 +423,9 @@ func (suite *KeeperTestSuite) InitSubmitFinding(pid, fid string) string {
 	msgSubmitFinding := &types.MsgSubmitFinding{
 		ProgramId:       pid,
 		FindingId:       fid,
-		Title:           "title",
 		FindingHash:     hex.EncodeToString(hash[:]),
 		OperatorAddress: suite.whiteHatAddr.String(),
 		SeverityLevel:   types.Critical,
-		Detail:          "detail",
 	}
 
 	ctx := sdk.WrapSDKContext(suite.ctx)

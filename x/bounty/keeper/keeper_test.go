@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -30,9 +30,9 @@ type KeeperTestSuite struct {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = shentuapp.Setup(suite.T(), false)
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.ctx = suite.app.BaseApp.NewContext(false)
 	suite.keeper = suite.app.BountyKeeper
-	suite.address = shentuapp.AddTestAddrs(suite.app, suite.ctx, 5, sdk.NewInt(1e10))
+	suite.address = shentuapp.AddTestAddrs(suite.app, suite.ctx, 5, math.NewInt(1e10))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.BountyKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	if err != nil {
 		panic(err)
 	}
-	id := suite.app.CertKeeper.GetNextCertificateID(suite.ctx)
+	id, _ := suite.app.CertKeeper.GetNextCertificateID(suite.ctx)
 	certificate.CertificateId = id
 	// set the cert and its ID in the store
 	suite.app.CertKeeper.SetNextCertificateID(suite.ctx, id+1)
