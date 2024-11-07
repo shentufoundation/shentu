@@ -53,6 +53,7 @@ jobs:
       - uses: codecov/codecov-action@v3.1.4
         with:
           file: ./coverage.txt # optional
+          token: 6556fc17-6f3d-40be-b947-0bba9a9fe92f
           fail_ci_if_error: true
 
   test-e2e:
