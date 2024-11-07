@@ -14,10 +14,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
+	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 	v1bank "github.com/cosmos/cosmos-sdk/x/bank/migrations/v1"
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
@@ -25,6 +24,7 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/bank/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bank/simulation"
 	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
 
@@ -150,14 +150,15 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	banksim.RandomizedGenState(simState)
 }
 
-// RegisterStoreDecoder performs a no-op.
-func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	//sdr[types.StoreKey] = simtypes.NewStoreDecoderFuncFromCollectionsSchema(am.keeper.(keeper.BaseKeeper).Schema)
-	//return nil
+// ProposalMsgs returns msgs used for governance proposals for simulations.
+func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+	return banksim.ProposalMsgs()
 }
+
+// RegisterStoreDecoder performs a no-op.
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {}
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
-	return nil
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, simState.TxConfig, am.accountKeeper, am.keeper)
 }

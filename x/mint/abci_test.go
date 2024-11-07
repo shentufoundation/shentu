@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/stretchr/testify/require"
+
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
@@ -17,7 +19,8 @@ func TestBeginBlocker(t *testing.T) {
 	k := app.MintKeeper
 
 	p := types.DefaultGenesisState().GetParams()
-	k.Params.Set(ctx, p)
+	err := k.Params.Set(ctx, p)
+	require.NoError(t, err)
 	type args struct {
 		minter minttypes.Minter
 	}
@@ -48,9 +51,11 @@ func TestBeginBlocker(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		k.Minter.Set(ctx, tt.args.minter)
+		err := k.Minter.Set(ctx, tt.args.minter)
+		require.NoError(t, err)
 		t.Run(tt.name, func(t *testing.T) {
-			mint.BeginBlocker(ctx, k, minttypes.DefaultInflationCalculationFn)
+			err = mint.BeginBlocker(ctx, k, minttypes.DefaultInflationCalculationFn)
+			require.NoError(t, err)
 		})
 	}
 }
