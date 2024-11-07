@@ -879,7 +879,7 @@ func (app *ShentuApp) RegisterNodeService(clientCtx client.Context, cfg config.C
 
 // RegisterUpgradeHandlers registers necessary upgrade handlers
 func (app *ShentuApp) RegisterUpgradeHandlers() {
-	app.setUpgradeHandler(app.appCodec, app.IBCKeeper.ClientKeeper)
+	app.setUpgradeHandler(app.appCodec)
 }
 
 // initParamsKeeper init params keeper and its subspaces
