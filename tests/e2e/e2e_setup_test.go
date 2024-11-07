@@ -467,11 +467,11 @@ func (s *IntegrationTestSuite) runIBCRelayer() {
 	s.T().Logf("started Hermes relayer container: %s", s.hermesResource.Container.ID)
 
 	// Give time to both networks to start, otherwise we might see gRPC transport errors.
-	// time.Sleep(10 * time.Second)
-
+	time.Sleep(10 * time.Second)
 	// create the client, connection and channel between the two Shentu chains
-	// s.createConnection()
-	// s.createChannel()
+	s.createConnection()
+	time.Sleep(10 * time.Second)
+	s.createChannel()
 }
 
 func noRestart(config *docker.HostConfig) {

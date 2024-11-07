@@ -1,8 +1,8 @@
 package e2e
 
-// func (s *IntegrationTestSuite) TestIBC() {
-// 	// s.testIBCTokanTransfer()
-// }
+func (s *IntegrationTestSuite) TestIBC() {
+	s.testIBCTokanTransfer()
+}
 
 func (s *IntegrationTestSuite) TestBank() {
 	s.testBankTokenTransfer()

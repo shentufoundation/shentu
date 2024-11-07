@@ -23,6 +23,7 @@ import (
 	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramsproptypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	shentu "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/app/params"
@@ -61,6 +62,7 @@ func init() {
 	bountytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	certtypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	oracletypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	ibctransfertypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	cdc = encodingConfig.Codec
 }
