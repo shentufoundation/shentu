@@ -21,7 +21,6 @@ service CustomQuery {
   rpc CertVoted(QueryCertVotedRequest) returns (QueryCertVotedResponse) {
     option (google.api.http).get = "/shentu/gov/v1/cert_voted/{proposal_id}";
   }
-
 }
 
 message QueryCertVotedRequest {
