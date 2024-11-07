@@ -11,8 +11,10 @@ import (
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distribtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
@@ -171,7 +173,7 @@ func queryCertVoted(grpcEndpoint string, proposalID uint64) (bool, error) {
 	conn, err := connectGrpc(grpcEndpoint)
 	defer conn.Close()
 
-	client := govtypes.NewQueryClient(conn)
+	client := govtypes.NewCustomQueryClient(conn)
 
 	res, err := client.CertVoted(context.Background(), &govtypes.QueryCertVotedRequest{
 		ProposalId: proposalID,
@@ -186,7 +188,7 @@ func queryProposal(grpcEndpoint string, proposalID uint64) (*sdkgovtypes.Proposa
 	conn, err := connectGrpc(grpcEndpoint)
 	defer conn.Close()
 
-	client := govtypes.NewQueryClient(conn)
+	client := govtypesv1.NewQueryClient(conn)
 
 	res, err := client.Proposal(context.Background(), &sdkgovtypes.QueryProposalRequest{
 		ProposalId: proposalID,
