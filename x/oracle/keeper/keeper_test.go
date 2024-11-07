@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 			suite.app.BankKeeper,
 			acc,
 			sdk.NewCoins(
-				sdk.NewCoin("uctk", math.NewInt(10000000000)), // 1,000 CTK
+				sdk.NewCoin("stake", math.NewInt(10000000000)),
 			),
 		)
 		if err != nil {

@@ -114,6 +114,9 @@ func (k Keeper) GetTask(ctx context.Context, taskID []byte) (task types.TaskI, e
 	if err != nil {
 		return nil, err
 	}
+	if len(TaskData) == 0 {
+		return nil, errors.New("oracle: task not found")
+	}
 	err = k.cdc.UnmarshalInterface(TaskData, &task)
 	return
 }
