@@ -47,7 +47,7 @@ while [ ${CNT} -lt $ITER ]; do
     echo "Success: number of blocks reached"
     exit 0
   fi
-
+  ((CNT++))
   sleep $SLEEP
 done
 

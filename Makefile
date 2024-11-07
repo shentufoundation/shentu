@@ -192,14 +192,13 @@ localnet-stop:
 	docker-compose down
 
 start-localnet-ci:
-	./build/shentud init liveness --chain-id liveness --home ~/.shentud-liveness
-	./build/shentud config chain-id liveness --home ~/.shentud-liveness
-	./build/shentud config keyring-backend test --home ~/.shentud-liveness
-	./build/shentud keys add val --home ~/.shentud-liveness
-	./build/shentud add-genesis-account val 10000000000000000000000000uctk --home ~/.shentud-liveness --keyring-backend test
-	./build/shentud gentx val 1000000000uctk --home ~/.shentud-liveness --chain-id liveness
-	./build/shentud collect-gentxs --home ~/.shentud-liveness
-	sed -i'' 's/minimum-gas-prices = ""/minimum-gas-prices = "0uatom"/' ~/.shentud-liveness/config/app.toml
+	./build/shentud init liveness -o --chain-id liveness --home ~/.shentud-liveness
+	./build/shentud config set client keyring-backend test --home ~/.shentud-liveness
+	./build/shentud keys add val --keyring-backend test --home ~/.shentud-liveness
+	./build/shentud add-genesis-account val 10000000000000000000stake --home ~/.shentud-liveness --keyring-backend test
+	./build/shentud genesis gentx val 1000000000stake --home ~/.shentud-liveness --chain-id liveness --keyring-backend test
+	./build/shentud genesis collect-gentxs --home ~/.shentud-liveness
+	sed -i 's/minimum-gas-prices = ".*"/minimum-gas-prices = "0stake"/' ~/.shentud-liveness/config/app.toml
 	./build/shentud start --home ~/.shentud-liveness --x-crisis-skip-assert-invariants
 
 .PHONY: start-localnet-ci
