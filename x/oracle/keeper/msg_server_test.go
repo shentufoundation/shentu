@@ -152,7 +152,7 @@ func DoInit(t *testing.T) (sdk.Context, keeper.Keeper, certkeeper.Keeper, types.
 	ok := app.OracleKeeper
 	ck := app.CertKeeper
 	msgServer := keeper.NewMsgServerImpl(ok)
-	ctx = ctx.WithValue("msgServer", msgServer).WithValue("t", t).WithValue("ok", ok)
+	ctx = ctx.WithValue("msgServer", msgServer).WithValue("t", t).WithValue("ok", ok).WithValue("ck", ck)
 	return ctx, ok, ck, msgServer, addrs
 }
 

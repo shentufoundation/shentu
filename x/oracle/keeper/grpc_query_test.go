@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
@@ -41,6 +42,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryOperator() {
 				Address: suite.address[0].String(),
 			},
 			func() {
+				suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[1], "", suite.address[1], ""))
 				suite.createOperator(suite.address[0], suite.address[1])
 			},
 			func(res *types.QueryOperatorResponse) {
@@ -80,6 +82,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryOperators() {
 			"valid request",
 			&types.QueryOperatorsRequest{},
 			func() {
+				suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[1], "", suite.address[1], ""))
 				suite.createOperator(suite.address[0], suite.address[1])
 			},
 			func(res *types.QueryOperatorsResponse) {
@@ -435,17 +438,18 @@ func (suite *KeeperTestSuite) TestGRPCQueryParamsResponse() {
 }
 
 func (suite *KeeperTestSuite) createOperator(address, proposer sdk.AccAddress) {
-	err := suite.keeper.CreateOperator(suite.ctx, address, sdk.Coins{sdk.NewInt64Coin("uctk", 50000)}, proposer, "operator")
+	suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(proposer, "", proposer, ""))
+	err := suite.keeper.CreateOperator(suite.ctx, address, sdk.Coins{sdk.NewInt64Coin("stake", 50000)}, proposer, "operator")
 	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) createWithdraw(address sdk.AccAddress) {
-	err := suite.keeper.CreateWithdraw(suite.ctx, address, sdk.Coins{sdk.NewInt64Coin("uctk", 1000)})
+	err := suite.keeper.CreateWithdraw(suite.ctx, address, sdk.Coins{sdk.NewInt64Coin("stake", 1000)})
 	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) createTask(contract, function string, creator sdk.AccAddress) {
-	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
+	bounty := sdk.Coins{sdk.NewInt64Coin("stake", 100000)}
 	expiration := time.Now().Add(time.Hour).UTC()
 	waitingBlocks := int64(5)
 	scTask := types.NewTask(
@@ -457,7 +461,7 @@ func (suite *KeeperTestSuite) createTask(contract, function string, creator sdk.
 }
 
 func (suite *KeeperTestSuite) createTxTask(txHash []byte, creator sdk.AccAddress) {
-	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
+	bounty := sdk.Coins{sdk.NewInt64Coin("stake", 100000)}
 	expiration := time.Now().Add(time.Hour).UTC()
 
 	task := types.NewTxTask(

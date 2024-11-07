@@ -27,6 +27,9 @@ func (k Keeper) GetOperator(ctx context.Context, address sdk.AccAddress) (types.
 	if err != nil {
 		return types.Operator{}, err
 	}
+	if len(opBz) == 0 {
+		return types.Operator{}, types.ErrNoOperatorFound
+	}
 	var operator types.Operator
 	k.cdc.MustUnmarshalLengthPrefixed(opBz, &operator)
 	return operator, nil
