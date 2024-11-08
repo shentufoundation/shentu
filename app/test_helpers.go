@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/ed25519"
@@ -119,13 +118,13 @@ func CreateIncrementalAccounts(accNum int) []sdk.AccAddress {
 	return addresses
 }
 
-func AddTestAddrs(app *ShentuApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
+func AddTestAddrs(app *ShentuApp, ctx sdk.Context, accNum int, accAmt sdkmath.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, createRandomAccounts)
 }
 
 // AddTestAddrsIncremental constructs and returns accNum amount of accounts with an
 // initial balance of accAmt in random order
-func AddTestAddrsIncremental(app *ShentuApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
+func AddTestAddrsIncremental(app *ShentuApp, ctx sdk.Context, accNum int, accAmt sdkmath.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, CreateIncrementalAccounts)
 }
 
@@ -150,7 +149,7 @@ func TestAddr(addr, bech string) (sdk.AccAddress, error) {
 	return res, nil
 }
 
-func addTestAddrs(app *ShentuApp, ctx sdk.Context, accNum int, accAmt math.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
+func addTestAddrs(app *ShentuApp, ctx sdk.Context, accNum int, accAmt sdkmath.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
 	testAddrs := strategy(accNum)
 
 	denom, _ := app.StakingKeeper.BondDenom(ctx)

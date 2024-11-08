@@ -153,8 +153,8 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 func (am AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry) {
 }
 
-// ProposalContents returns functions that generate gov proposals for the module
-func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+// ProposalMsgs returns functions that generate gov proposals for the module
+func (am AppModule) ProposalMsgs(_ module.SimulationState) []simtypes.WeightedProposalMsg {
 	//return simulation.ProposalContents(am.moduleKeeper)
 	return nil
 }
