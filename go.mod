@@ -1,6 +1,8 @@
 module github.com/shentufoundation/shentu/v2
 
-go 1.23
+go 1.22.5
+
+toolchain go1.22.8
 
 require (
 	cosmossdk.io/api v0.7.5
