@@ -18,23 +18,33 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	txTasks := data.TxTasks
 
 	for _, operator := range operators {
-		k.SetOperator(ctx, operator)
+		if err := k.SetOperator(ctx, operator); err != nil {
+			panic(err)
+		}
 	}
 
-	k.SetTotalCollateral(ctx, totalCollateral)
+	if err := k.SetTotalCollateral(ctx, totalCollateral); err != nil {
+		panic(err)
+	}
 	k.SetLockedPoolParams(ctx, *poolParams)
 	k.SetTaskParams(ctx, *taskParams)
 
 	for _, withdraw := range withdraws {
 		withdraw.DueBlock += ctx.BlockHeight()
-		k.SetWithdraw(ctx, withdraw)
+		if err := k.SetWithdraw(ctx, withdraw); err != nil {
+			panic(err)
+		}
 	}
 
 	for i := range tasks {
-		k.UpdateAndSetTask(ctx, &tasks[i])
+		if err := k.UpdateAndSetTask(ctx, &tasks[i]); err != nil {
+			panic(err)
+		}
 	}
 	for i := range txTasks {
-		k.SetTxTask(ctx, &txTasks[i])
+		if err := k.SetTxTask(ctx, &txTasks[i]); err != nil {
+			panic(err)
+		}
 	}
 }
 

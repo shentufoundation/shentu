@@ -23,7 +23,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	nextCertificateID := data.NextCertificateId
 
 	for _, certifier := range certifiers {
-		k.SetCertifier(ctx, certifier)
+		if err := k.SetCertifier(ctx, certifier); err != nil {
+			panic(err)
+		}
 	}
 	if len(certifiers) > 0 {
 		certifierAddr, err := sdk.AccAddressFromBech32(certifiers[0].Address)
@@ -40,7 +42,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		}
 	}
 	for _, certificate := range certificates {
-		k.SetCertificate(ctx, certificate)
+		if err := k.SetCertificate(ctx, certificate); err != nil {
+			panic(err)
+		}
 	}
 	for _, library := range libraries {
 		libAddr, err := sdk.AccAddressFromBech32(library.Address)
@@ -51,9 +55,13 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		if err != nil {
 			panic(err)
 		}
-		k.SetLibrary(ctx, libAddr, publisherAddr)
+		if err = k.SetLibrary(ctx, libAddr, publisherAddr); err != nil {
+			panic(err)
+		}
 	}
-	k.SetNextCertificateID(ctx, nextCertificateID)
+	if err := k.SetNextCertificateID(ctx, nextCertificateID); err != nil {
+		panic(err)
+	}
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
