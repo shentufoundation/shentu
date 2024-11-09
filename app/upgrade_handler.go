@@ -1,28 +1,26 @@
 package app
 
 import (
+	"context"
 	"fmt"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "cosmossdk.io/store/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/group"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 )
 
 const (
-	upgradeName = "v2.10.0"
+	upgradeName = "v2.12.0"
 )
 
-func (app ShentuApp) setUpgradeHandler() {
+func (app ShentuApp) setUpgradeHandler(cdc codec.BinaryCodec, clientKeeper clientkeeper.Keeper) {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
-		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			// transfer module consensus version has been bumped to 2
-			ctx.Logger().Info("Start to run module migrations...")
-			newVersionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
-
-			return newVersionMap, err
+		func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
 
@@ -33,9 +31,7 @@ func (app ShentuApp) setUpgradeHandler() {
 
 	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{
-				group.ModuleName,
-			},
+			Added: []string{},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades

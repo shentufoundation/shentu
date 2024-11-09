@@ -12,6 +12,11 @@ option go_package = "github.com/shentufoundation/shentu/x/gov/types/v1";
 
 // Query defines the gRPC querier service for gov module
 service Query {
+  // Constitution queries the chain's constitution.
+  rpc Constitution(cosmos.gov.v1.QueryConstitutionRequest) returns (cosmos.gov.v1.QueryConstitutionResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1/constitution";
+  }
+
   // Proposal queries proposal details based on ProposalID.
   rpc Proposal(cosmos.gov.v1.QueryProposalRequest) returns (cosmos.gov.v1.QueryProposalResponse) {
     option (google.api.http).get = "/cosmos/gov/v1/proposals/{proposal_id}";
@@ -78,5 +83,9 @@ message QueryParamsResponse {
   // tally_params defines the parameters related to tally.
   cosmos.gov.v1.TallyParams tally_params = 3;
   // custom_params defines the parameters related to custom.
-  CustomParams custom_params = 4;
+  // params defines all the paramaters of x/gov module.
+  //
+  // Since: cosmos-sdk 0.47
+  cosmos.gov.v1.Params params = 4;
+  CustomParams custom_params = 5;
 }

@@ -3,7 +3,7 @@ package types_test
 import (
 	"time"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/cometbft/cometbft/crypto/ed25519"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

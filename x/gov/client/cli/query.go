@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govUtils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -45,9 +44,6 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryVotes(),
 		GetCmdQueryParam(),
 		GetCmdQueryParams(),
-		cli.GetCmdQueryProposer(),
-		GetCmdQueryDeposit(),
-		GetCmdQueryDeposits(),
 		GetCmdQueryTally(),
 		GetCmdCertVoted(),
 	)
@@ -343,157 +339,6 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 	return cmd
 }
 
-// GetCmdQueryDeposit implements the command for querying a specific
-// deposit given its depositor and proposal ID.
-func GetCmdQueryDeposit() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "deposit [proposal-id] [depositer-addr]",
-		Args:  cobra.ExactArgs(2),
-		Short: "Query details of a deposit",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query details for a single proposal deposit on a proposal by its identifier.
-
-Example:
-$ %s query gov deposit 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
-`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := typesv1.NewQueryClient(clientCtx)
-
-			// validate that the proposal id is a uint
-			proposalID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("proposal-id %s not a valid uint, please input a valid proposal-id", args[0])
-			}
-
-			// check to see if the proposal is in the store
-			ctx := cmd.Context()
-			proposalRes, err := queryClient.Proposal(
-				ctx,
-				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
-			)
-			if err != nil {
-				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
-			}
-
-			depositorAddr, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
-			var deposit govtypesv1.Deposit
-			propStatus := proposalRes.Proposal.Status
-			if !(propStatus == govtypesv1.StatusVotingPeriod || propStatus == govtypesv1.StatusDepositPeriod) {
-				params := govtypesv1.NewQueryDepositParams(proposalID, depositorAddr)
-				resByTxQuery, err := govUtils.QueryDepositByTxQuery(clientCtx, params)
-				if err != nil {
-					return err
-				}
-				clientCtx.Codec.MustUnmarshalJSON(resByTxQuery, &deposit)
-				return clientCtx.PrintProto(&deposit)
-			}
-
-			res, err := queryClient.Deposit(
-				ctx,
-				&govtypesv1.QueryDepositRequest{ProposalId: proposalID, Depositor: args[1]},
-			)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res.Deposit)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// GetCmdQueryDeposits implements the command to query for proposal deposits.
-func GetCmdQueryDeposits() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "deposits [proposal-id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "Query deposits on a proposal",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query details for all deposits on a proposal.
-You can find the proposal-id by running "%[1]s query gov proposals".
-
-Example:
-$ %[1]s query gov deposits 1
-`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := typesv1.NewQueryClient(cliCtx)
-
-			// validate that the proposal id is a uint
-			proposalID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("proposal-id %s is not a valid uint, please input a valid proposal-id", args[0])
-			}
-
-			// check to see if the proposal is in the store
-			proposalRes, err := queryClient.Proposal(
-				cmd.Context(),
-				&govtypesv1.QueryProposalRequest{ProposalId: proposalID},
-			)
-			if err != nil {
-				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
-			}
-
-			propStatus := proposalRes.GetProposal().Status
-			if !(propStatus == govtypesv1.StatusVotingPeriod || propStatus == govtypesv1.StatusDepositPeriod) {
-				params := govtypesv1.NewQueryProposalParams(proposalID)
-				resByTxQuery, err := govUtils.QueryDepositsByTxQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-
-				var dep govtypesv1.Deposits
-				// TODO migrate to use JSONCodec (implement MarshalJSONArray
-				// or wrap lists of proto.Message in some other message)
-				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &dep)
-
-				return cliCtx.PrintObjectLegacy(dep)
-			}
-
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.Deposits(
-				cmd.Context(),
-				&govtypesv1.QueryDepositsRequest{ProposalId: proposalID, Pagination: pageReq},
-			)
-
-			if err != nil {
-				return err
-			}
-
-			return cliCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddPaginationFlagsToCmd(cmd, "deposits")
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
 // GetCmdQueryTally implements the command to query for proposal tally result.
 func GetCmdQueryTally() *cobra.Command {
 	cmd := &cobra.Command{
@@ -610,6 +455,7 @@ $ %s query gov params
 				VotingParams:  votingRes.GetVotingParams(),
 				DepositParams: depositRes.GetDepositParams(),
 				TallyParams:   tallyRes.GetTallyParams(),
+				Params:        tallyRes.Params,
 				CustomParams:  customRes.GetCustomParams(),
 			}
 

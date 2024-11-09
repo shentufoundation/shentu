@@ -20,52 +20,24 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 	provider.Rewards = sdk.DecCoins{}
 	providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	k.SetProvider(ctx, providerAddr, provider)
+	if err = k.SetProvider(ctx, providerAddr, provider); err != nil {
+		return nil, err
+	}
 
 	// Add leftovers as service fees
-	remainingServiceFees := k.GetRemainingServiceFees(ctx)
+	remainingServiceFees, err := k.GetRemainingServiceFees(ctx)
+	if err != nil {
+		return nil, err
+	}
 	remainingServiceFees = remainingServiceFees.Add(change...)
-	k.SetRemainingServiceFees(ctx, remainingServiceFees)
+	if err = k.SetRemainingServiceFees(ctx, remainingServiceFees); err != nil {
+		return nil, err
+	}
 
 	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, ctkRewards); err != nil {
 		return sdk.Coins{}, err
 	}
 	return ctkRewards, nil
-}
-
-// GetShieldBlockRewardRatio calculates the dynamic ratio for block rewards to shield module, based on total shield and total collateral.
-func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
-	totalShield := k.GetTotalShield(ctx)
-	totalCollateral := k.GetTotalCollateral(ctx)
-	totalBondedTokens := sdk.NewDecFromInt(k.bk.GetAllBalances(ctx, k.sk.GetBondedPool(ctx).GetAddress()).AmountOf(k.BondDenom(ctx))) // c + n
-	totalShieldDeposit := sdk.NewDecFromInt(k.GetGlobalShieldStakingPool(ctx))                                                        // d
-
-	var leverage sdk.Dec // l = (total shield) / (total collateral)
-	if totalCollateral.IsZero() {
-		leverage = sdk.ZeroDec()
-	} else {
-		leverage = sdk.NewDecFromInt(totalShield).Quo(sdk.NewDecFromInt(totalCollateral))
-	}
-
-	blockRewardParams := k.GetDistributionParams(ctx)
-	modelParamA := blockRewardParams.ModelParamA    // a
-	modelParamB := blockRewardParams.ModelParamB    // b
-	targetLeverage := blockRewardParams.MaxLeverage // L
-
-	/* The non-linear model:
-	 *         c+n                        l        d
-	 *   r = -------- ( a + 2(b - a) * ------- + -----)
-	 *        c+n+d                     l + L     c+n
-	 */
-	if leverage.Add(targetLeverage).IsZero() || totalBondedTokens.IsZero() {
-		return sdk.ZeroDec()
-	}
-	leading := totalBondedTokens.Quo(totalBondedTokens.Add(totalShieldDeposit))                        // (c+n)/(c+n+d)
-	first := modelParamA                                                                               // a
-	second := leverage.Quo(leverage.Add(targetLeverage)).Mul(modelParamB.Sub(modelParamA).MulInt64(2)) // 2(b-a)(l/l+L)
-	third := totalShieldDeposit.Quo(totalBondedTokens)                                                 // d/(c+n)
-	inner := first.Add(second).Add(third)
-	return leading.Mul(inner)
 }

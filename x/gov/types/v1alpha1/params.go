@@ -7,9 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 const ParamCustom = "custom"
@@ -20,15 +18,15 @@ var (
 	CertVotesKeyPrefix        = []byte("certvote")
 )
 
-// ParamKeyTable is the key declaration for parameters.
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable(
-		params.NewParamSetPair(govtypesv1.ParamStoreKeyDepositParams, govtypesv1beta1.DepositParams{}, validateDepositParams),
-		params.NewParamSetPair(govtypesv1.ParamStoreKeyVotingParams, govtypesv1beta1.VotingParams{}, validateVotingParams),
-		params.NewParamSetPair(govtypesv1.ParamStoreKeyTallyParams, govtypesv1beta1.TallyParams{}, validateTally),
-		params.NewParamSetPair(ParamStoreKeyCustomParams, CustomParams{}, validateCustomParams),
-	)
-}
+//// ParamKeyTable is the key declaration for parameters.
+//func ParamKeyTable() params.KeyTable {
+//	return params.NewKeyTable(
+//		params.NewParamSetPair(govtypesv1.ParamStoreKeyDepositParams, govtypesv1beta1.DepositParams{}, validateDepositParams),
+//		params.NewParamSetPair(govtypesv1.ParamStoreKeyVotingParams, govtypesv1beta1.VotingParams{}, validateVotingParams),
+//		params.NewParamSetPair(govtypesv1.ParamStoreKeyTallyParams, govtypesv1beta1.TallyParams{}, validateTally),
+//		params.NewParamSetPair(ParamStoreKeyCustomParams, CustomParams{}, validateCustomParams),
+//	)
+//}
 
 func validateDepositParams(i interface{}) error {
 	v, ok := i.(govtypesv1beta1.DepositParams)

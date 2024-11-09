@@ -4,11 +4,10 @@ package cert
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,7 +18,6 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/cert/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
-	"github.com/shentufoundation/shentu/v2/x/cert/simulation"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
@@ -88,6 +86,10 @@ type AppModule struct {
 	bankKeeper   types.BankKeeper
 }
 
+func (am AppModule) IsOnePerModuleType() {}
+
+func (am AppModule) IsAppModule() {}
+
 // NewAppModule creates a new AppModule object
 func NewAppModule(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) AppModule {
 	return AppModule{
@@ -105,21 +107,6 @@ func (am AppModule) Name() string {
 
 // RegisterInvariants registers the module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-}
-
-// Route returns the module's route key.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the module querier route name.
-func (AppModule) QuerierRoute() string {
-	return types.RouterKey
-}
-
-// LegacyQuerierHandler returns a new querier module handler.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.moduleKeeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers module services.
@@ -155,27 +142,20 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // AppModuleSimulation functions
 
-// GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
-
-// RegisterStoreDecoder registers a decoder for cert module.
-func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+func (am AppModule) GenerateGenesisState(input *module.SimulationState) {
 }
 
 // WeightedOperations returns cert operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.moduleKeeper)
+	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.moduleKeeper)
+	return nil
+}
+
+func (am AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry) {
 }
 
 // ProposalContents returns functions that generate gov proposals for the module
 func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return simulation.ProposalContents(am.moduleKeeper)
-}
-
-// RandomizedParams returns functions that generate params for the module
-func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
+	//return simulation.ProposalContents(am.moduleKeeper)
 	return nil
 }

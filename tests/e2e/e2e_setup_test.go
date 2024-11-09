@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -16,9 +15,13 @@ import (
 	"testing"
 	"time"
 
-	tmconfig "github.com/tendermint/tendermint/config"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
+	"cosmossdk.io/math"
+
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
+	tmconfig "github.com/cometbft/cometbft/config"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
@@ -52,11 +55,11 @@ const (
 )
 
 var (
-	uctkAmount, _         = sdk.NewIntFromString("100000000000")
-	collateralAmount, _   = sdk.NewIntFromString("1000000000")
-	shieldAmount, _       = sdk.NewIntFromString("100000000")
-	depositAmount, _      = sdk.NewIntFromString("10000000")
-	feesAmount, _         = sdk.NewIntFromString("1000")
+	uctkAmount, _         = math.NewIntFromString("100000000000")
+	collateralAmount, _   = math.NewIntFromString("1000000000")
+	shieldAmount, _       = math.NewIntFromString("100000000")
+	depositAmount, _      = math.NewIntFromString("10000000")
+	feesAmount, _         = math.NewIntFromString("1000")
 	uctkAmountCoin        = sdk.NewCoin(uctkDenom, uctkAmount)
 	collateralAmountCoin  = sdk.NewCoin(uctkDenom, collateralAmount)
 	shieldAmountCoin      = sdk.NewCoin(uctkDenom, shieldAmount)
@@ -236,9 +239,9 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	appGenState[banktypes.ModuleName] = bz
 
 	shieldGenState := shieldtypes.GetGenesisStateFromAppState(cdc, appGenState)
-	sa, err := c.validators[0].keyInfo.GetAddress()
-	s.Require().NoError(err)
-	shieldGenState.ShieldAdmin = sa.String()
+	//sa, err := c.validators[0].keyInfo.GetAddress()
+	//s.Require().NoError(err)
+	//shieldGenState.ShieldAdmin = sa.String()
 	bz, err = cdc.MarshalJSON(&shieldGenState)
 	s.Require().NoError(err)
 	appGenState[shieldtypes.ModuleName] = bz
@@ -248,7 +251,7 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 
 	votingPeriod := time.Second * 20
 	govGenState.VotingParams.VotingPeriod = &votingPeriod
-	minDepositTokens := sdk.TokensFromConsensusPower(0, sdk.NewIntFromUint64(10))
+	minDepositTokens := sdk.TokensFromConsensusPower(0, math.NewIntFromUint64(10))
 	govGenState.DepositParams.MinDeposit = sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)}
 	bz, err = cdc.MarshalJSON(&govGenState)
 	s.Require().NoError(err)

@@ -1,11 +1,15 @@
 package v1
 
 import (
+	"encoding/binary"
 	"fmt"
 
+	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -28,7 +32,7 @@ func ParamKeyTable() params.KeyTable {
 }
 
 func validateDepositParams(i interface{}) error {
-	v, ok := i.(*govtypesv1.DepositParams)
+	v, ok := i.(govtypesv1.DepositParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -36,7 +40,6 @@ func validateDepositParams(i interface{}) error {
 	if !sdk.Coins(v.MinDeposit).IsValid() {
 		return fmt.Errorf("invalid minimum deposit: %s", v.MinDeposit)
 	}
-
 	if v.MaxDepositPeriod == nil || v.MaxDepositPeriod.Seconds() <= 0 {
 		return fmt.Errorf("maximum deposit period must be positive: %d", v.MaxDepositPeriod)
 	}
@@ -69,7 +72,7 @@ func NewParams(vp govtypesv1.VotingParams, tp govtypesv1.TallyParams, dp govtype
 }
 
 func validateTally(i interface{}) error {
-	v, ok := i.(*govtypesv1.TallyParams)
+	v, ok := i.(govtypesv1beta1.TallyParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -80,15 +83,21 @@ func validateTally(i interface{}) error {
 	return nil
 }
 
+//// String implements stringer insterface
+//func (cp CustomParams) String() string {
+//	out, _ := yaml.Marshal(cp)
+//	return string(out)
+//}
+
 func validateCustomParams(i interface{}) error {
 	v, ok := i.(CustomParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if err := validateTallyParams(v.CertifierUpdateSecurityVoteTally); err != nil {
+	if err := validateTallyParams(*v.CertifierUpdateSecurityVoteTally); err != nil {
 		return err
 	}
-	if err := validateTallyParams(v.CertifierUpdateStakeVoteTally); err != nil {
+	if err := validateTallyParams(*v.CertifierUpdateStakeVoteTally); err != nil {
 		return err
 	}
 
@@ -96,41 +105,41 @@ func validateCustomParams(i interface{}) error {
 }
 
 func validateTallyParams(i interface{}) error {
-	v, ok := i.(*govtypesv1.TallyParams)
+	v, ok := i.(govtypesv1.TallyParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	quorum, err := sdk.NewDecFromStr(v.Quorum)
+	quorum, err := math.LegacyNewDecFromStr(v.Quorum)
 	if err != nil {
 		return fmt.Errorf("invalid quorum string: %w", err)
 	}
 	if quorum.IsNegative() {
 		return fmt.Errorf("quorom cannot be negative: %s", quorum)
 	}
-	if quorum.GT(sdk.OneDec()) {
+	if quorum.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("quorom too large: %s", v)
 	}
 
-	threshold, err := sdk.NewDecFromStr(v.Threshold)
+	threshold, err := math.LegacyNewDecFromStr(v.Threshold)
 	if err != nil {
 		return fmt.Errorf("invalid threshold string: %w", err)
 	}
 	if !threshold.IsPositive() {
 		return fmt.Errorf("vote threshold must be positive: %s", threshold)
 	}
-	if threshold.GT(sdk.OneDec()) {
+	if threshold.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("vote threshold too large: %s", v)
 	}
 
-	vetoThreshold, err := sdk.NewDecFromStr(v.VetoThreshold)
+	vetoThreshold, err := math.LegacyNewDecFromStr(v.VetoThreshold)
 	if err != nil {
 		return fmt.Errorf("invalid vetoThreshold string: %w", err)
 	}
 	if !vetoThreshold.IsPositive() {
 		return fmt.Errorf("veto threshold must be positive: %s", vetoThreshold)
 	}
-	if vetoThreshold.GT(sdk.OneDec()) {
+	if vetoThreshold.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("veto threshold too large: %s", v)
 	}
 
@@ -138,12 +147,12 @@ func validateTallyParams(i interface{}) error {
 }
 
 func validateVotingParams(i interface{}) error {
-	v, ok := i.(*govtypesv1.VotingParams)
+	v, ok := i.(govtypesv1beta1.VotingParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v.VotingPeriod == nil || v.VotingPeriod.Seconds() <= 0 {
+	if v.VotingPeriod <= 0 {
 		return fmt.Errorf("voting period must be positive: %s", v.VotingPeriod)
 	}
 
@@ -152,5 +161,12 @@ func validateVotingParams(i interface{}) error {
 
 // CertVotesKey gets the first part of the cert votes key based on the proposalID
 func CertVotesKey(proposalID uint64) []byte {
-	return append(CertVotesKeyPrefix, govtypes.GetProposalIDBytes(proposalID)...)
+	return append(CertVotesKeyPrefix, GetProposalIDBytes(proposalID)...)
+}
+
+// GetProposalIDBytes returns the byte representation of the proposalID
+func GetProposalIDBytes(proposalID uint64) (proposalIDBz []byte) {
+	proposalIDBz = make([]byte, 8)
+	binary.BigEndian.PutUint64(proposalIDBz, proposalID)
+	return
 }

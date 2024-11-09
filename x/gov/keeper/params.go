@@ -1,19 +1,37 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"context"
 
+	"cosmossdk.io/errors"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
-// GetCustomParams returns the current CustomParams from the global param store.
-func (k Keeper) GetCustomParams(ctx sdk.Context) typesv1.CustomParams {
-	var customAddParams typesv1.CustomParams
-	k.paramSpace.Get(ctx, typesv1.ParamStoreKeyCustomParams, &customAddParams)
-	return customAddParams
+// SetCustomParams sets parameters space for custom.
+func (k Keeper) SetCustomParams(ctx context.Context, customAddParams typesv1.CustomParams) error {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := k.cdc.Marshal(&customAddParams)
+	if err != nil {
+		return err
+	}
+	return store.Set(types.CustomParamsKey, bz)
 }
 
-// SetCustomParams sets parameters space for custom.
-func (k Keeper) SetCustomParams(ctx sdk.Context, customAddParams typesv1.CustomParams) {
-	k.paramSpace.Set(ctx, typesv1.ParamStoreKeyCustomParams, &customAddParams)
+// GetCustomParams returns the current CustomParams from the global param store.
+func (k Keeper) GetCustomParams(ctx context.Context) (customParams typesv1.CustomParams, err error) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.CustomParamsKey)
+	if err != nil {
+		return customParams, err
+	}
+	if bz == nil {
+		return customParams, errors.Wrapf(sdkerrors.ErrInvalidAddress, "customParams does not exist")
+	}
+
+	k.cdc.MustUnmarshal(bz, &customParams)
+	return customParams, nil
 }
