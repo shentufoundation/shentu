@@ -40,8 +40,7 @@ func (k Keeper) UpdateAndSetTask(ctx context.Context, task *types.Task) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	task.ExpireHeight = sdkCtx.BlockHeight() + task.WaitingBlocks
 	if task.GetStatus() == types.TaskStatusPending {
-		err := k.AddToClosingTaskIDs(ctx, task)
-		if err != nil {
+		if err := k.AddToClosingTaskIDs(ctx, task); err != nil {
 			return err
 		}
 	}
@@ -59,8 +58,7 @@ func (k Keeper) SetTxTask(ctx context.Context, task *types.TxTask) error {
 			return err
 		}
 		if task.GetStatus() == types.TaskStatusPending {
-			err := k.AddToClosingTaskIDs(ctx, task)
-			if err != nil {
+			if err = k.AddToClosingTaskIDs(ctx, task); err != nil {
 				return err
 			}
 		}
@@ -113,6 +111,9 @@ func (k Keeper) GetTask(ctx context.Context, taskID []byte) (task types.TaskI, e
 	TaskData, err := store.Get(types.TaskStoreKey(taskID))
 	if err != nil {
 		return nil, err
+	}
+	if len(TaskData) == 0 {
+		return nil, errors.New("oracle: task not found")
 	}
 	err = k.cdc.UnmarshalInterface(TaskData, &task)
 	return
@@ -315,19 +316,25 @@ func (k Keeper) CreateTask(ctx context.Context, creator sdk.AccAddress, task typ
 		if savedTask.GetStatus() == types.TaskStatusPending {
 			return types.ErrTaskNotClosed
 		}
-		if err := k.DeleteTask(ctx, savedTask); err != nil {
+		if err = k.DeleteTask(ctx, savedTask); err != nil {
 			return err
 		}
 		if txTask, ok := savedTask.(*types.TxTask); ok && savedTask.GetStatus() != types.TaskStatusNil {
-			k.DeleteFromExpireIDs(ctx, *txTask)
+			if err = k.DeleteFromExpireIDs(ctx, *txTask); err != nil {
+				return err
+			}
 		}
 	}
 
-	k.SetTask(ctx, task)
+	if err = k.SetTask(ctx, task); err != nil {
+		return err
+	}
 	// if task's status is TaskStatusNil, it will not go to ClosingBlockStore,
 	// therefor will not be handled in EndBlocker
 	if task.GetStatus() == types.TaskStatusPending {
-		k.AddToClosingTaskIDs(ctx, task)
+		if err = k.AddToClosingTaskIDs(ctx, task); err != nil {
+			return err
+		}
 		if err := k.CollectBounty(ctx, task.GetBounty(), creator); err != nil {
 			return err
 		}
@@ -338,18 +345,21 @@ func (k Keeper) CreateTask(ctx context.Context, creator sdk.AccAddress, task typ
 	return nil
 }
 
-func (k Keeper) BuildTxTaskWithExpire(ctx context.Context, txHash []byte, creator string, bounty sdk.Coins, validTime time.Time, status types.TaskStatus) *types.TxTask {
+func (k Keeper) BuildTxTaskWithExpire(ctx context.Context, txHash []byte, creator string, bounty sdk.Coins, validTime time.Time, status types.TaskStatus) (*types.TxTask, error) {
 	taskParams := k.GetTaskParams(ctx)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	txTask := types.NewTxTask(txHash, creator, bounty, validTime, status)
 	txTask.Expiration = sdkCtx.BlockTime().Add(taskParams.ExpirationDuration)
 
-	k.SaveExpireTxTask(ctx, txTask)
-	return txTask
+	if err := k.SaveExpireTxTask(ctx, txTask); err != nil {
+		return nil, err
+	}
+	return txTask, nil
 }
 
 func (k Keeper) BuildTxTask(ctx context.Context, txHash []byte, creator string, bounty sdk.Coins, validTime time.Time) (types.TaskI, error) {
 	var txTask *types.TxTask
+	var err error
 	// if a TaskStatusNil task already exists, overwrite it after copying several fields.
 	// please be noted that the expiration hook remains
 	if savedTask, err := k.GetTask(ctx, txHash); err == nil {
@@ -367,7 +377,10 @@ func (k Keeper) BuildTxTask(ctx context.Context, txHash []byte, creator string, 
 	}
 	if txTask == nil {
 		// BuildTxTaskWithExpire should be called with new TxTask created and expiration hooking up
-		txTask = k.BuildTxTaskWithExpire(ctx, txHash, creator, bounty, validTime, types.TaskStatusPending)
+		txTask, err = k.BuildTxTaskWithExpire(ctx, txHash, creator, bounty, validTime, types.TaskStatusPending)
+		if err != nil {
+			return txTask, err
+		}
 	}
 
 	if validTime.After(txTask.Expiration) {
@@ -396,8 +409,8 @@ func (k Keeper) SetShortcutTasks(ctx context.Context, tid []byte) error {
 	if err != nil {
 		return err
 	}
-	taskIDs := append(tasks, types.TaskID{Tid: tid})
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
+	tasks = append(tasks, types.TaskID{Tid: tid})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: tasks})
 	return store.Set(types.ShortcutTasksKeyPrefix, bz)
 }
 
@@ -465,7 +478,9 @@ func (k Keeper) RemoveTask(ctx context.Context, taskID []byte, force bool, delet
 		return err
 	}
 	if txTask, ok := task.(*types.TxTask); ok {
-		k.DeleteFromExpireIDs(ctx, *txTask)
+		if err := k.DeleteFromExpireIDs(ctx, *txTask); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -535,7 +550,10 @@ func (k Keeper) HandleNoneTxTaskForResponse(ctx context.Context, txHash []byte) 
 		//if the corresponding TxTask doesn't exit,
 		//create one as a placeholder (statue being set as TaskStatusNil),
 		//waiting for the MsgCreateTxTask coming to fill in necessary fields
-		txTask := k.BuildTxTaskWithExpire(ctx, txHash, "", nil, time.Time{}, types.TaskStatusNil)
+		txTask, err := k.BuildTxTaskWithExpire(ctx, txHash, "", nil, time.Time{}, types.TaskStatusNil)
+		if err != nil {
+			return err
+		}
 		return k.CreateTask(ctx, nil, txTask)
 	}
 	return nil
@@ -559,7 +577,9 @@ func (k Keeper) RespondToTask(ctx context.Context, taskID []byte, score int64, o
 	}
 
 	task.AddResponse(response)
-	k.SetTask(ctx, task)
+	if err = k.SetTask(ctx, task); err != nil {
+		return err
+	}
 
 	if _, ok := task.(*types.TxTask); ok {
 		k.TryShortcut(ctx, task)
@@ -614,8 +634,7 @@ func (k Keeper) Aggregate(ctx context.Context, taskID []byte) error {
 		task.SetStatus(types.TaskStatusFailed)
 	}
 	task.SetScore(result.Int64())
-	k.SetTask(ctx, task)
-	return nil
+	return k.SetTask(ctx, task)
 }
 
 // TotalValidTaskCollateral calculates the total amount of valid collateral of a task.

@@ -3,6 +3,8 @@ package shentu.auth.v1alpha1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/auth/types";
 
@@ -16,11 +18,14 @@ service Msg {
 // MsgUnlock defines a message for unlocking coins from a manual vesting
 // account.
 message MsgUnlock {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "auth/MsgUnlock";
+
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string issuer = 1 [ (gogoproto.moretags) = "yaml:\"issuer\"" ];
-  string account = 2 [ (gogoproto.moretags) = "yaml:\"account_address\"" ];
+  string issuer = 1 [(gogoproto.moretags) = "yaml:\"issuer\""];
+  string account = 2 [(gogoproto.moretags) = "yaml:\"account_address\""];
   repeated cosmos.base.v1beta1.Coin unlock_amount = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"

@@ -3,7 +3,7 @@ run:
   skip-dirs:
     - tests/e2e
     # TODO: include below
-    - app/shentud/cmd
+    - x/gov
   timeout: 5m
 
 linters:
@@ -13,13 +13,13 @@ linters:
     - deadcode
     - depguard
     - dogsled
-    # - errcheck
+    - errcheck
     - goconst
     - gocritic
     - gofmt
     - goimports
     - golint
-    # - gosec
+    - gosec
     - gosimple
     - govet
     - ineffassign

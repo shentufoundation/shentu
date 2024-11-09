@@ -55,8 +55,7 @@ func (k Keeper) ReduceTotalCollateral(ctx context.Context, decrement sdk.Coins) 
 		return err
 	}
 	currentCollateral = currentCollateral.Sub(decrement...)
-	k.SetTotalCollateral(ctx, currentCollateral)
-	return nil
+	return k.SetTotalCollateral(ctx, currentCollateral)
 }
 
 // FundCommunityPool transfers money from module account to community pool.

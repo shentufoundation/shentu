@@ -46,11 +46,6 @@ func (m MsgLockedSend) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing.
-func (m MsgLockedSend) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgLockedSend) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(m.FromAddress)

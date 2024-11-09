@@ -45,11 +45,6 @@ func (m MsgUnlock) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing.
-func (m MsgUnlock) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgUnlock) GetSigners() []sdk.AccAddress {
 	issuer, err := sdk.AccAddressFromBech32(m.Issuer)

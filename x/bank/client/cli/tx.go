@@ -21,7 +21,9 @@ func LockedSendTxCmd() *cobra.Command {
 		Short: "Send coins and have them locked (vesting).",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
+			if err := cmd.Flags().Set(flags.FlagFrom, args[0]); err != nil {
+				return err
+			}
 
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

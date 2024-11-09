@@ -122,18 +122,7 @@ func (m *QueryCertVotedResponse) GetCertVoted() bool {
 
 // QueryParamsResponse is the response type for the Query/Params RPC method.
 type QueryParamsResponse struct {
-	// voting_params defines the parameters related to voting.
-	VotingParams *v1.VotingParams `protobuf:"bytes,1,opt,name=voting_params,json=votingParams,proto3" json:"voting_params,omitempty"`
-	// deposit_params defines the parameters related to deposit.
-	DepositParams *v1.DepositParams `protobuf:"bytes,2,opt,name=deposit_params,json=depositParams,proto3" json:"deposit_params,omitempty"`
-	// tally_params defines the parameters related to tally.
-	TallyParams *v1.TallyParams `protobuf:"bytes,3,opt,name=tally_params,json=tallyParams,proto3" json:"tally_params,omitempty"`
-	// custom_params defines the parameters related to custom.
-	// params defines all the paramaters of x/gov module.
-	//
-	// Since: cosmos-sdk 0.47
-	Params       *v1.Params    `protobuf:"bytes,4,opt,name=params,proto3" json:"params,omitempty"`
-	CustomParams *CustomParams `protobuf:"bytes,5,opt,name=custom_params,json=customParams,proto3" json:"custom_params,omitempty"`
+	CustomParams *CustomParams `protobuf:"bytes,1,opt,name=custom_params,json=customParams,proto3" json:"custom_params,omitempty"`
 }
 
 func (m *QueryParamsResponse) Reset()         { *m = QueryParamsResponse{} }
@@ -169,34 +158,6 @@ func (m *QueryParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryParamsResponse proto.InternalMessageInfo
 
-func (m *QueryParamsResponse) GetVotingParams() *v1.VotingParams {
-	if m != nil {
-		return m.VotingParams
-	}
-	return nil
-}
-
-func (m *QueryParamsResponse) GetDepositParams() *v1.DepositParams {
-	if m != nil {
-		return m.DepositParams
-	}
-	return nil
-}
-
-func (m *QueryParamsResponse) GetTallyParams() *v1.TallyParams {
-	if m != nil {
-		return m.TallyParams
-	}
-	return nil
-}
-
-func (m *QueryParamsResponse) GetParams() *v1.Params {
-	if m != nil {
-		return m.Params
-	}
-	return nil
-}
-
 func (m *QueryParamsResponse) GetCustomParams() *CustomParams {
 	if m != nil {
 		return m.CustomParams
@@ -213,54 +174,33 @@ func init() {
 func init() { proto.RegisterFile("shentu/gov/v1/query.proto", fileDescriptor_54d1918b998d725b) }
 
 var fileDescriptor_54d1918b998d725b = []byte{
-	// 740 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0xcf, 0x4f, 0xd4, 0x40,
-	0x14, 0xa6, 0x08, 0x08, 0xb3, 0xe0, 0xe1, 0x29, 0x02, 0x05, 0x16, 0xec, 0xf2, 0xcb, 0xa8, 0x9d,
-	0x2c, 0x12, 0x31, 0x51, 0x12, 0xe3, 0x7a, 0x31, 0x5e, 0x70, 0x63, 0x38, 0x78, 0xd9, 0x94, 0x6e,
-	0x2d, 0x4d, 0x76, 0x3b, 0xa5, 0x33, 0x6d, 0xc4, 0x75, 0x2f, 0x24, 0x6a, 0xbc, 0x18, 0x13, 0x4d,
-	0xfc, 0x97, 0x3c, 0x78, 0x20, 0xf1, 0xe2, 0xd1, 0x80, 0x77, 0xff, 0x05, 0x33, 0xd3, 0x99, 0xa5,
-	0xdb, 0x94, 0x5d, 0xf0, 0xd4, 0x4e, 0xdf, 0xf7, 0xbe, 0xef, 0x7b, 0x9d, 0x37, 0xf3, 0xd0, 0x0c,
-	0xdd, 0x73, 0x7c, 0x16, 0x61, 0x97, 0xc4, 0x38, 0x2e, 0xe3, 0xfd, 0xc8, 0x09, 0x0f, 0xcc, 0x20,
-	0x24, 0x8c, 0xc0, 0x44, 0x12, 0x32, 0x5d, 0x12, 0x9b, 0x71, 0x59, 0xbf, 0xe6, 0x12, 0x97, 0x88,
-	0x08, 0xe6, 0x6f, 0x09, 0x48, 0x9f, 0x73, 0x09, 0x71, 0x1b, 0x0e, 0xb6, 0x02, 0x0f, 0x5b, 0xbe,
-	0x4f, 0x98, 0xc5, 0x3c, 0xe2, 0x53, 0x19, 0x9d, 0xb2, 0x09, 0x6d, 0x12, 0xaa, 0xd8, 0x39, 0x53,
-	0x12, 0x98, 0xe9, 0x0e, 0xa4, 0x64, 0xf5, 0xa9, 0x6e, 0x47, 0x9d, 0x1c, 0xe3, 0x3e, 0x9a, 0x7c,
-	0xce, 0x71, 0x15, 0x27, 0x64, 0x3b, 0x84, 0x39, 0xf5, 0xaa, 0xb3, 0x1f, 0x39, 0x94, 0xc1, 0x02,
-	0x2a, 0x04, 0x21, 0x09, 0x08, 0xb5, 0x1a, 0x35, 0xaf, 0x3e, 0xad, 0x2d, 0x6a, 0x6b, 0x43, 0x55,
-	0xa4, 0x3e, 0x3d, 0xad, 0x1b, 0x9b, 0xe8, 0x7a, 0x36, 0x93, 0x06, 0xc4, 0xa7, 0x0e, 0xcc, 0x23,
-	0x64, 0x3b, 0x21, 0xab, 0xc5, 0xfc, 0xab, 0xc8, 0x1c, 0xad, 0x8e, 0xd9, 0x0a, 0x66, 0xfc, 0x18,
-	0x44, 0x57, 0x45, 0xe6, 0xb6, 0x15, 0x5a, 0x4d, 0xda, 0x49, 0x7b, 0x84, 0x26, 0x62, 0xc2, 0x3c,
-	0xdf, 0xad, 0x05, 0x22, 0x20, 0x32, 0x0b, 0xeb, 0xb3, 0x66, 0x52, 0x96, 0xfc, 0x65, 0xe6, 0x8e,
-	0xc0, 0xc8, 0xdc, 0xf1, 0x38, 0xb5, 0x82, 0x0a, 0xba, 0x52, 0x77, 0x02, 0x42, 0x3d, 0xa6, 0x28,
-	0x06, 0x05, 0xc5, 0x5c, 0x86, 0xe2, 0x49, 0x02, 0x92, 0x1c, 0x13, 0xf5, 0xf4, 0x12, 0xb6, 0xd0,
-	0x38, 0xb3, 0x1a, 0x8d, 0x03, 0x45, 0x71, 0x49, 0x50, 0xe8, 0x19, 0x8a, 0x17, 0x1c, 0x22, 0x09,
-	0x0a, 0xec, 0x74, 0x01, 0x77, 0xd0, 0x88, 0x4c, 0x1c, 0x12, 0x89, 0x93, 0x99, 0x44, 0x99, 0x23,
-	0x41, 0xbc, 0x68, 0x3b, 0xa2, 0x8c, 0x34, 0x95, 0xdc, 0xb0, 0x2c, 0xba, 0xab, 0x4f, 0xcc, 0x8a,
-	0xc0, 0xa8, 0xa2, 0xed, 0xd4, 0x6a, 0xfd, 0x2f, 0x42, 0xc3, 0xe2, 0x77, 0xc2, 0x7b, 0x0d, 0x8d,
-	0x57, 0x88, 0x4f, 0x99, 0xc7, 0x22, 0xde, 0x30, 0xb0, 0x9a, 0xd1, 0x4e, 0xf6, 0x2b, 0x85, 0x90,
-	0x9b, 0xad, 0xaf, 0xf5, 0x07, 0x26, 0x9b, 0x64, 0x94, 0x0e, 0x7f, 0xfe, 0xf9, 0x32, 0x38, 0x0f,
-	0xb3, 0xb8, 0xbb, 0xd9, 0xec, 0xb4, 0xee, 0x3b, 0x0d, 0x8d, 0x6e, 0xcb, 0x4e, 0x81, 0x52, 0x1e,
-	0xb7, 0x8a, 0x2a, 0x03, 0x4b, 0xbd, 0x41, 0x52, 0xdc, 0x14, 0xe2, 0x6b, 0xb0, 0x92, 0x11, 0x57,
-	0x5d, 0x49, 0x71, 0x2b, 0xd5, 0xb3, 0x6d, 0x78, 0x83, 0xc6, 0x14, 0x07, 0x85, 0x9e, 0x12, 0x54,
-	0x19, 0x59, 0xee, 0x83, 0x92, 0x4e, 0x16, 0x85, 0x13, 0x1d, 0xa6, 0xcf, 0x72, 0x02, 0x1f, 0x34,
-	0x34, 0xc4, 0xfb, 0x1d, 0x16, 0xf2, 0x18, 0x79, 0x44, 0x49, 0x2e, 0x9e, 0x0d, 0x90, 0x6a, 0x0f,
-	0x85, 0xda, 0x3d, 0xd8, 0x38, 0x5f, 0xdd, 0x98, 0x1f, 0x3c, 0x8a, 0x5b, 0xfc, 0x11, 0xb6, 0xe1,
-	0x50, 0x43, 0xc3, 0x9c, 0x8e, 0xc2, 0x99, 0x4a, 0x9d, 0xf2, 0x6f, 0xf4, 0x40, 0x48, 0x33, 0x1b,
-	0xc2, 0x8c, 0x09, 0xb7, 0x2f, 0x62, 0x06, 0xde, 0xa2, 0x11, 0x79, 0x40, 0x72, 0x25, 0xd4, 0x55,
-	0x90, 0xb8, 0x30, 0x32, 0xdd, 0x9f, 0x73, 0x5b, 0x18, 0xb7, 0x84, 0x8d, 0x65, 0x28, 0x65, 0x6d,
-	0x08, 0x18, 0x6e, 0x25, 0xcf, 0x1a, 0x3b, 0x08, 0x9c, 0x36, 0x7c, 0xd3, 0xd0, 0x65, 0x79, 0xe8,
-	0xc1, 0xc8, 0xd3, 0x97, 0x41, 0x65, 0xa0, 0xd4, 0x13, 0x23, 0x1d, 0x54, 0x84, 0x83, 0x2d, 0x78,
-	0x70, 0xce, 0x1f, 0x21, 0xaf, 0x19, 0x8a, 0x5b, 0xf2, 0x8d, 0x84, 0x6d, 0xf8, 0xa4, 0xa1, 0x51,
-	0x49, 0x4c, 0xa1, 0x97, 0x2c, 0xed, 0x79, 0x54, 0x4e, 0x41, 0xd2, 0xdc, 0xa6, 0x30, 0x57, 0x06,
-	0x7c, 0x41, 0x73, 0xf0, 0x55, 0x43, 0x05, 0x71, 0xb9, 0x55, 0x1d, 0x1a, 0x35, 0x18, 0xac, 0xe4,
-	0xc9, 0xa5, 0x00, 0xca, 0xd6, 0x6a, 0x5f, 0xdc, 0x7f, 0xf6, 0x8f, 0xb8, 0x5c, 0xe1, 0xa3, 0x86,
-	0xc6, 0x3a, 0x93, 0x06, 0x96, 0xf2, 0x1a, 0x24, 0x3b, 0xc2, 0xf4, 0xe5, 0x3e, 0x28, 0x69, 0x08,
-	0x0b, 0x43, 0x37, 0x61, 0x15, 0x77, 0x0f, 0xc9, 0xd3, 0x19, 0xd6, 0xed, 0xe8, 0xf1, 0xb3, 0xef,
-	0xc7, 0x45, 0xed, 0xe8, 0xb8, 0xa8, 0xfd, 0x3e, 0x2e, 0x6a, 0x9f, 0x4f, 0x8a, 0x03, 0x47, 0x27,
-	0xc5, 0x81, 0x5f, 0x27, 0xc5, 0x81, 0x97, 0x65, 0xd7, 0x63, 0x7b, 0xd1, 0xae, 0x69, 0x93, 0xa6,
-	0x24, 0x7b, 0x45, 0x22, 0xbf, 0x2e, 0xc6, 0xb7, 0x62, 0x7f, 0x2d, 0xf8, 0x79, 0x5f, 0x52, 0x1c,
-	0x97, 0x77, 0x47, 0xc4, 0x1c, 0xbe, 0xfb, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x2f, 0xc3, 0xab, 0xa3,
-	0x34, 0x08, 0x00, 0x00,
+	// 403 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x52, 0x4d, 0x4b, 0xe3, 0x40,
+	0x18, 0x6e, 0xca, 0xb2, 0x6c, 0xa7, 0xed, 0x65, 0xf6, 0xa3, 0xdb, 0x6c, 0x37, 0x6a, 0xa8, 0xa8,
+	0x97, 0x0c, 0xa9, 0x07, 0x3d, 0x8a, 0x3d, 0x89, 0x17, 0xed, 0x41, 0xc1, 0x4b, 0x49, 0x93, 0x31,
+	0x0d, 0x34, 0x79, 0xd3, 0xcc, 0x24, 0x58, 0x8a, 0x17, 0x6f, 0xde, 0x04, 0xc1, 0xdf, 0xe4, 0xb1,
+	0xe0, 0xc5, 0xa3, 0xb4, 0xfe, 0x10, 0xc9, 0x24, 0xa9, 0x49, 0x29, 0x78, 0x4b, 0xe6, 0xf9, 0x98,
+	0x67, 0x9e, 0xf7, 0x45, 0x4d, 0x36, 0xa4, 0x1e, 0x0f, 0x89, 0x0d, 0x11, 0x89, 0x74, 0x32, 0x0e,
+	0x69, 0x30, 0xd1, 0xfc, 0x00, 0x38, 0xe0, 0x7a, 0x02, 0x69, 0x36, 0x44, 0x5a, 0xa4, 0xcb, 0xbf,
+	0x6c, 0xb0, 0x41, 0x20, 0x24, 0xfe, 0x4a, 0x48, 0x72, 0xcb, 0x06, 0xb0, 0x47, 0x94, 0x18, 0xbe,
+	0x43, 0x0c, 0xcf, 0x03, 0x6e, 0x70, 0x07, 0x3c, 0x96, 0xa2, 0x0d, 0x13, 0x98, 0x0b, 0x2c, 0x73,
+	0x8f, 0x9d, 0x12, 0xa0, 0x59, 0x04, 0x72, 0xd7, 0xca, 0x8d, 0x62, 0xa2, 0xa5, 0x46, 0x3d, 0x44,
+	0xbf, 0xcf, 0x63, 0x5e, 0x97, 0x06, 0xfc, 0x02, 0x38, 0xb5, 0x7a, 0x74, 0x1c, 0x52, 0xc6, 0xf1,
+	0x06, 0xaa, 0xfa, 0x01, 0xf8, 0xc0, 0x8c, 0x51, 0xdf, 0xb1, 0xfe, 0x4a, 0x9b, 0xd2, 0xee, 0xb7,
+	0x1e, 0xca, 0x8e, 0x4e, 0x2c, 0xf5, 0x00, 0xfd, 0x59, 0x55, 0x32, 0x1f, 0x3c, 0x46, 0xf1, 0x7f,
+	0x84, 0x4c, 0x1a, 0xf0, 0x7e, 0x14, 0x9f, 0x0a, 0xe5, 0x8f, 0x5e, 0xc5, 0xcc, 0x68, 0xea, 0x25,
+	0xfa, 0x29, 0x84, 0x67, 0x46, 0x60, 0xb8, 0x6c, 0xa9, 0x3a, 0x42, 0x75, 0x33, 0x64, 0x1c, 0xdc,
+	0xbe, 0x2f, 0x00, 0x21, 0xac, 0x76, 0xfe, 0x69, 0x85, 0xc6, 0xb4, 0xae, 0xe0, 0xa4, 0xda, 0x9a,
+	0x99, 0xfb, 0xeb, 0x3c, 0x95, 0x51, 0x35, 0x81, 0x85, 0x3f, 0x9e, 0xa2, 0x5a, 0x9e, 0x8d, 0xb7,
+	0xb4, 0xa4, 0xa0, 0xcc, 0xaa, 0x90, 0x42, 0xbc, 0x5a, 0x56, 0x57, 0x6e, 0x5b, 0x13, 0x54, 0x6d,
+	0xdf, 0xbd, 0xbc, 0x3f, 0x96, 0x15, 0xdc, 0x22, 0xc5, 0xbe, 0x93, 0x2c, 0x24, 0x49, 0x8f, 0xef,
+	0x25, 0x54, 0x59, 0x56, 0x83, 0xdb, 0xeb, 0x7c, 0x57, 0x3b, 0x97, 0xb7, 0xbf, 0x60, 0xa5, 0x01,
+	0x88, 0x08, 0xb0, 0x87, 0x77, 0x48, 0x71, 0xaa, 0x9f, 0xa5, 0x93, 0x69, 0x6e, 0x76, 0xb7, 0xc7,
+	0xa7, 0xcf, 0x73, 0x45, 0x9a, 0xcd, 0x15, 0xe9, 0x6d, 0xae, 0x48, 0x0f, 0x0b, 0xa5, 0x34, 0x5b,
+	0x28, 0xa5, 0xd7, 0x85, 0x52, 0xba, 0xd2, 0x6d, 0x87, 0x0f, 0xc3, 0x81, 0x66, 0x82, 0x9b, 0x9a,
+	0x5d, 0x43, 0xe8, 0x59, 0x62, 0xdf, 0x32, 0xf7, 0x1b, 0xe1, 0xcf, 0x27, 0x3e, 0x65, 0x24, 0xd2,
+	0x07, 0xdf, 0xc5, 0xe2, 0xec, 0x7f, 0x04, 0x00, 0x00, 0xff, 0xff, 0x74, 0x37, 0xb9, 0x5f, 0xe5,
+	0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -271,416 +211,112 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// QueryClient is the client API for Query service.
+// CustomQueryClient is the client API for CustomQuery service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type QueryClient interface {
-	// Constitution queries the chain's constitution.
-	Constitution(ctx context.Context, in *v1.QueryConstitutionRequest, opts ...grpc.CallOption) (*v1.QueryConstitutionResponse, error)
-	// Proposal queries proposal details based on ProposalID.
-	Proposal(ctx context.Context, in *v1.QueryProposalRequest, opts ...grpc.CallOption) (*v1.QueryProposalResponse, error)
-	// Proposals queries all proposals based on given status.
-	Proposals(ctx context.Context, in *v1.QueryProposalsRequest, opts ...grpc.CallOption) (*v1.QueryProposalsResponse, error)
-	// Vote queries voted information based on proposalID, voterAddr.
-	Vote(ctx context.Context, in *v1.QueryVoteRequest, opts ...grpc.CallOption) (*v1.QueryVoteResponse, error)
-	// Votes queries votes of a given proposal.
-	Votes(ctx context.Context, in *v1.QueryVotesRequest, opts ...grpc.CallOption) (*v1.QueryVotesResponse, error)
+type CustomQueryClient interface {
 	// Params queries all parameters of the gov module.
-	Params(ctx context.Context, in *v1.QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	// Deposit queries single deposit information based proposalID, depositAddr.
-	Deposit(ctx context.Context, in *v1.QueryDepositRequest, opts ...grpc.CallOption) (*v1.QueryDepositResponse, error)
-	// Deposits queries all deposits of a single proposal.
-	Deposits(ctx context.Context, in *v1.QueryDepositsRequest, opts ...grpc.CallOption) (*v1.QueryDepositsResponse, error)
-	// TallyResult queries the tally of a proposal vote.
-	TallyResult(ctx context.Context, in *v1.QueryTallyResultRequest, opts ...grpc.CallOption) (*v1.QueryTallyResultResponse, error)
+	CustomParams(ctx context.Context, in *v1.QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// Proposal queries proposal details based on ProposalID.
 	CertVoted(ctx context.Context, in *QueryCertVotedRequest, opts ...grpc.CallOption) (*QueryCertVotedResponse, error)
 }
 
-type queryClient struct {
+type customQueryClient struct {
 	cc grpc1.ClientConn
 }
 
-func NewQueryClient(cc grpc1.ClientConn) QueryClient {
-	return &queryClient{cc}
+func NewCustomQueryClient(cc grpc1.ClientConn) CustomQueryClient {
+	return &customQueryClient{cc}
 }
 
-func (c *queryClient) Constitution(ctx context.Context, in *v1.QueryConstitutionRequest, opts ...grpc.CallOption) (*v1.QueryConstitutionResponse, error) {
-	out := new(v1.QueryConstitutionResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/Constitution", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) Proposal(ctx context.Context, in *v1.QueryProposalRequest, opts ...grpc.CallOption) (*v1.QueryProposalResponse, error) {
-	out := new(v1.QueryProposalResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/Proposal", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) Proposals(ctx context.Context, in *v1.QueryProposalsRequest, opts ...grpc.CallOption) (*v1.QueryProposalsResponse, error) {
-	out := new(v1.QueryProposalsResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/Proposals", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) Vote(ctx context.Context, in *v1.QueryVoteRequest, opts ...grpc.CallOption) (*v1.QueryVoteResponse, error) {
-	out := new(v1.QueryVoteResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/Vote", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) Votes(ctx context.Context, in *v1.QueryVotesRequest, opts ...grpc.CallOption) (*v1.QueryVotesResponse, error) {
-	out := new(v1.QueryVotesResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/Votes", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) Params(ctx context.Context, in *v1.QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
+func (c *customQueryClient) CustomParams(ctx context.Context, in *v1.QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/Params", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/shentu.gov.v1.CustomQuery/CustomParams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) Deposit(ctx context.Context, in *v1.QueryDepositRequest, opts ...grpc.CallOption) (*v1.QueryDepositResponse, error) {
-	out := new(v1.QueryDepositResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/Deposit", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) Deposits(ctx context.Context, in *v1.QueryDepositsRequest, opts ...grpc.CallOption) (*v1.QueryDepositsResponse, error) {
-	out := new(v1.QueryDepositsResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/Deposits", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) TallyResult(ctx context.Context, in *v1.QueryTallyResultRequest, opts ...grpc.CallOption) (*v1.QueryTallyResultResponse, error) {
-	out := new(v1.QueryTallyResultResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/TallyResult", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) CertVoted(ctx context.Context, in *QueryCertVotedRequest, opts ...grpc.CallOption) (*QueryCertVotedResponse, error) {
+func (c *customQueryClient) CertVoted(ctx context.Context, in *QueryCertVotedRequest, opts ...grpc.CallOption) (*QueryCertVotedResponse, error) {
 	out := new(QueryCertVotedResponse)
-	err := c.cc.Invoke(ctx, "/shentu.gov.v1.Query/CertVoted", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/shentu.gov.v1.CustomQuery/CertVoted", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// QueryServer is the server API for Query service.
-type QueryServer interface {
-	// Constitution queries the chain's constitution.
-	Constitution(context.Context, *v1.QueryConstitutionRequest) (*v1.QueryConstitutionResponse, error)
-	// Proposal queries proposal details based on ProposalID.
-	Proposal(context.Context, *v1.QueryProposalRequest) (*v1.QueryProposalResponse, error)
-	// Proposals queries all proposals based on given status.
-	Proposals(context.Context, *v1.QueryProposalsRequest) (*v1.QueryProposalsResponse, error)
-	// Vote queries voted information based on proposalID, voterAddr.
-	Vote(context.Context, *v1.QueryVoteRequest) (*v1.QueryVoteResponse, error)
-	// Votes queries votes of a given proposal.
-	Votes(context.Context, *v1.QueryVotesRequest) (*v1.QueryVotesResponse, error)
+// CustomQueryServer is the server API for CustomQuery service.
+type CustomQueryServer interface {
 	// Params queries all parameters of the gov module.
-	Params(context.Context, *v1.QueryParamsRequest) (*QueryParamsResponse, error)
-	// Deposit queries single deposit information based proposalID, depositAddr.
-	Deposit(context.Context, *v1.QueryDepositRequest) (*v1.QueryDepositResponse, error)
-	// Deposits queries all deposits of a single proposal.
-	Deposits(context.Context, *v1.QueryDepositsRequest) (*v1.QueryDepositsResponse, error)
-	// TallyResult queries the tally of a proposal vote.
-	TallyResult(context.Context, *v1.QueryTallyResultRequest) (*v1.QueryTallyResultResponse, error)
+	CustomParams(context.Context, *v1.QueryParamsRequest) (*QueryParamsResponse, error)
 	// Proposal queries proposal details based on ProposalID.
 	CertVoted(context.Context, *QueryCertVotedRequest) (*QueryCertVotedResponse, error)
 }
 
-// UnimplementedQueryServer can be embedded to have forward compatible implementations.
-type UnimplementedQueryServer struct {
+// UnimplementedCustomQueryServer can be embedded to have forward compatible implementations.
+type UnimplementedCustomQueryServer struct {
 }
 
-func (*UnimplementedQueryServer) Constitution(ctx context.Context, req *v1.QueryConstitutionRequest) (*v1.QueryConstitutionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Constitution not implemented")
+func (*UnimplementedCustomQueryServer) CustomParams(ctx context.Context, req *v1.QueryParamsRequest) (*QueryParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CustomParams not implemented")
 }
-func (*UnimplementedQueryServer) Proposal(ctx context.Context, req *v1.QueryProposalRequest) (*v1.QueryProposalResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Proposal not implemented")
-}
-func (*UnimplementedQueryServer) Proposals(ctx context.Context, req *v1.QueryProposalsRequest) (*v1.QueryProposalsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Proposals not implemented")
-}
-func (*UnimplementedQueryServer) Vote(ctx context.Context, req *v1.QueryVoteRequest) (*v1.QueryVoteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Vote not implemented")
-}
-func (*UnimplementedQueryServer) Votes(ctx context.Context, req *v1.QueryVotesRequest) (*v1.QueryVotesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Votes not implemented")
-}
-func (*UnimplementedQueryServer) Params(ctx context.Context, req *v1.QueryParamsRequest) (*QueryParamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
-}
-func (*UnimplementedQueryServer) Deposit(ctx context.Context, req *v1.QueryDepositRequest) (*v1.QueryDepositResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Deposit not implemented")
-}
-func (*UnimplementedQueryServer) Deposits(ctx context.Context, req *v1.QueryDepositsRequest) (*v1.QueryDepositsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Deposits not implemented")
-}
-func (*UnimplementedQueryServer) TallyResult(ctx context.Context, req *v1.QueryTallyResultRequest) (*v1.QueryTallyResultResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TallyResult not implemented")
-}
-func (*UnimplementedQueryServer) CertVoted(ctx context.Context, req *QueryCertVotedRequest) (*QueryCertVotedResponse, error) {
+func (*UnimplementedCustomQueryServer) CertVoted(ctx context.Context, req *QueryCertVotedRequest) (*QueryCertVotedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CertVoted not implemented")
 }
 
-func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
-	s.RegisterService(&_Query_serviceDesc, srv)
+func RegisterCustomQueryServer(s grpc1.Server, srv CustomQueryServer) {
+	s.RegisterService(&_CustomQuery_serviceDesc, srv)
 }
 
-func _Query_Constitution_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.QueryConstitutionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Constitution(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/Constitution",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Constitution(ctx, req.(*v1.QueryConstitutionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_Proposal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.QueryProposalRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Proposal(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/Proposal",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Proposal(ctx, req.(*v1.QueryProposalRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_Proposals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.QueryProposalsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Proposals(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/Proposals",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Proposals(ctx, req.(*v1.QueryProposalsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_Vote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.QueryVoteRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Vote(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/Vote",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Vote(ctx, req.(*v1.QueryVoteRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_Votes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.QueryVotesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Votes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/Votes",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Votes(ctx, req.(*v1.QueryVotesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CustomQuery_CustomParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(v1.QueryParamsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).Params(ctx, in)
+		return srv.(CustomQueryServer).CustomParams(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/Params",
+		FullMethod: "/shentu.gov.v1.CustomQuery/CustomParams",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Params(ctx, req.(*v1.QueryParamsRequest))
+		return srv.(CustomQueryServer).CustomParams(ctx, req.(*v1.QueryParamsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.QueryDepositRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Deposit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/Deposit",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Deposit(ctx, req.(*v1.QueryDepositRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_Deposits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.QueryDepositsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Deposits(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/Deposits",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Deposits(ctx, req.(*v1.QueryDepositsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_TallyResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.QueryTallyResultRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).TallyResult(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/TallyResult",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).TallyResult(ctx, req.(*v1.QueryTallyResultRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_CertVoted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CustomQuery_CertVoted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryCertVotedRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).CertVoted(ctx, in)
+		return srv.(CustomQueryServer).CertVoted(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.gov.v1.Query/CertVoted",
+		FullMethod: "/shentu.gov.v1.CustomQuery/CertVoted",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).CertVoted(ctx, req.(*QueryCertVotedRequest))
+		return srv.(CustomQueryServer).CertVoted(ctx, req.(*QueryCertVotedRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Query_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "shentu.gov.v1.Query",
-	HandlerType: (*QueryServer)(nil),
+var _CustomQuery_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "shentu.gov.v1.CustomQuery",
+	HandlerType: (*CustomQueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Constitution",
-			Handler:    _Query_Constitution_Handler,
-		},
-		{
-			MethodName: "Proposal",
-			Handler:    _Query_Proposal_Handler,
-		},
-		{
-			MethodName: "Proposals",
-			Handler:    _Query_Proposals_Handler,
-		},
-		{
-			MethodName: "Vote",
-			Handler:    _Query_Vote_Handler,
-		},
-		{
-			MethodName: "Votes",
-			Handler:    _Query_Votes_Handler,
-		},
-		{
-			MethodName: "Params",
-			Handler:    _Query_Params_Handler,
-		},
-		{
-			MethodName: "Deposit",
-			Handler:    _Query_Deposit_Handler,
-		},
-		{
-			MethodName: "Deposits",
-			Handler:    _Query_Deposits_Handler,
-		},
-		{
-			MethodName: "TallyResult",
-			Handler:    _Query_TallyResult_Handler,
+			MethodName: "CustomParams",
+			Handler:    _CustomQuery_CustomParams_Handler,
 		},
 		{
 			MethodName: "CertVoted",
-			Handler:    _Query_CertVoted_Handler,
+			Handler:    _CustomQuery_CertVoted_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -778,54 +414,6 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i = encodeVarintQuery(dAtA, i, uint64(size))
 		}
 		i--
-		dAtA[i] = 0x2a
-	}
-	if m.Params != nil {
-		{
-			size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	if m.TallyParams != nil {
-		{
-			size, err := m.TallyParams.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.DepositParams != nil {
-		{
-			size, err := m.DepositParams.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.VotingParams != nil {
-		{
-			size, err := m.VotingParams.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
@@ -872,22 +460,6 @@ func (m *QueryParamsResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.VotingParams != nil {
-		l = m.VotingParams.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	if m.DepositParams != nil {
-		l = m.DepositParams.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	if m.TallyParams != nil {
-		l = m.TallyParams.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	if m.Params != nil {
-		l = m.Params.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
 	if m.CustomParams != nil {
 		l = m.CustomParams.Size()
 		n += 1 + l + sovQuery(uint64(l))
@@ -1070,150 +642,6 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field VotingParams", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.VotingParams == nil {
-				m.VotingParams = &v1.VotingParams{}
-			}
-			if err := m.VotingParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DepositParams", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.DepositParams == nil {
-				m.DepositParams = &v1.DepositParams{}
-			}
-			if err := m.DepositParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TallyParams", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.TallyParams == nil {
-				m.TallyParams = &v1.TallyParams{}
-			}
-			if err := m.TallyParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Params == nil {
-				m.Params = &v1.Params{}
-			}
-			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CustomParams", wireType)
 			}

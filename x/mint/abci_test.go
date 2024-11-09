@@ -2,11 +2,10 @@ package mint_test
 
 import (
 	"testing"
-	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"cosmossdk.io/math"
+	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
@@ -16,11 +15,12 @@ import (
 
 func TestBeginBlocker(t *testing.T) {
 	app := shentuapp.Setup(t, false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	ctx := app.BaseApp.NewContext(false)
 	k := app.MintKeeper
 
 	p := types.DefaultGenesisState().GetParams()
-	k.SetParams(ctx, p)
+	err := k.Params.Set(ctx, p)
+	require.NoError(t, err)
 	type args struct {
 		minter minttypes.Minter
 	}
@@ -31,29 +31,31 @@ func TestBeginBlocker(t *testing.T) {
 		{
 			"normal", args{
 				minttypes.Minter{
-					Inflation:        sdk.NewDecWithPrec(12, 2),
-					AnnualProvisions: sdk.NewDecWithPrec(7, 2)},
+					Inflation:        math.LegacyNewDecWithPrec(12, 2),
+					AnnualProvisions: math.LegacyNewDecWithPrec(7, 2)},
 			},
 		},
 		{
 			"zero inflation", args{
 				minttypes.Minter{
-					Inflation:        sdk.NewDecWithPrec(0, 2),
-					AnnualProvisions: sdk.NewDecWithPrec(0, 2)},
+					Inflation:        math.LegacyNewDecWithPrec(0, 2),
+					AnnualProvisions: math.LegacyNewDecWithPrec(0, 2)},
 			},
 		},
 		{
 			"hundred inflation", args{
 				minttypes.Minter{
-					Inflation:        sdk.NewDecWithPrec(100, 2),
-					AnnualProvisions: sdk.NewDecWithPrec(100, 2)},
+					Inflation:        math.LegacyNewDecWithPrec(100, 2),
+					AnnualProvisions: math.LegacyNewDecWithPrec(100, 2)},
 			},
 		},
 	}
 	for _, tt := range tests {
-		k.SetMinter(ctx, tt.args.minter)
+		err := k.Minter.Set(ctx, tt.args.minter)
+		require.NoError(t, err)
 		t.Run(tt.name, func(t *testing.T) {
-			mint.BeginBlocker(ctx, k)
+			err = mint.BeginBlocker(ctx, k, minttypes.DefaultInflationCalculationFn)
+			require.NoError(t, err)
 		})
 	}
 }

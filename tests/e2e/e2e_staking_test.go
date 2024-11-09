@@ -1,84 +1,48 @@
 package e2e
 
 import (
-	"context"
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (s *IntegrationTestSuite) executeDelegate(c *chain, valIdx int, amount, valOperAddress, delegatorAddr, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+func (s *IntegrationTestSuite) testStaking() {
+	s.Run("test_staking", func() {
+		var (
+			err      error
+			valIdx   = 0
+			c        = s.chainA
+			endpoint = fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+		)
 
-	s.T().Logf("Executing shentu tx staking delegate %s", c.id)
+		valAaddr, _ := c.validators[0].keyInfo.GetAddress()
+		// valBaddr, _ := c.validators[1].keyInfo.GetAddress()
 
-	command := []string{
-		shentuBinary,
-		txCommand,
-		stakingtypes.ModuleName,
-		"delegate",
-		valOperAddress,
-		amount,
-		fmt.Sprintf("--%s=%s", flags.FlagFrom, delegatorAddr),
-		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
-		fmt.Sprintf("--%s=%s", flags.FlagGas, "auto"),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
+		validatorA := sdk.ValAddress(valAaddr)
+		// validatorB := sdk.ValAddress(valBaddr)
 
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
+		delegator, _ := c.genesisAccounts[2].keyInfo.GetAddress()
 
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully delegated %s to %s", delegatorAddr, amount, valOperAddress)
-}
+		currentDelegation := math.LegacyZeroDec()
+		resp, err := queryDelegation(endpoint, validatorA.String(), delegator.String())
+		if err == nil {
+			currentDelegation = resp.DelegationResponse.Delegation.Shares
+		}
 
-func (s *IntegrationTestSuite) executeUnbond(c *chain, valIdx int, amount, valOperAddress, delegatorAddr, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+		amount := sdk.NewCoin(uctkDenom, math.NewInt(100000000))
+		s.execDelegate(c, valIdx, delegator.String(), validatorA.String(), amount, feesAmountCoin, false)
 
-	s.T().Logf("Executing shentu tx staking unbond %s", c.id)
-
-	command := []string{
-		shentuBinary,
-		txCommand,
-		stakingtypes.ModuleName,
-		"unbond",
-		valOperAddress,
-		amount,
-		fmt.Sprintf("--%s=%s", flags.FlagFrom, delegatorAddr),
-		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
-		fmt.Sprintf("--%s=%s", flags.FlagGas, "auto"),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
-
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
-
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully unbond %s from %s", delegatorAddr, amount, valOperAddress)
-}
-
-func queryDelegation(endpoint, validatorAddr, delegatorAddr string) (*stakingtypes.QueryDelegationResponse, error) {
-	grpcReq := &stakingtypes.QueryDelegationRequest{
-		DelegatorAddr: delegatorAddr,
-		ValidatorAddr: validatorAddr,
-	}
-	conn, err := connectGrpc(endpoint)
-	defer conn.Close()
-	client := stakingtypes.NewQueryClient(conn)
-
-	grpcRsp, err := client.Delegation(context.Background(), grpcReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute request: %w", err)
-	}
-
-	return grpcRsp, nil
+		s.Require().Eventually(
+			func() bool {
+				resp, err := queryDelegation(endpoint, validatorA.String(), delegator.String())
+				s.Require().NoError(err)
+				return resp.DelegationResponse.Delegation.Shares.Equal(currentDelegation.Add(math.LegacyNewDecFromInt(amount.Amount)))
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
 }

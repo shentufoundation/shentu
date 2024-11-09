@@ -14,10 +14,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
+	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 	v1bank "github.com/cosmos/cosmos-sdk/x/bank/migrations/v1"
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
@@ -25,6 +24,7 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/bank/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bank/simulation"
 	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
 
@@ -66,7 +66,9 @@ func (am AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEn
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the bank module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	banktypes.RegisterQueryHandlerClient(context.Background(), mux, banktypes.NewQueryClient(clientCtx))
+	if err := banktypes.RegisterQueryHandlerClient(context.Background(), mux, banktypes.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // GetTxCmd returns the root tx command for the bank module.
@@ -150,19 +152,15 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	banksim.RandomizedGenState(simState)
 }
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
+// ProposalMsgs returns msgs used for governance proposals for simulations.
+func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+	return banksim.ProposalMsgs()
 }
 
 // RegisterStoreDecoder performs a no-op.
-func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	//sdr[types.StoreKey] = simtypes.NewStoreDecoderFuncFromCollectionsSchema(am.keeper.(keeper.BaseKeeper).Schema)
-	//return nil
-}
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {}
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
-	return nil
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, simState.TxConfig, am.accountKeeper, am.keeper)
 }

@@ -2,12 +2,10 @@ package keeper_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
@@ -16,8 +14,8 @@ import (
 
 func TestWithdraw(t *testing.T) {
 	app := shentuapp.Setup(t, false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	ctx := app.BaseApp.NewContext(false)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	params := ok.GetLockedPoolParams(ctx)
@@ -50,8 +48,8 @@ func TestWithdraw(t *testing.T) {
 // Test set withdraw
 func TestSetWithdraw(t *testing.T) {
 	app := shentuapp.Setup(t, false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	ctx := app.BaseApp.NewContext(false)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	params := ok.GetLockedPoolParams(ctx)

@@ -43,10 +43,6 @@ func (msg MsgCreateProgram) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgCreateProgram) Type() string { return TypeMsgCreateProgram }
 
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
-// If the validator address is not same as delegator's, then the validator must
-// sign the msg as well.
 func (msg MsgCreateProgram) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
 	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -55,12 +51,6 @@ func (msg MsgCreateProgram) GetSigners() []sdk.AccAddress {
 	}
 
 	return []sdk.AccAddress{cAddr}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgCreateProgram) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -97,10 +87,6 @@ func (msg MsgEditProgram) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgEditProgram) Type() string { return TypeMsgEditProgram }
 
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
-// If the validator address is not same as delegator's, then the validator must
-// sign the msg as well.
 func (msg MsgEditProgram) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
 	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -109,12 +95,6 @@ func (msg MsgEditProgram) GetSigners() []sdk.AccAddress {
 	}
 
 	return []sdk.AccAddress{cAddr}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgEditProgram) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -146,10 +126,6 @@ func (msg MsgSubmitFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgSubmitFinding) Type() string { return TypeMsgSubmitFinding }
 
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
-// If the validator address is not same as delegator's, then the validator must
-// sign the msg as well.
 func (msg MsgSubmitFinding) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
 	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -158,12 +134,6 @@ func (msg MsgSubmitFinding) GetSigners() []sdk.AccAddress {
 	}
 
 	return []sdk.AccAddress{cAddr}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgSubmitFinding) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -204,10 +174,6 @@ func (msg MsgEditFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgEditFinding) Type() string { return TypeMsgEditFinding }
 
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
-// If the validator address is not same as delegator's, then the validator must
-// sign the msg as well.
 func (msg MsgEditFinding) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
 	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -216,12 +182,6 @@ func (msg MsgEditFinding) GetSigners() []sdk.AccAddress {
 	}
 
 	return []sdk.AccAddress{cAddr}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgEditFinding) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -252,17 +212,9 @@ func (msg MsgActivateProgram) Route() string { return RouterKey }
 // Type implements sdk.Msg interface.
 func (msg MsgActivateProgram) Type() string { return TypeMsgActivateProgram }
 
-// GetSigners implements sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
 func (msg MsgActivateProgram) GetSigners() []sdk.AccAddress {
 	cAddr, _ := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	return []sdk.AccAddress{cAddr}
-}
-
-// GetSignBytes implements the sdk.Msg interface, returns the message bytes to sign over.
-func (msg MsgActivateProgram) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -290,17 +242,9 @@ func (msg MsgCloseProgram) Route() string { return RouterKey }
 // Type implements sdk.Msg interface.
 func (msg MsgCloseProgram) Type() string { return TypeMsgCloseProgram }
 
-// GetSigners implements sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
 func (msg MsgCloseProgram) GetSigners() []sdk.AccAddress {
 	cAddr, _ := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	return []sdk.AccAddress{cAddr}
-}
-
-// GetSignBytes implements the sdk.Msg interface, returns the message bytes to sign over.
-func (msg MsgCloseProgram) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -328,14 +272,6 @@ func (msg MsgActivateFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgActivateFinding) Type() string { return TypeMsgActivateFinding }
 
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgActivateFinding) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
 func (msg MsgActivateFinding) GetSigners() []sdk.AccAddress {
 	// host should sign the message
 	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -372,14 +308,6 @@ func (msg MsgConfirmFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgConfirmFinding) Type() string { return TypeMsgConfirmFinding }
 
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgConfirmFinding) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
 func (msg MsgConfirmFinding) GetSigners() []sdk.AccAddress {
 	// host should sign the message
 	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -418,14 +346,6 @@ func (msg MsgConfirmFindingPaid) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgConfirmFindingPaid) Type() string { return TypeMsgConfirmFindingPaid }
 
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgConfirmFindingPaid) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
 func (msg MsgConfirmFindingPaid) GetSigners() []sdk.AccAddress {
 	// host should sign the message
 	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -462,14 +382,6 @@ func (msg MsgCloseFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgCloseFinding) Type() string { return TypeMsgCloseFinding }
 
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgCloseFinding) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
 func (msg MsgCloseFinding) GetSigners() []sdk.AccAddress {
 	// host should sign the message
 	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -509,8 +421,6 @@ func (msg MsgPublishFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgPublishFinding) Type() string { return TypeMsgPublishFinding }
 
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
 func (msg MsgPublishFinding) GetSigners() []sdk.AccAddress {
 	// releaser should sign the message
 	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -518,12 +428,6 @@ func (msg MsgPublishFinding) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{cAddr}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgPublishFinding) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.

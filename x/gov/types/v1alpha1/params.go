@@ -3,10 +3,9 @@ package v1alpha1
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	yaml "gopkg.in/yaml.v2"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -105,19 +104,19 @@ func validateTallyParams(tallyParams govtypesv1beta1.TallyParams) error {
 	if tallyParams.Quorum.IsNegative() {
 		return fmt.Errorf("quorom cannot be negative: %s", tallyParams.Quorum)
 	}
-	if tallyParams.Quorum.GT(sdk.OneDec()) {
+	if tallyParams.Quorum.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("quorom too large: %s", tallyParams)
 	}
 	if !tallyParams.Threshold.IsPositive() {
 		return fmt.Errorf("vote threshold must be positive: %s", tallyParams.Threshold)
 	}
-	if tallyParams.Threshold.GT(sdk.OneDec()) {
+	if tallyParams.Threshold.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("vote threshold too large: %s", tallyParams)
 	}
 	if !tallyParams.VetoThreshold.IsPositive() {
 		return fmt.Errorf("veto threshold must be positive: %s", tallyParams.Threshold)
 	}
-	if tallyParams.VetoThreshold.GT(sdk.OneDec()) {
+	if tallyParams.VetoThreshold.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("veto threshold too large: %s", tallyParams)
 	}
 
@@ -135,9 +134,4 @@ func validateVotingParams(i interface{}) error {
 	}
 
 	return nil
-}
-
-// CertVotesKey gets the first part of the cert votes key based on the proposalID
-func CertVotesKey(proposalID uint64) []byte {
-	return append(CertVotesKeyPrefix, govtypes.GetProposalIDBytes(proposalID)...)
 }

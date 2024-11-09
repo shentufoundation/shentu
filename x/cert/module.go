@@ -29,7 +29,6 @@ var (
 
 // AppModuleBasic specifies the app module basics object.
 type AppModuleBasic struct {
-	cdc codec.Codec
 }
 
 // NewAppModuleBasic create a new AppModuleBasic object in cert module
@@ -65,7 +64,9 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the cert module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // GetTxCmd returns the root tx command for the cert module.
@@ -154,8 +155,8 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 func (am AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry) {
 }
 
-// ProposalContents returns functions that generate gov proposals for the module
-func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+// ProposalMsgs returns functions that generate gov proposals for the module
+func (am AppModule) ProposalMsgs(_ module.SimulationState) []simtypes.WeightedProposalMsg {
 	//return simulation.ProposalContents(am.moduleKeeper)
 	return nil
 }

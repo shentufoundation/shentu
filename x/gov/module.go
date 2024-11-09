@@ -8,6 +8,7 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/spf13/cobra"
 
 	modulev1 "cosmossdk.io/api/cosmos/gov/module/v1"
@@ -26,7 +27,6 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
@@ -85,11 +85,13 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runtime.ServeMux) {
-	err := typesv1.RegisterQueryHandlerClient(context.Background(), mux, typesv1.NewQueryClient(ctx))
-	if err != nil {
+	if err := govtypesv1.RegisterQueryHandlerClient(context.Background(), mux, govtypesv1.NewQueryClient(ctx)); err != nil {
 		panic(err)
 	}
 	if err := govtypesv1beta1.RegisterQueryHandlerClient(context.Background(), mux, govtypesv1beta1.NewQueryClient(ctx)); err != nil {
+		panic(err)
+	}
+	if err := typesv1.RegisterCustomQueryHandlerClient(context.Background(), mux, typesv1.NewCustomQueryClient(ctx)); err != nil {
 		panic(err)
 	}
 }
@@ -164,7 +166,6 @@ func (am AppModule) Name() string {
 // RegisterInvariants registers the governance module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	govkeeper.RegisterInvariants(ir, &am.keeper.Keeper, am.bankKeeper)
-
 }
 
 // RegisterServices registers module services.
@@ -175,7 +176,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	legacyQueryServer := govkeeper.NewLegacyQueryServer(&am.keeper.Keeper)
 	govtypesv1beta1.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
-	typesv1.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServer(&am.keeper))
+	govtypesv1.RegisterQueryServer(cfg.QueryServer(), govkeeper.NewQueryServer(&am.keeper.Keeper))
+	typesv1.RegisterCustomQueryServer(cfg.QueryServer(), keeper.NewCustomQueryServer(&am.keeper))
 
 	m := keeper.NewMigrator(am.keeper, am.legacySubspace)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)

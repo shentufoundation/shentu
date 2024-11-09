@@ -30,12 +30,6 @@ func (msg MsgWithdrawRewards) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{from}
 }
 
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgWithdrawRewards) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgWithdrawRewards) ValidateBasic() error {
 	from, err := sdk.AccAddressFromBech32(msg.From)

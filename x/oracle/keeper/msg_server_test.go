@@ -5,13 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
-
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	"github.com/shentufoundation/shentu/v2/x/oracle"
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -19,16 +20,16 @@ import (
 
 // TestMsgServer_CreateTxTask This function demonstrates the ability to create and delete a transaction task, and to have collateral accounts approve or reject said task.
 func TestMsgServer_CreateTxTask(t *testing.T) {
-	ctx, ok, msgServer, addrs := DoInit(t)
-	DepositCollateral(ctx, ok, addrs[0])
-	DepositCollateral(ctx, ok, addrs[1])
-	DepositCollateral(ctx, ok, addrs[2])
+	ctx, ok, ck, msgServer, addrs := DoInit(t)
+	DepositCollateral(ctx, ok, ck, addrs[0])
+	DepositCollateral(ctx, ok, ck, addrs[1])
+	DepositCollateral(ctx, ok, ck, addrs[2])
 
 	taskParsms := ok.GetTaskParams(ctx)
-	taskParsms.ShortcutQuorum = sdk.NewDecFromInt(sdk.NewInt(1))
+	taskParsms.ShortcutQuorum = math.LegacyNewDecFromInt(math.NewInt(1))
 	ok.SetTaskParams(ctx, taskParsms)
 
-	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 1)}
+	bounty := sdk.Coins{sdk.NewInt64Coin("stake", 1)}
 	txBytes, txHash := GetBytesHash("ethereum transaction")
 
 	CreateTxTask(ctx, addrs[2], txBytes, bounty, 3600, true)
@@ -60,15 +61,15 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 }
 
 func TestMsgServer_pending(t *testing.T) {
-	ctx, ok, _, addrs := DoInit(t)
-	DepositCollateral(ctx, ok, addrs[0])
-	DepositCollateral(ctx, ok, addrs[1])
+	ctx, ok, ck, _, addrs := DoInit(t)
+	DepositCollateral(ctx, ok, ck, addrs[0])
+	DepositCollateral(ctx, ok, ck, addrs[1])
 
 	taskParsms := ok.GetTaskParams(ctx)
-	taskParsms.ShortcutQuorum = sdk.NewDecFromInt(sdk.NewInt(1))
+	taskParsms.ShortcutQuorum = math.LegacyNewDecFromInt(math.NewInt(1))
 	ok.SetTaskParams(ctx, taskParsms)
 
-	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
+	bounty := sdk.Coins{sdk.NewInt64Coin("stake", 100000)}
 	txBytes, txHash := GetBytesHash("ethereum transaction")
 
 	RespondToTxTask(ctx, txHash, 78, addrs[0], true)
@@ -92,13 +93,13 @@ func TestMsgServer_pending(t *testing.T) {
 }
 
 func TestMsgServer_shortcut(t *testing.T) {
-	ctx, ok, _, addrs := DoInit(t)
-	DepositCollateral(ctx, ok, addrs[0])
-	DepositCollateral(ctx, ok, addrs[1])
-	DepositCollateral(ctx, ok, addrs[2])
-	DepositCollateral(ctx, ok, addrs[3])
+	ctx, ok, ck, _, addrs := DoInit(t)
+	DepositCollateral(ctx, ok, ck, addrs[0])
+	DepositCollateral(ctx, ok, ck, addrs[1])
+	DepositCollateral(ctx, ok, ck, addrs[2])
+	DepositCollateral(ctx, ok, ck, addrs[3])
 
-	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
+	bounty := sdk.Coins{sdk.NewInt64Coin("stake", 100000)}
 	txBytes, txHash := GetBytesHash("ethereum transaction")
 
 	RespondToTxTask(ctx, txHash, 78, addrs[0], true)
@@ -138,25 +139,28 @@ func TestMsgServer_shortcut(t *testing.T) {
 
 func PassBlocks(ctx sdk.Context, ok keeper.Keeper, t require.TestingT, n int64, m int) sdk.Context {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + n).WithBlockTime(ctx.BlockTime().Add(time.Second * 5 * time.Duration(n)))
-	require.Len(t, append(ok.GetInvalidTaskIDs(ctx), ok.GetShortcutTasks(ctx)...), m)
+	ids, _ := ok.GetShortcutTasks(ctx)
+	require.Len(t, append(ok.GetInvalidTaskIDs(ctx), ids...), m)
 	oracle.EndBlocker(ctx, ok)
 	return ctx
 }
 
-func DoInit(t *testing.T) (sdk.Context, keeper.Keeper, types.MsgServer, []sdk.AccAddress) {
+func DoInit(t *testing.T) (sdk.Context, keeper.Keeper, certkeeper.Keeper, types.MsgServer, []sdk.AccAddress) {
 	app := shentuapp.Setup(t, false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := shentuapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(80000*1e6))
+	ctx := app.BaseApp.NewContext(false)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 5, math.NewInt(800000*1e6))
 	ok := app.OracleKeeper
+	ck := app.CertKeeper
 	msgServer := keeper.NewMsgServerImpl(ok)
-	ctx = ctx.WithValue("msgServer", msgServer).WithValue("t", t).WithValue("ok", ok)
-	return ctx, ok, msgServer, addrs
+	ctx = ctx.WithValue("msgServer", msgServer).WithValue("t", t).WithValue("ok", ok).WithValue("ck", ck)
+	return ctx, ok, ck, msgServer, addrs
 }
 
-func DepositCollateral(ctx sdk.Context, ok keeper.Keeper, addr sdk.AccAddress) {
+func DepositCollateral(ctx sdk.Context, ok keeper.Keeper, ck certkeeper.Keeper, addr sdk.AccAddress) {
 	t := ctx.Value("t").(*testing.T)
 	params := ok.GetLockedPoolParams(ctx)
-	collateral := sdk.Coins{sdk.NewInt64Coin("uctk", params.MinimumCollateral)}
+	collateral := sdk.Coins{sdk.NewInt64Coin("stake", params.MinimumCollateral)}
+	ck.SetCertifier(ctx, certtypes.NewCertifier(addr, "", addr, ""))
 	require.NoError(t, ok.CreateOperator(ctx, addr, collateral, addr, "operator0"))
 }
 

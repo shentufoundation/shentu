@@ -51,12 +51,6 @@ func (m MsgProposeCertifier) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing.
-func (m MsgProposeCertifier) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&m)
-	return sdk.MustSortJSON(bz)
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgProposeCertifier) GetSigners() []sdk.AccAddress {
 	proposerAddr, err := sdk.AccAddressFromBech32(m.Proposer)
@@ -96,12 +90,6 @@ func (m MsgIssueCertificate) Type() string { return "issue_certificate" }
 // ValidateBasic runs stateless checks on the message.
 func (m MsgIssueCertificate) ValidateBasic() error {
 	return nil
-}
-
-// GetSignBytes encodes the message for signing.
-func (m MsgIssueCertificate) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&m)
-	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -146,12 +134,6 @@ func (m MsgRevokeCertificate) Route() string { return ModuleName }
 // Type returns the action name.
 func (m MsgRevokeCertificate) Type() string { return "revoke_certificate" }
 
-// GetSignBytes encodes the message for signing.
-func (m MsgRevokeCertificate) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&m)
-	return sdk.MustSortJSON(bz)
-}
-
 // GetSigners defines whose signature is required.
 func (m MsgRevokeCertificate) GetSigners() []sdk.AccAddress {
 	revokerAddr, err := sdk.AccAddressFromBech32(m.Revoker)
@@ -195,12 +177,6 @@ func (m MsgCertifyPlatform) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
 	}
 	return nil
-}
-
-// GetSignBytes encodes the message for signing.
-func (m MsgCertifyPlatform) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&m)
-	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.

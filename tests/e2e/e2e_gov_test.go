@@ -1,112 +1,73 @@
 package e2e
 
 import (
-	"context"
 	"fmt"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"strings"
+	"path/filepath"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
 
-func (s *IntegrationTestSuite) executeSubmitUpgradeProposal(c *chain, valIdx, upgradeHeight int, submitterAddr, proposalName, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+func (s *IntegrationTestSuite) testCommonProposal() {
+	s.Run("test_common_proposal", func() {
+		var (
+			valIdx       = 0
+			c            = s.chainA
+			grpcEndpoint = s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
+		)
 
-	s.T().Logf("Executing shentu tx submit proposal %s", c.id)
+		valA, _ := c.validators[0].keyInfo.GetAddress()
+		valB, _ := c.validators[1].keyInfo.GetAddress()
 
-	command := []string{
-		shentuBinary,
-		txCommand,
-		sdkgovtypes.ModuleName,
-		"submit-proposal",
-		"software-upgrade",
-		proposalName,
-		fmt.Sprintf("--upgrade-height=%d", upgradeHeight),
-		fmt.Sprintf("--title=\"title of %s\"", proposalName),
-		fmt.Sprintf("--description=\"description of %s\"", proposalName),
-		fmt.Sprintf("--%s=%s", flags.FlagFrom, submitterAddr),
-		fmt.Sprintf("--%s=%s", flags.FlagGasPrices, fees),
-		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
+		alice, _ := c.genesisAccounts[1].keyInfo.GetAddress()
+		bob, _ := c.genesisAccounts[2].keyInfo.GetAddress()
 
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
+		// Create a proposal to send 10ctk from alice to bob
+		amount := sdk.NewCoin(uctkDenom, math.NewInt(10000000))
+		s.writePoolSpendProposal(c, alice.String(), "pool_proposal.json", amount)
 
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully submit %s proposal", submitterAddr, proposalName)
+		s.execSubmitProposal(c, valIdx, "pool_proposal.json", bob.String(), feesAmountCoin)
+		s.Require().Eventually(
+			func() bool {
+				proposal, err := queryProposal(grpcEndpoint, proposalCounter)
+				return err == nil && proposal.Id == proposalCounter && proposal.Status == sdkgovtypes.StatusVotingPeriod
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+
+		s.execVoteProposal(c, 0, proposalCounter, valA.String(), "yes", feesAmountCoin)
+		s.execVoteProposal(c, 1, proposalCounter, valB.String(), "yes", feesAmountCoin)
+		s.Require().Eventually(
+			func() bool {
+				proposal, err := queryProposal(grpcEndpoint, proposalCounter)
+				return err == nil && proposal.Id == proposalCounter && proposal.Status == sdkgovtypes.StatusPassed
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
 }
 
-func (s *IntegrationTestSuite) executeDepositProposal(c *chain, valIdx int, submitterAddr string, proposalId int, amount, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-
-	s.T().Logf("Executing shentu tx deposit proposal %s", c.id)
-
-	command := []string{
-		shentuBinary,
-		txCommand,
-		sdkgovtypes.ModuleName,
-		"deposit",
-		fmt.Sprintf("%d", proposalId),
-		amount,
-		fmt.Sprintf("--%s=%s", flags.FlagFrom, submitterAddr),
-		fmt.Sprintf("--%s=%s", flags.FlagGasPrices, fees),
-		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
-
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
-
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully deposit proposal %d %s", submitterAddr, proposalId, amount)
-}
-
-func (s *IntegrationTestSuite) executeVoteProposal(c *chain, valIdx int, submitterAddr string, proposalId int, vote, fees string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-
-	s.T().Logf("Executing shentu tx vote proposal %s", c.id)
-
-	command := []string{
-		shentuBinary,
-		txCommand,
-		sdkgovtypes.ModuleName,
-		"vote",
-		fmt.Sprintf("%d", proposalId),
-		vote,
-		fmt.Sprintf("--%s=%s", flags.FlagFrom, submitterAddr),
-		fmt.Sprintf("--%s=%s", flags.FlagGasPrices, fees),
-		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
-		"--keyring-backend=test",
-		"--output=json",
-		"-y",
-	}
-
-	s.T().Logf("cmd: %s", strings.Join(command, " "))
-
-	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully vote proposal %d %s", submitterAddr, proposalId, vote)
-}
-
-func queryProposal(endpoint string, proposalID int) (*govtypesv1.QueryProposalResponse, error) {
-	grpcReq := &govtypesv1.QueryProposalRequest{
-		ProposalId: uint64(proposalID),
-	}
-	conn, err := connectGrpc(endpoint)
-	defer conn.Close()
-	client := govtypesv1.NewQueryClient(conn)
-
-	grpcRsp, err := client.Proposal(context.Background(), grpcReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute request: %w", err)
-	}
-
-	return grpcRsp, nil
+func (s *IntegrationTestSuite) writePoolSpendProposal(c *chain, recipient, fileName string, amount sdk.Coin) {
+	template := `{
+		"messages": [{
+			"@type": "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+			"authority": "%s",
+			"recipient": "%s",
+			"amount": [{
+				"denom": "%s",
+				"amount": "%s"
+			}]
+		}],
+		"metadata": "community pool spend",
+		"deposit": "512000000uctk",
+		"title": "community pool proposal",
+		"summary": "community pool summary"
+	}`
+	body := fmt.Sprintf(template, govModuleAcct.String(), recipient, amount.Denom, amount.Amount.String())
+	err := writeFile(filepath.Join(c.validators[0].configDir(), "config", fileName), []byte(body))
+	s.Require().NoError(err)
 }

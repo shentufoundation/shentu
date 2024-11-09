@@ -9,14 +9,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 )
 
 const (
-	upgradeName = "v2.12.0"
+	upgradeName = "v2.13.0"
 )
 
-func (app ShentuApp) setUpgradeHandler(cdc codec.BinaryCodec, clientKeeper clientkeeper.Keeper) {
+func (app ShentuApp) setUpgradeHandler(_ codec.BinaryCodec) {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {

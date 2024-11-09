@@ -2,7 +2,11 @@ syntax = "proto3";
 package shentu.shield.v1alpha1;
 
 import "gogoproto/gogo.proto";
+
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "amino/amino.proto";
+
 import "shentu/shield/v1alpha1/shield.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/shield/types";
@@ -14,6 +18,9 @@ service Msg {
 
 // MsgWithdrawForeignRewards defines attribute of withdraw rewards transaction.
 message MsgWithdrawRewards {
+    option (cosmos.msg.v1.signer) = "from";
+    option (amino.name)           = "shield/MsgWithdrawRewards";
+
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
   

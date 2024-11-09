@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -12,6 +13,9 @@ import (
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cometbft/cometbft/privval"
 
+	"cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -23,11 +27,12 @@ import (
 	txsigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	shentu "github.com/shentufoundation/shentu/v2/app"
 )
 
+//
+//nolint:unused
 type validator struct {
 	chain            *chain
 	index            int
@@ -41,7 +46,7 @@ type validator struct {
 }
 
 type account struct {
-	moniker    string
+	moniker    string //nolint:unused
 	mnemonic   string
 	keyInfo    keyring.Record
 	privateKey cryptotypes.PrivKey
@@ -57,10 +62,10 @@ func (v *validator) configDir() string {
 
 func (v *validator) createConfig() error {
 	p := path.Join(v.configDir(), "config")
-	return os.MkdirAll(p, 0755)
+	return os.MkdirAll(p, 0o755)
 }
 
-func (v *validator) init() error {
+func (v *validator) init(genesisState map[string]json.RawMessage) error {
 	if err := v.createConfig(); err != nil {
 		return err
 	}
@@ -71,21 +76,20 @@ func (v *validator) init() error {
 	config.SetRoot(v.configDir())
 	config.Moniker = v.moniker
 
-	genDoc, err := getGenDoc(v.configDir())
-	if err != nil {
-		return err
-	}
-
-	appState, err := json.MarshalIndent(shentu.ModuleBasics.DefaultGenesis(cdc), "", " ")
+	appState, err := json.MarshalIndent(genesisState, "", " ")
 	if err != nil {
 		return fmt.Errorf("failed to JSON encode app genesis state: %w", err)
 	}
 
-	genDoc.ChainID = v.chain.id
-	genDoc.Validators = nil
-	genDoc.AppState = appState
+	appGenesis := genutiltypes.AppGenesis{
+		ChainID:  v.chain.id,
+		AppState: appState,
+		Consensus: &genutiltypes.ConsensusGenesis{
+			Validators: nil,
+		},
+	}
 
-	if err = genutil.ExportGenesisFile(genDoc, config.GenesisFile()); err != nil {
+	if err = genutil.ExportGenesisFile(&appGenesis, serverCtx.Config.GenesisFile()); err != nil {
 		return fmt.Errorf("failed to export app genesis state: %w", err)
 	}
 
@@ -117,12 +121,12 @@ func (v *validator) createConsensusKey() error {
 	config.Moniker = v.moniker
 
 	pvKeyFile := config.PrivValidatorKeyFile()
-	if err := tmos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {
+	if err := tmos.EnsureDir(filepath.Dir(pvKeyFile), 0o777); err != nil {
 		return err
 	}
 
 	pvStateFile := config.PrivValidatorStateFile()
-	if err := tmos.EnsureDir(filepath.Dir(pvStateFile), 0777); err != nil {
+	if err := tmos.EnsureDir(filepath.Dir(pvStateFile), 0o777); err != nil {
 		return err
 	}
 
@@ -133,7 +137,8 @@ func (v *validator) createConsensusKey() error {
 }
 
 func (v *validator) createKeyFromMnemonic(name, mnemonic string) error {
-	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil, cdc)
+	dir := v.configDir()
+	kb, err := keyring.New(keyringAppName, keyring.BackendTest, dir, nil, cdc)
 	if err != nil {
 		return err
 	}
@@ -166,6 +171,49 @@ func (v *validator) createKeyFromMnemonic(name, mnemonic string) error {
 	return nil
 }
 
+func (c *chain) addAccountFromMnemonic(counts int) error {
+	val0ConfigDir := c.validators[0].configDir()
+	kb, err := keyring.New(keyringAppName, keyring.BackendTest, val0ConfigDir, nil, cdc)
+	if err != nil {
+		return err
+	}
+
+	keyringAlgos, _ := kb.SupportedAlgorithms()
+	algo, err := keyring.NewSigningAlgoFromString(string(hd.Secp256k1Type), keyringAlgos)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < counts; i++ {
+		name := fmt.Sprintf("acct-%d", i)
+		mnemonic, err := createMnemonic()
+		if err != nil {
+			return err
+		}
+		info, err := kb.NewAccount(name, mnemonic, "", sdk.FullFundraiserPath, algo)
+		if err != nil {
+			return err
+		}
+
+		privKeyArmor, err := kb.ExportPrivKeyArmor(name, keyringPassphrase)
+		if err != nil {
+			return err
+		}
+
+		privKey, _, err := sdkcrypto.UnarmorDecryptPrivKey(privKeyArmor, keyringPassphrase)
+		if err != nil {
+			return err
+		}
+		acct := account{}
+		acct.keyInfo = *info
+		acct.mnemonic = mnemonic
+		acct.privateKey = privKey
+		c.genesisAccounts = append(c.genesisAccounts, &acct)
+	}
+
+	return nil
+}
+
 func (v *validator) createKey(name string) error {
 	mnemonic, err := createMnemonic()
 	if err != nil {
@@ -175,65 +223,15 @@ func (v *validator) createKey(name string) error {
 	return v.createKeyFromMnemonic(name, mnemonic)
 }
 
-func (v *validator) createAccounts(counts int) ([]*account, error) {
-	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil, cdc)
-	if err != nil {
-		return nil, err
-	}
-
-	keyringAlgos, _ := kb.SupportedAlgorithms()
-	algo, err := keyring.NewSigningAlgoFromString(string(hd.Secp256k1Type), keyringAlgos)
-	if err != nil {
-		return nil, err
-	}
-
-	res := []*account{}
-	for i := 0; i < counts; i++ {
-		name := fmt.Sprintf("acct-%d", i)
-		mnemonic, err := createMnemonic()
-		if err != nil {
-			return nil, err
-		}
-
-		info, err := kb.NewAccount(name, mnemonic, "", sdk.FullFundraiserPath, algo)
-		if err != nil {
-			return nil, err
-		}
-
-		privKeyArmor, err := kb.ExportPrivKeyArmor(name, keyringPassphrase)
-		if err != nil {
-			return nil, err
-		}
-
-		privKey, _, err := sdkcrypto.UnarmorDecryptPrivKey(privKeyArmor, keyringPassphrase)
-		if err != nil {
-			return nil, err
-		}
-
-		acct := account{}
-		acct.keyInfo = *info
-		acct.mnemonic = mnemonic
-		acct.moniker = name
-		acct.privateKey = privKey
-
-		res = append(res, &acct)
-	}
-
-	return res, nil
-}
-
 func (v *validator) buildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
 	description := stakingtypes.NewDescription(v.moniker, "", "", "", "")
 	commissionRates := stakingtypes.CommissionRates{
-		Rate:          sdk.MustNewDecFromStr("0.1"),
-		MaxRate:       sdk.MustNewDecFromStr("0.2"),
-		MaxChangeRate: sdk.MustNewDecFromStr("0.01"),
+		Rate:          math.LegacyMustNewDecFromStr("0.1"),
+		MaxRate:       math.LegacyMustNewDecFromStr("0.2"),
+		MaxChangeRate: math.LegacyMustNewDecFromStr("0.01"),
 	}
 
-	// get the initial validator min self delegation
-	minSelfDelegation, _ := sdk.NewIntFromString("1")
-
-	valPubKey, err := cryptocodec.FromTmPubKeyInterface(v.consensusKey.PubKey)
+	valPubKey, err := cryptocodec.FromCmtPubKeyInterface(v.consensusKey.PubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -242,8 +240,11 @@ func (v *validator) buildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	minSelfDelegation := math.NewInt(1)
+
 	return stakingtypes.NewMsgCreateValidator(
-		sdk.ValAddress(addr),
+		sdk.ValAddress(addr).String(),
 		valPubKey,
 		amount,
 		description,
@@ -263,12 +264,6 @@ func (v *validator) signMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 	txBuilder.SetFeeAmount(sdk.NewCoins())
 	txBuilder.SetGasLimit(200000)
 
-	signerData := authsigning.SignerData{
-		ChainID:       v.chain.id,
-		AccountNumber: 0,
-		Sequence:      0,
-	}
-
 	// For SIGN_MODE_DIRECT, calling SetSignatures calls setSignerInfos on
 	// TxBuilder under the hood, and SignerInfos is needed to generate the sign
 	// bytes. This is the reason for setting SetSignatures here, with a nil
@@ -281,6 +276,7 @@ func (v *validator) signMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	sig := txsigning.SignatureV2{
 		PubKey: pk,
 		Data: &txsigning.SingleSignatureData{
@@ -294,28 +290,25 @@ func (v *validator) signMsg(msgs ...sdk.Msg) (*sdktx.Tx, error) {
 		return nil, err
 	}
 
-	bytesToSign, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(
-		txsigning.SignMode_SIGN_MODE_DIRECT,
-		signerData,
-		txBuilder.GetTx(),
-	)
+	pk, err = v.keyInfo.GetPubKey()
 	if err != nil {
 		return nil, err
 	}
 
-	sigBytes, err := v.privateKey.Sign(bytesToSign)
+	signerData := authsigning.SignerData{
+		Address:       sdk.AccAddress(pk.Bytes()).String(),
+		ChainID:       v.chain.id,
+		AccountNumber: 0,
+		Sequence:      0,
+		PubKey:        pk,
+	}
+	sig, err = tx.SignWithPrivKey(
+		context.TODO(), txsigning.SignMode_SIGN_MODE_DIRECT, signerData,
+		txBuilder, v.privateKey, encodingConfig.TxConfig, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	sig = txsigning.SignatureV2{
-		PubKey: pk,
-		Data: &txsigning.SingleSignatureData{
-			SignMode:  txsigning.SignMode_SIGN_MODE_DIRECT,
-			Signature: sigBytes,
-		},
-		Sequence: 0,
-	}
 	if err := txBuilder.SetSignatures(sig); err != nil {
 		return nil, err
 	}

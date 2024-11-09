@@ -1,16 +1,18 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"testing"
+
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cometbft/cometbft/crypto/ed25519"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"cosmossdk.io/math"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
@@ -40,7 +42,7 @@ type KeeperTestSuite struct {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = shentuapp.Setup(suite.T(), false)
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.ctx = suite.app.BaseApp.NewContext(false)
 	suite.keeper = suite.app.OracleKeeper
 	suite.params = suite.keeper.GetLockedPoolParams(suite.ctx)
 	suite.minCollateral = suite.keeper.GetLockedPoolParams(suite.ctx).MinimumCollateral // 0.01 CTK
@@ -51,11 +53,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
 		err := testutil.FundAccount(
-			suite.app.BankKeeper,
 			suite.ctx,
+			suite.app.BankKeeper,
 			acc,
 			sdk.NewCoins(
-				sdk.NewCoin("uctk", sdk.NewInt(10000000000)), // 1,000 CTK
+				sdk.NewCoin("stake", math.NewInt(10000000000)),
 			),
 		)
 		if err != nil {
