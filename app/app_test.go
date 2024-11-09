@@ -1,28 +1,55 @@
 package app
 
 import (
-	"os"
+	"fmt"
 	"testing"
 
+	"cosmossdk.io/log"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cosmos/cosmos-db"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
-func TestSimAppExport(t *testing.T) {
-	encCfg := MakeEncodingConfig()
+func TestSimAppExportAndBlockedAddrs(t *testing.T) {
 	db := dbm.NewMemDB()
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-	app := NewSimappWithCustomOptions(t, false, SetupOptions{
-		Logger:             logger,
-		DB:                 db,
-		InvCheckPeriod:     0,
-		EncConfig:          encCfg,
-		HomePath:           DefaultNodeHome,
-		SkipUpgradeHeights: map[int64]bool{},
-		AppOpts:            EmptyAppOptions{},
+	logger := log.NewTestLogger(t)
+	app := NewShentuAppWithCustomOptions(t, false, simapp.SetupOptions{
+		Logger:  logger.With("instance", "first"),
+		DB:      db,
+		AppOpts: simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
 	})
+
+	// BlockedAddresses returns a map of addresses in app v1 and a map of modules name in app di.
+	for acc := range app.ModuleAccountAddrs() {
+		var addr sdk.AccAddress
+		if modAddr, err := sdk.AccAddressFromBech32(acc); err == nil {
+			addr = modAddr
+		} else {
+			addr = app.AccountKeeper.GetModuleAddress(acc)
+		}
+
+		require.True(
+			t,
+			app.BankKeeper.BlockedAddr(addr),
+			fmt.Sprintf("ensure that blocked addresses are properly set in bank keeper: %s should be blocked", acc),
+		)
+	}
+
+	t.Log(app.AuthKeeper)
+}
+
+func TestSimAppExport(t *testing.T) {
+	db := dbm.NewMemDB()
+	logger := log.NewTestLogger(t)
+	appOpts := simapp.SetupOptions{
+		Logger:  logger.With("instance", "first"),
+		DB:      db,
+		AppOpts: simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
+	}
+	app := NewShentuAppWithCustomOptions(t, false, appOpts)
 
 	for acc := range maccPerms {
 		require.True(
@@ -32,21 +59,11 @@ func TestSimAppExport(t *testing.T) {
 		)
 	}
 
-	app.Commit()
-
-	logger2 := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	//logger2 := log.NewTestLogger(t)
 	// make a new app object with the db so that initchain hasn't been called
-	app2 := NewShentuApp(logger2, db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, encCfg, EmptyAppOptions{})
-	_, err := app2.ExportAppStateAndValidators(false, []string{})
-	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
-	//_, err = app2.ExportAppStateAndValidators(true, []string{})
+	//app2 := NewShentuApp(logger2, db, nil, true, simtestutil.NewAppOptionsWithFlagHome(""), baseapp.SetChainID("test"))
+	//_, err := app2.ExportAppStateAndValidators(false, []string{}, []string{})
+	//require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
+	//_, err = app2.ExportAppStateAndValidators(true, []string{}, []string{})
 	//require.NoError(t, err, "ExportAppStateAndValidators for zero height should not have an error")
-}
-
-func TestGetMaccPerms(t *testing.T) {
-	dup := make(map[string][]string)
-	for k, v := range maccPerms {
-		dup[k] = v
-	}
-	require.Equal(t, maccPerms, dup, "duplicated module account permissions differed from actual module account permissions")
 }

@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,7 +18,6 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/shield/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/shield/keeper"
-	"github.com/shentufoundation/shentu/v2/x/shield/simulation"
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -91,17 +89,19 @@ type AppModule struct {
 	keeper        keeper.Keeper
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
-	stakingKeeper types.StakingKeeper
 }
 
+func (am AppModule) IsOnePerModuleType() {}
+
+func (am AppModule) IsAppModule() {}
+
 // NewAppModule creates a new AppModule object.
-func NewAppModule(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, stk types.StakingKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 		accountKeeper:  ak,
 		bankKeeper:     bk,
-		stakingKeeper:  stk,
 	}
 }
 
@@ -111,24 +111,7 @@ func (am AppModule) Name() string {
 }
 
 // RegisterInvariants registers the shield module invariants.
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	keeper.RegisterInvariants(ir, am.keeper)
-}
-
-// Route returns the message routing key for the shield module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the shield module's querier route name.
-func (am AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
-
-// LegacyQuerierHandler returns the shield module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
-}
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
@@ -136,15 +119,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper, cfg.QueryServer())
-	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
-	if err != nil {
-		panic(err)
-	}
-	err = cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3)
-	if err != nil {
-		panic(err)
-	}
-	err = cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3to4)
+
+	err := cfg.RegisterMigration(types.ModuleName, 4, m.Migrate4to5)
 	if err != nil {
 		panic(err)
 	}
@@ -164,39 +140,16 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 4 }
-
-// EndBlock returns the end blocker for the shield module.
-func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper)
-	return []abci.ValidatorUpdate{}
-}
+func (AppModule) ConsensusVersion() uint64 { return 5 }
 
 //____________________________________________________________________________
 
 // AppModuleSimulation functions
 
-// WeightedOperations returns shield operations for use in simulations.
+func (am AppModule) GenerateGenesisState(input *module.SimulationState) {}
+
+func (am AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry) {}
+
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.accountKeeper, am.bankKeeper, am.stakingKeeper)
-}
-
-// ProposalContents returns functions that generate gov proposals for the module.
-func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return simulation.ProposalContents(am.keeper, am.stakingKeeper)
-}
-
-// RandomizedParams returns functions that generate params for the module.
-func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return simulation.ParamChanges(r)
-}
-
-// GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
-
-// RegisterStoreDecoder registers a decoder for this module.
-func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+	return []simtypes.WeightedOperation{}
 }

@@ -1,12 +1,14 @@
 package types
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -77,7 +79,7 @@ type TaskI interface {
 	GetID() []byte
 	GetCreator() string
 	GetResponses() Responses
-	IsExpired(ctx sdk.Context) bool
+	IsExpired(ctx context.Context) bool
 	GetValidTime() (int64, time.Time)
 	GetBounty() sdk.Coins
 	GetStatus() TaskStatus
@@ -85,7 +87,7 @@ type TaskI interface {
 	AddResponse(response Response)
 	SetStatus(status TaskStatus)
 	SetScore(score int64)
-	ShouldAgg(ctx sdk.Context) bool
+	ShouldAgg(ctx context.Context) bool
 }
 
 func (t *Task) GetID() []byte {
@@ -100,8 +102,9 @@ func (t *Task) GetResponses() Responses {
 	return t.Responses
 }
 
-func (t *Task) IsExpired(ctx sdk.Context) bool {
-	return t.Expiration.Before(ctx.BlockTime())
+func (t *Task) IsExpired(ctx context.Context) bool {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return t.Expiration.Before(sdkCtx.BlockTime())
 }
 
 func (t *Task) GetValidTime() (int64, time.Time) {
@@ -129,11 +132,12 @@ func (t *Task) SetStatus(status TaskStatus) {
 }
 
 func (t *Task) SetScore(score int64) {
-	t.Result = sdk.NewInt(score)
+	t.Result = math.NewInt(score)
 }
 
-func (t *Task) ShouldAgg(ctx sdk.Context) bool {
-	return t.ExpireHeight == ctx.BlockHeight()
+func (t *Task) ShouldAgg(ctx context.Context) bool {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return t.ExpireHeight == sdkCtx.BlockHeight()
 }
 
 func (t *TxTask) GetID() []byte {
@@ -148,8 +152,9 @@ func (t *TxTask) GetResponses() Responses {
 	return t.Responses
 }
 
-func (t *TxTask) IsExpired(ctx sdk.Context) bool {
-	return t.Expiration.Before(ctx.BlockTime())
+func (t *TxTask) IsExpired(ctx context.Context) bool {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return t.Expiration.Before(sdkCtx.BlockTime())
 }
 
 func (t *TxTask) GetValidTime() (int64, time.Time) {
@@ -180,6 +185,7 @@ func (t *TxTask) SetScore(score int64) {
 	t.Score = score
 }
 
-func (t *TxTask) ShouldAgg(ctx sdk.Context) bool {
-	return !t.ValidTime.After(ctx.BlockTime())
+func (t *TxTask) ShouldAgg(ctx context.Context) bool {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return !t.ValidTime.After(sdkCtx.BlockTime())
 }

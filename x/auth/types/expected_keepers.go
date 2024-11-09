@@ -1,21 +1,22 @@
 package types
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 type BankKeeper interface {
-	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	SpendableCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 }
 
 type CertKeeper interface {
-	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
+	IsCertifier(ctx context.Context, addr sdk.AccAddress) (bool, error)
 }
 
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
-	SetAccount(ctx sdk.Context, acc types.AccountI)
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	SetAccount(ctx context.Context, acc sdk.AccountI)
 
-	IterateAccounts(ctx sdk.Context, cb func(account types.AccountI) (stop bool))
+	IterateAccounts(ctx context.Context, cb func(account sdk.AccountI) (stop bool))
 }

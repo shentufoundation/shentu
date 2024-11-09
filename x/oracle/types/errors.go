@@ -1,7 +1,7 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"cosmossdk.io/errors"
 )
 
 // Error Code Enums
@@ -16,6 +16,7 @@ const (
 	errInvalidPoolParams
 	errInvalidTaskParams
 	errUnqualifiedRemover
+	errUnqualifiedCreator
 )
 
 const (
@@ -39,33 +40,34 @@ const errInconsistentOperators uint32 = 301
 const errFailedToCastTask uint32 = 401
 
 var (
-	ErrNoOperatorFound         = sdkerrors.Register(ModuleName, errNoOperatorFound, "no operator was found")
-	ErrOperatorAlreadyExists   = sdkerrors.Register(ModuleName, errOperatorAlreadyExists, "operator already exists")
-	ErrInvalidDueBlock         = sdkerrors.Register(ModuleName, errInvalidDueBlock, "invalid due block")
-	ErrNoTotalCollateralFound  = sdkerrors.Register(ModuleName, errNoTotalCollateralFound, "total collateral not found")
-	ErrNoEnoughTotalCollateral = sdkerrors.Register(ModuleName, errNoEnoughTotalCollateral, "total collateral not enough")
-	ErrTotalCollateralNotEqual = sdkerrors.Register(ModuleName, errTotalCollateralNotEqual, "total collateral not equal")
-	ErrNoEnoughCollateral      = sdkerrors.Register(ModuleName, errNoEnoughCollateral, "collateral not enough")
-	ErrInvalidPoolParams       = sdkerrors.Register(ModuleName, errInvalidPoolParams, "invalid pool params")
-	ErrInvalidTaskParams       = sdkerrors.Register(ModuleName, errInvalidTaskParams, "invalid task params")
-	ErrUnqualifiedRemover      = sdkerrors.Register(ModuleName, errUnqualifiedRemover, "unauthorized to remove this operator - not the operator itself nor a certifier")
+	ErrNoOperatorFound         = errors.Register(ModuleName, errNoOperatorFound, "no operator was found")
+	ErrOperatorAlreadyExists   = errors.Register(ModuleName, errOperatorAlreadyExists, "operator already exists")
+	ErrInvalidDueBlock         = errors.Register(ModuleName, errInvalidDueBlock, "invalid due block")
+	ErrNoTotalCollateralFound  = errors.Register(ModuleName, errNoTotalCollateralFound, "total collateral not found")
+	ErrNoEnoughTotalCollateral = errors.Register(ModuleName, errNoEnoughTotalCollateral, "total collateral not enough")
+	ErrTotalCollateralNotEqual = errors.Register(ModuleName, errTotalCollateralNotEqual, "total collateral not equal")
+	ErrNoEnoughCollateral      = errors.Register(ModuleName, errNoEnoughCollateral, "collateral not enough")
+	ErrInvalidPoolParams       = errors.Register(ModuleName, errInvalidPoolParams, "invalid pool params")
+	ErrInvalidTaskParams       = errors.Register(ModuleName, errInvalidTaskParams, "invalid task params")
+	ErrUnqualifiedRemover      = errors.Register(ModuleName, errUnqualifiedRemover, "unauthorized to remove this operator - not the operator itself nor a certifier")
+	ErrUnqualifiedCreator      = errors.Register(ModuleName, errUnqualifiedCreator, "unauthorized to create this operator - not a certifier")
 
-	ErrTaskNotExists       = sdkerrors.Register(ModuleName, errTaskNotExists, "task does not exist")
-	ErrUnqualifiedOperator = sdkerrors.Register(ModuleName, errUnqualifiedOperator, "operator is not qualified")
-	ErrDuplicateResponse   = sdkerrors.Register(ModuleName, errDuplicateResponse, "already receive response from this operator")
-	ErrTaskClosed          = sdkerrors.Register(ModuleName, errTaskClosed, "task is already closed")
-	ErrTaskNotClosed       = sdkerrors.Register(ModuleName, errTaskNotClosed, "task has not been closed")
-	ErrNotExpired          = sdkerrors.Register(ModuleName, errNotExpired, "task is not expired")
-	ErrNotCreator          = sdkerrors.Register(ModuleName, errNotCreated, "only creator is allowed to perform this action")
-	ErrNotFinished         = sdkerrors.Register(ModuleName, errNotFinished, "the task is on going")
-	ErrTaskFailed          = sdkerrors.Register(ModuleName, errTaskFailed, "task failed")
-	ErrInvalidScore        = sdkerrors.Register(ModuleName, errInvalidScore, "invalid score")
-	ErrInvalidTask         = sdkerrors.Register(ModuleName, errInvalidTask, "invalid task")
-	ErrOverdueValidTime    = sdkerrors.Register(ModuleName, errOverdueValidTime, "the valid time is overdue")
-	ErrUnexpectedTask      = sdkerrors.Register(ModuleName, errUnexpectedTask, "a different typed task already exists")
-	ErrTooLateValidTime    = sdkerrors.Register(ModuleName, errTooLateValidTime, "the valid time is later than expiration time")
+	ErrTaskNotExists       = errors.Register(ModuleName, errTaskNotExists, "task does not exist")
+	ErrUnqualifiedOperator = errors.Register(ModuleName, errUnqualifiedOperator, "operator is not qualified")
+	ErrDuplicateResponse   = errors.Register(ModuleName, errDuplicateResponse, "already receive response from this operator")
+	ErrTaskClosed          = errors.Register(ModuleName, errTaskClosed, "task is already closed")
+	ErrTaskNotClosed       = errors.Register(ModuleName, errTaskNotClosed, "task has not been closed")
+	ErrNotExpired          = errors.Register(ModuleName, errNotExpired, "task is not expired")
+	ErrNotCreator          = errors.Register(ModuleName, errNotCreated, "only creator is allowed to perform this action")
+	ErrNotFinished         = errors.Register(ModuleName, errNotFinished, "the task is on going")
+	ErrTaskFailed          = errors.Register(ModuleName, errTaskFailed, "task failed")
+	ErrInvalidScore        = errors.Register(ModuleName, errInvalidScore, "invalid score")
+	ErrInvalidTask         = errors.Register(ModuleName, errInvalidTask, "invalid task")
+	ErrOverdueValidTime    = errors.Register(ModuleName, errOverdueValidTime, "the valid time is overdue")
+	ErrUnexpectedTask      = errors.Register(ModuleName, errUnexpectedTask, "a different typed task already exists")
+	ErrTooLateValidTime    = errors.Register(ModuleName, errTooLateValidTime, "the valid time is later than expiration time")
 
-	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
+	ErrInconsistentOperators = errors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
 
-	ErrFailedToCastTask = sdkerrors.Register(ModuleName, errFailedToCastTask, "failed to cast to concrete task")
+	ErrFailedToCastTask = errors.Register(ModuleName, errFailedToCastTask, "failed to cast to concrete task")
 )

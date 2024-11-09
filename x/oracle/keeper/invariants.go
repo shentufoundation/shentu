@@ -3,6 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -108,7 +111,7 @@ func FundInvariant(k Keeper) sdk.Invariant {
 			return sdk.FormatInvariant(types.ModuleName, "fund-check",
 				"cannot get module account balance"), false
 		}
-		if !totalCollateral.IsEqual(sumCollateral) {
+		if !totalCollateral.Equal(sumCollateral) {
 			broken = true
 		}
 		if !moduleBalance.Sub(totalCollateral...).
@@ -147,8 +150,8 @@ func checkDuplicatedIDs(ctx sdk.Context, k Keeper, prefixKey []byte, checkSelf b
 }
 
 func getAllTaskIDs(ctx sdk.Context, k Keeper, prefixKey []byte) (taskIDs []string) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, prefixKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, prefixKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var taskIDsProto types.TaskIDs

@@ -6,6 +6,7 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
@@ -13,8 +14,13 @@ import (
 )
 
 // Compile-time type assertions
-var _ vestexported.VestingAccount = (*ManualVestingAccount)(nil)
-var _ authtypes.GenesisAccount = (*ManualVestingAccount)(nil)
+var (
+	_ vestexported.VestingAccount        = (*ManualVestingAccount)(nil)
+	_ sdk.AccountI                       = (*ManualVestingAccount)(nil)
+	_ authtypes.GenesisAccount           = (*ManualVestingAccount)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*ManualVestingAccount)(nil)
+	_ authtypes.GenesisAccount           = (*ManualVestingAccount)(nil)
+)
 
 //-----------------------------------------------------------------------------
 // Manual Vesting Account

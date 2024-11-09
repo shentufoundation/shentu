@@ -5,15 +5,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
-	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 )
 
 const OpWeightMsgUnlock = "op_weight_msg_create_operator"
@@ -21,7 +20,7 @@ const OpWeightMsgUnlock = "op_weight_msg_create_operator"
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k types.AccountKeeper, bk types.BankKeeper) simulation.WeightedOperations {
 	var weightMsgUnlock int
-	appParams.GetOrGenerate(cdc, OpWeightMsgUnlock, &weightMsgUnlock, nil,
+	appParams.GetOrGenerate(OpWeightMsgUnlock, &weightMsgUnlock, nil,
 		func(_ *rand.Rand) {
 			weightMsgUnlock = 15
 		},
@@ -41,7 +40,7 @@ func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Oper
 		for _, acc := range accs {
 			account := k.GetAccount(ctx, acc.Address)
 			mvacc, ok := account.(*types.ManualVestingAccount)
-			if !ok || mvacc.OriginalVesting.IsEqual(mvacc.VestedCoins) {
+			if !ok || mvacc.OriginalVesting.Equal(mvacc.VestedCoins) {
 				continue
 			}
 
@@ -50,25 +49,25 @@ func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Oper
 			if simtypes.RandIntBetween(r, 0, 100) < 50 {
 				unlockAmount = mvacc.OriginalVesting.Sub(mvacc.VestedCoins...)
 			} else {
-				unlockAmount, err = simutil.RandomReasonableFees(r, ctx, mvacc.OriginalVesting.Sub(mvacc.VestedCoins...))
+				unlockAmount, err = RandomReasonableFees(r, ctx, mvacc.OriginalVesting.Sub(mvacc.VestedCoins...))
 				if err != nil {
 					return simtypes.NoOpMsg(authtypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 				}
 			}
 
-			fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, acc.Address))
+			fees, err := RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, acc.Address))
 			if err != nil {
 				return simtypes.NoOpMsg(authtypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 			}
 
 			msg := types.NewMsgUnlock(acc.Address, acc.Address, unlockAmount)
-			txGen := simappparams.MakeTestEncodingConfig().TxConfig
-			tx, err := helpers.GenSignedMockTx(
+			txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
+			tx, err := simtestutil.GenSignedMockTx(
 				r,
 				txGen,
 				[]sdk.Msg{msg},
 				fees,
-				helpers.DefaultGenTxGas,
+				simtestutil.DefaultGenTxGas,
 				chainID,
 				[]uint64{account.GetAccountNumber()},
 				[]uint64{account.GetSequence()},
@@ -83,7 +82,7 @@ func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Oper
 				return simtypes.NoOpMsg(authtypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}
 
-			return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 		}
 		return simtypes.NewOperationMsgBasic(authtypes.ModuleName,
 			"NoOp: no available manual-vesting account found, skip this tx", "", false, nil), nil, nil

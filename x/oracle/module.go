@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 
+	"cosmossdk.io/core/appmodule"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,7 +19,6 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
-	"github.com/shentufoundation/shentu/v2/x/oracle/simulation"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
@@ -27,6 +26,9 @@ var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+
+	_ appmodule.AppModule       = AppModule{}
+	_ appmodule.HasBeginBlocker = AppModule{}
 )
 
 // AppModuleBasic specifies the app module basics object.
@@ -91,6 +93,10 @@ type AppModule struct {
 	bankKeeper types.BankKeeper
 }
 
+func (am AppModule) IsOnePerModuleType() {}
+
+func (am AppModule) IsAppModule() {}
+
 // NewAppModule creates a new AppModule object
 func NewAppModule(oracleKeeper keeper.Keeper, bk types.BankKeeper) AppModule {
 	return AppModule{
@@ -108,21 +114,6 @@ func (am AppModule) Name() string {
 // RegisterInvariants registers this module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	keeper.RegisterInvariants(ir, am.keeper)
-}
-
-// Route returns the message routing key for the oracle module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the oracle module's querier route name.
-func (am AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
-
-// LegacyQuerierHandler returns the oracle module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers module services.
@@ -160,14 +151,13 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	BeginBlocker(ctx, am.keeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	return BeginBlocker(ctx, am.keeper)
 }
 
 // EndBlock implements the Cosmos SDK EndBlock module function.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper)
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx context.Context) error {
+	return EndBlocker(ctx, am.keeper)
 }
 
 //____________________________________________________________________________
@@ -176,17 +166,18 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
+	//simulation.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for oracle module.
-func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+func (am AppModuleBasic) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+	//sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns oracle operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAccountKeeper(), am.bankKeeper)
+	return nil
+	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAccountKeeper(), am.bankKeeper)
 }
 
 // ProposalContents returns functions that generate gov proposals for the module.
@@ -194,7 +185,7 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 	return nil
 }
 
-// RandomizedParams returns functions that generate params for the module.
-func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return simulation.ParamChanges(r)
-}
+//// RandomizedParams returns functions that generate params for the module.
+//func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+//	return simulation.ParamChanges(r)
+//}
