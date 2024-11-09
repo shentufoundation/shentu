@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	OpWeightMsgLockedSend      = "op_weight_msg_locked_send"
+	OpWeightMsgLockedSend      = "op_weight_msg_locked_send" // #nosec G101
 	DefaultWeightMsgLockedSend = 10
 )
 

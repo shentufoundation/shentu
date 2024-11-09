@@ -15,7 +15,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
-const OpWeightMsgUnlock = "op_weight_msg_create_operator"
+const OpWeightMsgUnlock = "op_weight_msg_create_operator" // #nosec G101
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k types.AccountKeeper, bk types.BankKeeper) simulation.WeightedOperations {
