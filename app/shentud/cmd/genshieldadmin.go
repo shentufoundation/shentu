@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
@@ -31,19 +30,12 @@ func AddGenesisShieldAdminCmd(defaultNodeHome string) *cobra.Command {
 			config := server.GetServerContextFromCmd(cmd).Config
 			config.SetRoot(ctx.HomeDir)
 
-			addr, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return fmt.Errorf("failed to parse address")
-			}
-
 			genFile := config.GenesisFile()
 			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
 			shieldGenState := shieldtypes.GetGenesisStateFromAppState(cdc, appState)
-
-			shieldGenState.ShieldAdmin = addr.String()
 
 			shieldGenStateBz := cdc.MustMarshalJSON(&shieldGenState)
 

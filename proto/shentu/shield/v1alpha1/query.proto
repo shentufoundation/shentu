@@ -12,34 +12,6 @@ option go_package = "github.com/shentufoundation/shentu/x/shield/types";
 
 // Query defines the gRPC querier service for shield module
 service Query {
-  rpc Pool(QueryPoolRequest) returns (QueryPoolResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}";
-  }
-
-  rpc Sponsor(QuerySponsorRequest) returns (QuerySponsorResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/sponsor/{sponsor}";
-  }
-
-  rpc Pools(QueryPoolsRequest) returns (QueryPoolsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pools";
-  }
-
-  rpc PoolPurchaseLists(QueryPoolPurchaseListsRequest) returns (QueryPurchaseListsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool_purchase_lists/{pool_id}";
-  }
-
-  rpc PurchaseLists(QueryPurchaseListsRequest) returns (QueryPurchaseListsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchase_lists/{purchaser}";
-  }
-
-  rpc PurchaseList(QueryPurchaseListRequest) returns (QueryPurchaseListResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchase_list/{pool_id}/{purchaser}";
-  }
-
-  rpc Purchases(QueryPurchasesRequest) returns (QueryPurchasesResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchases";
-  }
-
   rpc Provider(QueryProviderRequest) returns (QueryProviderResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/provider/{address}";
   }
@@ -48,92 +20,10 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/providers";
   }
 
-  rpc PoolParams(QueryPoolParamsRequest) returns (QueryPoolParamsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool_params";
-  }
-
-  rpc ClaimParams(QueryClaimParamsRequest) returns (QueryClaimParamsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/claim_params";
-  }
-
-  rpc DistrParams(QueryDistrParamsRequest) returns (QueryDistrParamsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/distr_params";
-  }
-
   rpc ShieldStatus(QueryShieldStatusRequest) returns (QueryShieldStatusResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/status";
   }
-
-  rpc ShieldStaking(QueryShieldStakingRequest) returns (QueryShieldStakingResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/shield_staking/{pool_id}/{purchaser}";
-  }
-
-  rpc ShieldStakingRate(QueryShieldStakingRateRequest) returns (QueryShieldStakingRateResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/shield_staking_rate";
-  }
-
-  rpc Reimbursement(QueryReimbursementRequest) returns (QueryReimbursementResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/proposal/{proposal_id}/reimbursement";
-  }
-
-  rpc Reimbursements(QueryReimbursementsRequest) returns (QueryReimbursementsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/reimbursements";
-  }
 }
-
-
-message QueryPoolRequest {
-  uint64 pool_id = 1;
-}
-
-message QueryPoolResponse {
- Pool pool = 1 [(gogoproto.nullable) = false];
-}
-
-message QuerySponsorRequest {
-  string sponsor = 1;
-}
-
-message QuerySponsorResponse {
-  repeated Pool pools = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryPoolsRequest {
-}
-
-message QueryPoolsResponse {
-  repeated Pool pools = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryPoolPurchaseListsRequest {
-  uint64 pool_id = 1;
-}
-
-
-message QueryPurchaseListsRequest {
-  string purchaser = 1;
-}
-
-message QueryPurchaseListsResponse {
-  repeated PurchaseList purchase_lists = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryPurchaseListRequest {
-  uint64 pool_id = 1;
-  string purchaser = 2;
-}
-
-message QueryPurchaseListResponse {
-  PurchaseList purchase_list = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryPurchasesRequest {
-}
-
-message QueryPurchasesResponse {
-  repeated Purchase purchases = 1 [(gogoproto.nullable) = false];
-}
-
 
 message QueryProviderRequest {
   string address = 1;
@@ -143,7 +33,6 @@ message QueryProviderResponse {
   Provider provider = 1 [(gogoproto.nullable) = false];
 }
 
-
 message QueryProvidersRequest {
 }
 
@@ -151,74 +40,9 @@ message QueryProvidersResponse {
   repeated Provider providers = 1 [(gogoproto.nullable) = false];
 }
 
-
-message QueryPoolParamsRequest {
-}
-
-message QueryPoolParamsResponse {
-  PoolParams params = 1 [(gogoproto.nullable) = false];
-}
-
-
-message QueryClaimParamsRequest {
-}
-
-message QueryClaimParamsResponse {
-  ClaimProposalParams params = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryDistrParamsRequest {
-}
-
-message QueryDistrParamsResponse {
-  DistributionParams params = 1 [(gogoproto.nullable) = false];
-}
-
-
-
 message QueryShieldStatusRequest {
 }
 
 message QueryShieldStatusResponse {
-  string total_collateral = 1 [ (gogoproto.moretags) = "yaml:\"total_collateral\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-  string total_shield = 2 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-  string total_withdrawing = 3 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-  repeated cosmos.base.v1beta1.DecCoin current_service_fees = 4 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
-  repeated cosmos.base.v1beta1.DecCoin remaining_service_fees = 5 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
-  string global_shield_staking_pool = 6 [ (gogoproto.moretags) = "yaml:\"global_shield_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-}
-
-
-message QueryShieldStakingRequest {
-  uint64 pool_id = 1;
-  string purchaser = 2;
-}
-
-message QueryShieldStakingResponse {
-  ShieldStaking shield_staking = 1 [(gogoproto.nullable) = false];
-}
-
-
-message QueryShieldStakingRateRequest {
-}
-
-message QueryShieldStakingRateResponse {
-  string rate = 1 [ (gogoproto.moretags) = "yaml:\"rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
-}
-
-
-message QueryReimbursementRequest {
-  uint64 proposal_id = 1;
-}
-
-message QueryReimbursementResponse {
-  Reimbursement reimbursement = 1 [ (gogoproto.nullable) = false ];
-}
-
-
-message QueryReimbursementsRequest {
-}
-
-message QueryReimbursementsResponse {
-  repeated ProposalIDReimbursementPair pairs = 1 [ (gogoproto.nullable) = false ];
+  repeated cosmos.base.v1beta1.DecCoin remaining_service_fees = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
 }

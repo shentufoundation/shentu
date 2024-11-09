@@ -2,9 +2,11 @@
 package types
 
 import (
+	"context"
+
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
@@ -12,35 +14,28 @@ import (
 type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 
-	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
-	SetModuleAccount(sdk.Context, types.ModuleAccountI)
-	GetModuleAccount(ctx sdk.Context, moduleName string) types.ModuleAccountI
+	SetModuleAccount(ctx context.Context, i sdk.ModuleAccountI)
+	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
 }
 
 // StakingKeeper defines the expected staking keeper.
 type StakingKeeper interface {
-	StakingTokenSupply(ctx sdk.Context) math.Int
-	TotalBondedTokens(ctx sdk.Context) math.Int
-	BondedRatio(ctx sdk.Context) sdk.Dec
-	BondDenom(ctx sdk.Context) string
+	StakingTokenSupply(context.Context) (math.Int, error) // total staking token supply
+	TotalBondedTokens(context.Context) (math.Int, error)  // total bonded tokens within the validator set
+	BondedRatio(ctx context.Context) (math.LegacyDec, error)
+	BondDenom(ctx context.Context) (string, error)
 }
 
 // BankKeeper defines the contract needed to be fulfilled for banking and supply
 // dependencies.
 type BankKeeper interface {
-	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
-	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
+	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromModuleToModule(ctx context.Context, senderModule, recipientModule string, amt sdk.Coins) error
+	MintCoins(ctx context.Context, name string, amt sdk.Coins) error
 }
 
 // DistributionKeeper defines the expected distribution keeper.
 type DistributionKeeper interface {
-	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
-	GetFeePool(ctx sdk.Context) distrtypes.FeePool
-}
-
-type ShieldKeeper interface {
-	GetGlobalShieldStakingPool(ctx sdk.Context) math.Int
-	FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
-	GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec
+	FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error
+	GetFeePool(ctx context.Context) (distrtypes.FeePool, error)
 }

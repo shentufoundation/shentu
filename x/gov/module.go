@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 
+	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
+
+	modulev1 "cosmossdk.io/api/cosmos/gov/module/v1"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,21 +22,26 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
+const ConsensusVersion = 6
+
 var (
-	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+	_ module.HasGenesis          = AppModule{}
+	_ module.HasServices         = AppModule{}
+	_ module.HasInvariants       = AppModule{}
+
+	_ appmodule.AppModule     = AppModule{}
+	_ appmodule.HasEndBlocker = AppModule{}
 )
 
 // AppModuleBasic is the app module basics object.
@@ -86,7 +92,6 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runti
 	if err := govtypesv1beta1.RegisterQueryHandlerClient(context.Background(), mux, govtypesv1beta1.NewQueryClient(ctx)); err != nil {
 		panic(err)
 	}
-
 }
 
 // GetTxCmd gets the root tx command of this module.
@@ -117,16 +122,38 @@ type AppModule struct {
 	keeper        keeper.Keeper
 	accountKeeper govtypes.AccountKeeper
 	bankKeeper    govtypes.BankKeeper
+
+	// legacySubspace is used solely for migration of x/params managed parameters
+	legacySubspace govtypes.ParamSubspace
 }
 
+var _ appmodule.AppModule = AppModule{}
+
 // NewAppModule creates a new AppModule object.
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper) AppModule {
+func NewAppModule(
+	cdc codec.Codec,
+	keeper keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
+	ss govtypes.ParamSubspace) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,
 		accountKeeper:  ak,
 		bankKeeper:     bk,
+		legacySubspace: ss,
 	}
+}
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
+
+func init() {
+	appmodule.Register(
+		&modulev1.Module{},
+		appmodule.Provide(gov.ProvideModule, typesv1.ParamKeyTable),
+		appmodule.Invoke(gov.InvokeAddRoutes, gov.InvokeSetHooks))
 }
 
 // Name returns the governance module's name.
@@ -136,35 +163,21 @@ func (am AppModule) Name() string {
 
 // RegisterInvariants registers the governance module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO: Register cosmos invariant?
-}
+	govkeeper.RegisterInvariants(ir, &am.keeper.Keeper, am.bankKeeper)
 
-// Route returns the message routing key for the governance module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the governance module's querier route name.
-func (am AppModule) QuerierRoute() string {
-	return govtypes.QuerierRoute
-}
-
-// LegacyQuerierHandler returns the governance module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	msgServer := keeper.NewMsgServerImpl(am.keeper)
-	govtypesv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
 	govtypesv1beta1.RegisterMsgServer(cfg.MsgServer(), keeper.NewLegacyMsgServerImpl(am.accountKeeper.GetModuleAddress(govtypes.ModuleName).String(), msgServer, am.keeper))
+	govtypesv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
 
-	typesv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
+	legacyQueryServer := govkeeper.NewLegacyQueryServer(&am.keeper.Keeper)
 	govtypesv1beta1.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
+	typesv1.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServer(&am.keeper))
 
-	m := keeper.NewMigrator(am.keeper)
+	m := keeper.NewMigrator(am.keeper, am.legacySubspace)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)
 	if err != nil {
 		panic(err)
@@ -179,29 +192,41 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err != nil {
 		panic(err)
 	}
+
+	err = cfg.RegisterMigration(govtypes.ModuleName, 4, m.Migrate4to5)
+	if err != nil {
+		panic(err)
+	}
+
+	err = cfg.RegisterMigration(govtypes.ModuleName, 5, m.Migrate5to6)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis performs genesis initialization for the governance module.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState typesv1.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, am.accountKeeper, am.bankKeeper, &genesisState)
-	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the governance module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := ExportGenesis(ctx, am.keeper)
+	gs, err := ExportGenesis(ctx, am.keeper)
+	if err != nil {
+		panic(err)
+	}
 	return cdc.MustMarshalJSON(gs)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (am AppModule) ConsensusVersion() uint64 { return 4 }
+func (am AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // EndBlock implements the Cosmos SDK EndBlock module function.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper)
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx context.Context) error {
+	c := sdk.UnwrapSDKContext(ctx)
+	return EndBlocker(c, am.keeper)
 }
 
 //____________________________________________________________________________
@@ -210,27 +235,15 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
-
-// ProposalContents returns all the gov content functions used to
-// simulate governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return govsim.ProposalContents()
-}
-
-// RandomizedParams creates randomized gov param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return simulation.ParamChanges(r)
+	//simulation.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for gov module.
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[govtypes.StoreKey] = govsim.NewDecodeStore(am.cdc)
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+	sdr[govtypes.StoreKey] = simtypes.NewStoreDecoderFuncFromCollectionsSchema(am.keeper.Schema)
 }
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.bankKeeper, am.keeper.CertKeeper, am.keeper, simState.Contents)
-	return []simtypes.WeightedOperation{}
+	return nil
 }

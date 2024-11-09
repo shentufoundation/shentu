@@ -1,12 +1,13 @@
 package cert
 
 import (
+	errorsmod "cosmossdk.io/errors"
+	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
-	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 func InitDefaultGenesis(ctx sdk.Context, k keeper.Keeper) {
@@ -32,7 +33,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		for _, platform := range platforms {
 			pk, ok := platform.ValidatorPubkey.GetCachedValue().(cryptotypes.PubKey)
 			if !ok {
-				panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", platform.ValidatorPubkey))
+				panic(errorsmod.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", platform.ValidatorPubkey))
 			}
 
 			_ = k.CertifyPlatform(ctx, certifierAddr, pk, platform.Description)
@@ -61,7 +62,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	platforms := k.GetAllPlatforms(ctx)
 	certificates := k.GetAllCertificates(ctx)
 	libraries := k.GetAllLibraries(ctx)
-	nextCertificateID := k.GetNextCertificateID(ctx)
+	nextCertificateID, _ := k.GetNextCertificateID(ctx)
 
 	return &types.GenesisState{
 		Certifiers:        certifiers,

@@ -1,57 +1,62 @@
 package cmd
 
 import (
-	"context"
 	"io"
 	"os"
-	"path/filepath"
 
-	"github.com/rs/zerolog"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	tmcmds "github.com/tendermint/tendermint/cmd/cometbft/commands"
-	tmcfg "github.com/tendermint/tendermint/config"
-	tmcli "github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
+	"cosmossdk.io/log"
+	confixcmd "cosmossdk.io/tools/confix/cmd"
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmcli "github.com/cometbft/cometbft/libs/cli"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/app/params"
+	"github.com/shentufoundation/shentu/v2/common"
+	authcli "github.com/shentufoundation/shentu/v2/x/auth/client/cli"
+	bankcli "github.com/shentufoundation/shentu/v2/x/bank/client/cli"
+
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
+	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
+	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/snapshots"
-	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
-	"github.com/cosmos/cosmos-sdk/store"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkauthcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingcli "github.com/cosmos/cosmos-sdk/x/auth/vesting/client/cli"
-	sdkbankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-
-	"github.com/shentufoundation/shentu/v2/app"
-	"github.com/shentufoundation/shentu/v2/app/params"
-	shentuinit "github.com/shentufoundation/shentu/v2/app/shentud/init"
-	"github.com/shentufoundation/shentu/v2/common"
-	authcli "github.com/shentufoundation/shentu/v2/x/auth/client/cli"
-	bankcli "github.com/shentufoundation/shentu/v2/x/bank/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/crisis"
-	cvmcli "github.com/shentufoundation/shentu/v2/x/cvm/client/cli"
 )
+
+const EnvPrefix = "SHENTU"
 
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
-func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := app.MakeEncodingConfig()
+func NewRootCmd() *cobra.Command {
+	cfg := sdk.GetConfig()
+	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
+	cfg.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
+	cfg.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
+	cfg.Seal()
+
+	tempApp := app.NewShentuApp(
+		log.NewNopLogger(), dbm.NewMemDB(), nil, true,
+		simtestutil.NewAppOptionsWithFlagHome(app.DefaultNodeHome),
+	)
+
+	encodingConfig := tempApp.EncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -59,20 +64,18 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("SHENTU")
-
-	cfg := sdk.GetConfig()
-	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
-	cfg.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
-	cfg.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
-	cfg.Seal()
+		WithViper(EnvPrefix)
 
 	rootCmd := &cobra.Command{
 		Use:   "shentud",
-		Short: "Stargate Shentu Chain App",
+		Short: "Shentu.org Shentu Chain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			// set the default command outputs
+			cmd.SetOut(cmd.OutOrStdout())
+			cmd.SetErr(cmd.ErrOrStderr())
+
+			initClientCtx = initClientCtx.WithCmdContext(cmd.Context())
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
 				return err
@@ -86,34 +89,30 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			}
 
 			template, customAppConfig := initAppConfig()
-			customTMConfig := initTendermintConfig()
-			return server.InterceptConfigsPreRunHandler(cmd, template, customAppConfig, customTMConfig)
+
+			return server.InterceptConfigsPreRunHandler(cmd, template, customAppConfig, tmcfg.DefaultConfig())
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			docDir, err := cmd.Flags().GetString(shentuinit.DocFlag)
-			if err == nil && docDir != "" {
-				shentuinit.GenDoc(cmd, docDir)
-			} else if err = cmd.Help(); err != nil {
-				panic(err)
-			}
-		},
+		//Run: func(cmd *cobra.Command, args []string) {
+		//	docDir, err := cmd.Flags().GetString(shentuinit.DocFlag)
+		//	if err == nil && docDir != "" {
+		//		shentuinit.GenDoc(cmd, docDir)
+		//	} else if err = cmd.Help(); err != nil {
+		//		panic(err)
+		//	}
+		//},
 	}
 
-	initRootCmd(rootCmd, encodingConfig)
+	initRootCmd(rootCmd, encodingConfig, tempApp.BasicModuleManager)
 
-	return rootCmd, encodingConfig
-}
+	// add keyring to autocli opts
+	autoCliOpts := tempApp.AutoCliOpts()
+	autoCliOpts.ClientCtx = initClientCtx
 
-// initTendermintConfig helps to override default Tendermint Config values.
-// return tmcfg.DefaultConfig if no custom configuration is required for the application.
-func initTendermintConfig() *tmcfg.Config {
-	cfg := tmcfg.DefaultConfig()
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
 
-	// these values put a higher strain on node memory
-	// cfg.P2P.MaxNumInboundPeers = 100
-	// cfg.P2P.MaxNumOutboundPeers = 40
-
-	return cfg
+	return rootCmd
 }
 
 // initAppConfig helps to override default appConfig template and configs.
@@ -130,68 +129,49 @@ func initAppConfig() (string, interface{}) {
 	srvCfg.StateSync.SnapshotInterval = 1500
 	srvCfg.StateSync.SnapshotKeepRecent = 2
 	srvCfg.MinGasPrices = "0.025" + common.MicroCTKDenom
-	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by default
 
 	AppTemplate := serverconfig.DefaultConfigTemplate
 
 	return AppTemplate, CustomAppConfig{*srvCfg}
 }
 
-// Execute executes the root command of an application. It handles creating a
-// server context object with the appropriate server and client objects injected
-// into the underlying stdlib Context. It also handles adding core CLI flags,
-// specifically the logging flags. It returns an error upon execution failure.
-func Execute(rootCmd *cobra.Command, defaultHome string) error {
-	// Create and set a client.Context on the command's Context. During the pre-run
-	// of the root command, a default initialized client.Context is provided to
-	// seed child command execution with values such as AccountRetriver, Keyring,
-	// and a Tendermint RPC. This requires the use of a pointer reference when
-	// getting and setting the client.Context. Ideally, we utilize
-	// https://github.com/spf13/cobra/pull/1118.
-	srvCtx := server.NewDefaultContext()
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, client.ClientContextKey, &client.Context{})
-	ctx = context.WithValue(ctx, server.ServerContextKey, srvCtx)
+func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, basicManager module.BasicManager) {
+	initCmd := genutilcli.InitCmd(basicManager, app.DefaultNodeHome)
 
-	rootCmd.PersistentFlags().String(flags.FlagLogLevel, zerolog.InfoLevel.String(), "The logging level (trace|debug|info|warn|error|fatal|panic)")
-	rootCmd.PersistentFlags().String(flags.FlagLogFormat, tmcfg.LogFormatPlain, "The logging format (json|plain)")
-
-	executor := tmcli.PrepareBaseCmd(rootCmd, "", defaultHome)
-	return executor.ExecuteContext(ctx)
-}
-
-func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
-		genutilcli.MigrateGenesisCmd(),
-		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
-		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		initCmd,
+		//genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, genutiltypes.DefaultMessageValidator),
+		//genutilcli.MigrateGenesisCmd(),
+		tmcli.NewCompletionCmd(rootCmd, true),
+		debug.Cmd(),
+		confixcmd.ConfigCommand(),
+		pruning.Cmd(newApp, app.DefaultNodeHome),
+		snapshot.Cmd(newApp),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		AddGenesisCertifierCmd(app.DefaultNodeHome),
 		AddGenesisShieldAdminCmd(app.DefaultNodeHome),
-		RotateValKeysCmd(),
-		tmcli.NewCompletionCmd(rootCmd, true),
-		testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
-		tmcmds.RollbackStateCmd,
-		debug.Cmd(),
-		config.Cmd(),
 	)
-
-	rootCmd.Flags().StringP(shentuinit.DocFlag, shentuinit.DocFlagAbbr, "", shentuinit.DocFlagUsage)
 
 	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, createSimappAndExport, addModuleInitFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		server.StatusCommand(),
+		genesisCommand(encodingConfig.TxConfig, basicManager),
 		queryCommand(),
 		txCommand(),
-		keys.Commands(app.DefaultNodeHome),
+		keys.Commands(),
 	)
+}
 
-	// add rosetta
-	rootCmd.AddCommand(server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
+// genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
+func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
+	cmd := genutilcli.Commands(txConfig, basicManager, app.DefaultNodeHome)
+
+	for _, subCmd := range cmds {
+		cmd.AddCommand(subCmd)
+	}
+	return cmd
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
@@ -203,21 +183,20 @@ func queryCommand() *cobra.Command {
 		Use:                        "query",
 		Aliases:                    []string{"q"},
 		Short:                      "Querying subcommands",
-		DisableFlagParsing:         true,
+		DisableFlagParsing:         false,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
 	cmd.AddCommand(
-		sdkauthcli.GetAccountCmd(),
+		rpc.QueryEventForTxCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
-		sdkauthcli.QueryTxsByEventsCmd(),
-		sdkauthcli.QueryTxCmd(),
+		server.QueryBlockCmd(),
+		server.QueryBlocksCmd(),
+		server.QueryBlockResultsCmd(),
+		authcmd.QueryTxsByEventsCmd(),
+		authcmd.QueryTxCmd(),
 	)
-
-	app.ModuleBasics.AddQueryCommands(cmd)
-	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
@@ -226,102 +205,61 @@ func txCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
-		DisableFlagParsing:         true,
+		DisableFlagParsing:         false,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
 	cmd.AddCommand(
+		authcmd.GetSignCommand(),
+		authcmd.GetSignBatchCommand(),
+		authcmd.GetMultiSignCommand(),
+		authcmd.GetMultiSignBatchCmd(),
+		authcmd.GetValidateSignaturesCommand(),
+		flags.LineBreak,
+		authcmd.GetBroadcastCommand(),
+		authcmd.GetEncodeCommand(),
+		authcmd.GetDecodeCommand(),
+		flags.LineBreak,
 		bankcli.LockedSendTxCmd(),
-		sdkbankcli.NewSendTxCmd(),
-		flags.LineBreak,
-		sdkauthcli.GetSignCommand(),
-		sdkauthcli.GetSignBatchCommand(),
-		sdkauthcli.GetMultiSignCommand(),
-		sdkauthcli.GetValidateSignaturesCommand(),
-		sdkauthcli.GetBroadcastCommand(),
-		sdkauthcli.GetEncodeCommand(),
-		sdkauthcli.GetDecodeCommand(),
 		authcli.GetCmdUnlock(),
-		flags.LineBreak,
-		vestingcli.GetTxCmd(),
-		flags.LineBreak,
-		cvmcli.GetCmdCall(),
-		cvmcli.GetCmdDeploy(),
-		flags.LineBreak,
 	)
-
-	app.ModuleBasics.AddTxCommands(cmd)
-	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
-	var cache sdk.MultiStorePersistentCache
-
-	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
-		cache = store.NewCommitKVStoreCacheManager()
-	}
-
 	skipUpgradeHeights := make(map[int64]bool)
 	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
 		skipUpgradeHeights[int64(h)] = true
 	}
 
-	pruningOpts, err := server.GetPruningOptionsFromFlags(appOpts)
-	if err != nil {
-		panic(err)
-	}
-
-	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
-	snapshotDB, err := sdk.NewLevelDB("metadata", snapshotDir)
-	if err != nil {
-		panic(err)
-	}
-	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
-	if err != nil {
-		panic(err)
-	}
-	// BaseApp Opts
-	snapshotOptions := snapshottypes.NewSnapshotOptions(
-		cast.ToUint64(appOpts.Get(server.FlagStateSyncSnapshotInterval)),
-		cast.ToUint32(appOpts.Get(server.FlagStateSyncSnapshotKeepRecent)),
-	)
-
-	return app.NewShentuApp(
-		logger, db, traceStore, true, skipUpgradeHeights,
-		cast.ToString(appOpts.Get(flags.FlagHome)),
-		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
-		app.MakeEncodingConfig(), // Ideally, we would reuse the one created by NewRootCmd.
-		appOpts,
-		baseapp.SetPruning(pruningOpts),
-		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
-		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
-		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
-		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
-		baseapp.SetInterBlockCache(cache),
-		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
-		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
-		baseapp.SetSnapshot(snapshotStore, snapshotOptions),
-		//baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize))),
-	)
+	baseappOptions := server.DefaultBaseappOptions(appOpts)
+	return app.NewShentuApp(logger, db, traceStore, true, appOpts, baseappOptions...)
 }
 
-func createSimappAndExport(logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
+// exportAppStateAndTMValidators creates a new chain app (optionally at a given height)
+// and exports state.
+func createSimappAndExport(
+	logger log.Logger, db dbm.DB,
+	traceStore io.Writer, height int64,
+	forZeroHeight bool, jailAllowedAddrs []string,
+	appOpts servertypes.AppOptions,
+	modulesToExport []string,
+) (servertypes.ExportedApp, error) {
 	encCfg := app.MakeEncodingConfig() // Ideally, we would reuse the one created by NewRootCmd.
 	encCfg.Codec = codec.NewProtoCodec(encCfg.InterfaceRegistry)
-	var gaiaApp *app.ShentuApp
-	if height != -1 {
-		gaiaApp = app.NewShentuApp(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), encCfg, appOpts)
 
-		if err := gaiaApp.LoadHeight(height); err != nil {
+	var shentuApp *app.ShentuApp
+	if height != -1 {
+		shentuApp = app.NewShentuApp(logger, db, traceStore, false, appOpts)
+
+		if err := shentuApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		gaiaApp = app.NewShentuApp(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), encCfg, appOpts)
+		shentuApp = app.NewShentuApp(logger, db, traceStore, true, appOpts)
 	}
 
-	return gaiaApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+	return shentuApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }

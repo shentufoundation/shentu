@@ -4,11 +4,12 @@ import (
 	"context"
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 type msgServer struct {
@@ -88,7 +89,7 @@ func (k msgServer) CertifyPlatform(goCtx context.Context, msg *types.MsgCertifyP
 
 	valPubKey, ok := msg.ValidatorPubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", valPubKey)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", valPubKey)
 	}
 
 	certifierAddr, err := sdk.AccAddressFromBech32(msg.Certifier)
