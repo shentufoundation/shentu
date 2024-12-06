@@ -104,6 +104,10 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	appparams "github.com/shentufoundation/shentu/v2/app/params"
 	"github.com/shentufoundation/shentu/v2/x/auth"
 	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
@@ -150,6 +154,7 @@ var (
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		bountytypes.ModuleName:         {authtypes.Burner},
+		wasmtypes.ModuleName:           {authtypes.Burner},
 	}
 )
 
@@ -198,11 +203,13 @@ type ShentuApp struct {
 	BountyKeeper          bountykeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
+	WasmKeeper            wasmkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
+	scopedWasmKeeper     capabilitykeeper.ScopedKeeper
 
 	// module manager
 	mm                 *module.Manager
@@ -484,6 +491,31 @@ func NewShentuApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
+	wasmDir := homePath
+	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	if err != nil {
+		panic("error while reading wasm config: " + err.Error())
+	}
+	app.WasmKeeper = wasmkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(app.keys[wasmtypes.StoreKey]),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		distrkeeper.NewQuerier(app.DistrKeeper),
+		app.IBCFeeKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.PortKeeper,
+		app.scopedWasmKeeper,
+		app.TransferKeeper,
+		bApp.MsgServiceRouter(),
+		bApp.GRPCQueryRouter(),
+		wasmDir,
+		wasmConfig,
+		wasmkeeper.BuiltInCapabilities(),
+		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
+	)
+
 	/****  Module Options ****/
 
 	// always skip genesis invariant for now
@@ -510,6 +542,7 @@ func NewShentuApp(
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
+		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctm.AppModule{},
 		params.NewAppModule(app.ParamsKeeper),
@@ -558,6 +591,7 @@ func NewShentuApp(
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
 		certtypes.ModuleName, oracletypes.ModuleName, bountytypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
+		wasmtypes.ModuleName,
 	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
@@ -587,6 +621,7 @@ func NewShentuApp(
 		bountytypes.ModuleName,
 		group.ModuleName,
 		consensusparamtypes.ModuleName,
+		wasmtypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -614,11 +649,12 @@ func NewShentuApp(
 		bountytypes.ModuleName,
 		group.ModuleName,
 		consensusparamtypes.ModuleName,
+		wasmtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	err := app.mm.RegisterServices(app.configurator)
+	err = app.mm.RegisterServices(app.configurator)
 	if err != nil {
 		panic(err)
 	}
@@ -941,6 +977,7 @@ func StoreKeys() (
 		capabilitytypes.StoreKey,
 		bountytypes.StoreKey,
 		group.StoreKey,
+		wasmtypes.StoreKey,
 	}
 
 	keys := storetypes.NewKVStoreKeys(storeKeys...)
