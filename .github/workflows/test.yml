@@ -50,7 +50,7 @@ jobs:
             sed -i.bak "/$(echo $filename | sed 's/\//\\\//g')/d" coverage.txt
           done
 
-      - uses: codecov/codecov-action@v3.1.4
+      - uses: codecov/codecov-action@v5.1.2
         with:
           file: ./coverage.txt # optional
           token: 6556fc17-6f3d-40be-b947-0bba9a9fe92f
