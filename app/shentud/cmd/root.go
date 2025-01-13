@@ -55,7 +55,10 @@ func NewRootCmd() *cobra.Command {
 	cfg.Seal()
 
 	tempApp := app.NewShentuApp(
-		log.NewNopLogger(), dbm.NewMemDB(), nil, false,
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		nil,
+		true,
 		simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 	)
 
