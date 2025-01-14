@@ -6,13 +6,14 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
 const (
-	upgradeName = "v2.13.0"
+	upgradeName = "v2.14.0"
 )
 
 func (app ShentuApp) setUpgradeHandler(_ codec.BinaryCodec) {
@@ -30,7 +31,9 @@ func (app ShentuApp) setUpgradeHandler(_ codec.BinaryCodec) {
 
 	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{},
+			Added: []string{
+				wasmtypes.ModuleName,
+			},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
