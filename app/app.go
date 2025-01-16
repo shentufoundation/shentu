@@ -575,7 +575,8 @@ func NewShentuApp(
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
 
 	// optional: enable sign mode textual by overwriting the default tx config (after setting the bank keeper)
-	enabledSignModes := append(authtx.DefaultSignModes, sigtypes.SignMode_SIGN_MODE_TEXTUAL)
+	enabledSignModes := append([]sigtypes.SignMode(nil), authtx.DefaultSignModes...)
+	enabledSignModes = append(enabledSignModes, sigtypes.SignMode_SIGN_MODE_TEXTUAL)
 	txConfigOpts := authtx.ConfigOptions{
 		EnabledSignModes:           enabledSignModes,
 		TextualCoinMetadataQueryFn: txmodule.NewBankKeeperCoinMetadataQueryFn(app.BankKeeper),
