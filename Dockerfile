@@ -18,18 +18,12 @@ COPY go.mod go.sum* ./
 RUN go mod download
 
 COPY . .
-RUN LEDGER_ENABLED=false LINK_STATICALLY=true BUILD_TAGS=muslc make build
-RUN echo "Ensuring binary is statically linked ..."  \
-    && file /src/app/build/gaiad | grep "statically linked" \
+RUN LEDGER_ENABLED=false LINK_STATICALLY=true BUILD_TAGS=muslc make release
 
 # Add to a distroless container
-FROM alpine:$IMG_TAG
-RUN apk add --no-cache build-base jq
-RUN addgroup -g 1025 nonroot
-RUN adduser -D nonroot -u 1025 -G nonroot
+FROM gcr.io/distroless/cc:$IMG_TAG
 ARG IMG_TAG
 COPY --from=shentud-builder /go/bin/shentud /usr/local/bin/
 EXPOSE 26656 26657 1317 9090
-USER nonroot
 
 ENTRYPOINT ["shentud", "start"]

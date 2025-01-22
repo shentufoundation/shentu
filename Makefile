@@ -86,9 +86,7 @@ update-cli-docs: install
 	@perl -pi -e "s|$$HOME|~|" docs/**/*.md
 
 release: go.sum
-	GOOS=linux go build $(BUILD_FLAGS) -o build/shentud ./app/shentud
-	GOOS=windows go build $(BUILD_FLAGS) -o build/shentud.exe ./app/shentud
-	GOOS=darwin go build $(BUILD_FLAGS) -o build/shentud-macos ./app/shentud
+	GOOS=linux GOARCH=amd64 go build $(BUILD_FLAGS) -o build/shentud ./app/shentud
 
 build: go.sum
 ifeq ($(OS),Windows_NT)
@@ -98,7 +96,7 @@ else
 endif
 
 build-linux: go.sum
-	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
+	CGO_ENABLED=1 LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
 ########## Tools ##########
 
@@ -206,7 +204,7 @@ start-localnet-ci:
 # include simulations
 include sims.mk
 
-.PHONY: all build-linux install release release32 \
+.PHONY: all build-linux install release build \
 	fix lint test cov coverage coverage.out image image.update \
 	build-docker-shentunode localnet-start localnet-stop \
 	docker-build-debug docker-build-hermes \
