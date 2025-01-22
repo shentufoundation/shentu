@@ -23,7 +23,7 @@ RUN LEDGER_ENABLED=false LINK_STATICALLY=true BUILD_TAGS=muslc make release
 # Add to a distroless container
 FROM gcr.io/distroless/cc:$IMG_TAG
 ARG IMG_TAG
-COPY --from=shentud-builder /go/bin/shentud /usr/local/bin/
+COPY --from=shentud-builder /src/app/build/shentud /usr/local/bin/
 EXPOSE 26656 26657 1317 9090
 
 ENTRYPOINT ["shentud", "start"]
