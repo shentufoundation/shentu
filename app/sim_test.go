@@ -70,10 +70,13 @@ func NewSimApp(logger log.Logger, db dbm.DB, baseAppOptions ...func(*baseapp.Bas
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 	appOptions[flags.FlagHome] = DefaultNodeHome
 	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue
+	dir, err := os.MkdirTemp("", "shentu-simulation")
+	if err != nil {
+		return nil, err
+	}
+	appOptions[flags.FlagHome] = dir
 	app := NewShentuApp(logger, db, nil, true, appOptions, baseAppOptions...)
-	//if err := app.LoadLatestVersion(); err != nil {
-	//	return nil, err
-	//}
+
 	return app, nil
 }
 
@@ -319,6 +322,8 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TODO: Make another test for the fuzzer itself, which just has noOp txs
+// and doesn't depend on the application.
 func TestAppStateDeterminism(t *testing.T) {
 	if !simcli.FlagEnabledValue {
 		t.Skip("skipping application simulation")
@@ -333,16 +338,28 @@ func TestAppStateDeterminism(t *testing.T) {
 
 	numSeeds := 3
 	numTimesToRunPerSeed := 5
+
+	// We will be overriding the random seed and just run a single simulation on the provided seed value
+	if config.Seed != simcli.DefaultSeedValue {
+		numSeeds = 1
+	}
+
 	appHashList := make([]json.RawMessage, numTimesToRunPerSeed)
+	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue
 
 	for i := 0; i < numSeeds; i++ {
-		//nolint: gosec
-		config.Seed = rand.Int63()
+		if config.Seed == simcli.DefaultSeedValue {
+			config.Seed = rand.Int63()
+		}
+		fmt.Println("config.Seed: ", config.Seed)
 
 		for j := 0; j < numTimesToRunPerSeed; j++ {
 			logger := log.NewNopLogger()
 			if simcli.FlagVerboseValue {
 				logger = log.NewTestLogger(t)
+			} else {
+				logger = log.NewNopLogger()
 			}
 
 			db := dbm.NewMemDB()
