@@ -4,6 +4,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
@@ -34,7 +36,10 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
@@ -49,11 +54,15 @@ func NewRootCmd() *cobra.Command {
 	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
 	cfg.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
 	cfg.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
+	cfg.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 	cfg.Seal()
 
 	tempApp := app.NewShentuApp(
-		log.NewNopLogger(), dbm.NewMemDB(), nil, true,
-		simtestutil.NewAppOptionsWithFlagHome(app.DefaultNodeHome),
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		nil,
+		true,
+		simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 	)
 
 	encodingConfig := tempApp.EncodingConfig()
@@ -84,6 +93,25 @@ func NewRootCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			// This needs to go after ReadFromClientConfig, as that function
+			// sets the RPC client needed for SIGN_MODE_TEXTUAL. This sign mode
+			// is only available if the client is online.
+			if !initClientCtx.Offline {
+				txConfigOpts := tx.ConfigOptions{
+					EnabledSignModes:           append(tx.DefaultSignModes, signing.SignMode_SIGN_MODE_TEXTUAL),
+					TextualCoinMetadataQueryFn: authtxconfig.NewGRPCCoinMetadataQueryFn(initClientCtx),
+				}
+				txConfigWithTextual, err := tx.NewTxConfigWithOptions(
+					initClientCtx.Codec,
+					txConfigOpts,
+				)
+				if err != nil {
+					return err
+				}
+				initClientCtx = initClientCtx.WithTxConfig(txConfigWithTextual)
+			}
+
 			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
@@ -92,14 +120,6 @@ func NewRootCmd() *cobra.Command {
 
 			return server.InterceptConfigsPreRunHandler(cmd, template, customAppConfig, tmcfg.DefaultConfig())
 		},
-		//Run: func(cmd *cobra.Command, args []string) {
-		//	docDir, err := cmd.Flags().GetString(shentuinit.DocFlag)
-		//	if err == nil && docDir != "" {
-		//		shentuinit.GenDoc(cmd, docDir)
-		//	} else if err = cmd.Help(); err != nil {
-		//		panic(err)
-		//	}
-		//},
 	}
 
 	initRootCmd(rootCmd, encodingConfig, tempApp.BasicModuleManager)
@@ -176,6 +196,7 @@ func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, 
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
+	wasm.AddModuleInitFlags(startCmd)
 }
 
 func queryCommand() *cobra.Command {
@@ -262,4 +283,14 @@ func createSimappAndExport(
 	}
 
 	return shentuApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
+}
+
+var tempDir = func() string {
+	dir, err := os.MkdirTemp("", "wasmd")
+	if err != nil {
+		panic("failed to create temp dir: " + err.Error())
+	}
+	defer os.RemoveAll(dir)
+
+	return dir
 }
