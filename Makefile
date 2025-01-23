@@ -3,10 +3,10 @@ COMMIT := $(shell git log -1 --format='%H')
 
 # don't override user values
 ifeq (,$(VERSION))
-  VERSION := $(shell git describe --exact-match 2>/dev/null)
+  VERSION := $(shell git describe --exact-match --tags 2>/dev/null)
   # if VERSION is empty, then populate it with branch's name and raw commit hash
   ifeq (,$(VERSION))
-    VERSION := $(BRANCH)-$(COMMIT)
+    VERSION := $(COMMIT)
   endif
 endif
 
