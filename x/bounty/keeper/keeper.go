@@ -17,6 +17,18 @@ type Keeper struct {
 
 	//authKeeper authtypes.AccountKeeper
 	certKeeper types.CertKeeper
+
+	//Params       collections.Item[Params]
+	//TheoremIDKey collections.Sequence
+	////TheoremID|Theorem
+	//Theorems collections.Map[uint64, Theorem]
+	////TheoremID,Grantor|Grant
+	//Grants collections.Map[collections.Pair[uint64, sdk.AccAddress], Grant]
+	////TheoremID,ProofId|Proof
+	//Proofs                collections.Map[collections.Pair[uint64, String], Proof]
+	//ActiveTheoremsQueue   collections.Map[collections.Pair[time.Time, uint64], uint64]
+	//InactiveTheoremsQueue collections.Map[collections.Pair[time.Time, uint64], uint64]
+	//ProofPeriodTheorems   collections.Map[uint64, []byte]
 }
 
 // NewKeeper creates a new Keeper object

@@ -512,3 +512,18 @@ func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFi
 
 	return &types.MsgPublishFindingResponse{}, nil
 }
+
+func (k msgServer) SubmitTheorem(ctx context.Context, theorem *types.MsgSubmitTheorem) (*types.MsgSubmitTheoremResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (k msgServer) SubmitProof(ctx context.Context, proof *types.MsgProof) (*types.MsgProofResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (k msgServer) Grant(ctx context.Context, grant *types.MsgGrant) (*types.MsgGrantResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

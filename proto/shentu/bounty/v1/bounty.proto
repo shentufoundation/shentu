@@ -6,6 +6,8 @@ import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
 
@@ -101,36 +103,115 @@ enum FindingStatus {
   FINDING_STATUS_CLOSED = 4 [(gogoproto.enumvalue_customname) = "FindingStatusClosed"];
 }
 
-//message BountyLevel {
-//  option (gogoproto.equal) = false;
-//  option (gogoproto.goproto_getters) = false;
-//
-//  SeverityLevel severity_level = 1 [(gogoproto.moretags) = "yaml:\"severity_level\""];
-//  bool   poc = 2;
-//  cosmos.base.v1beta1.Coin min_bounty = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"min_bounty\""];
-//  cosmos.base.v1beta1.Coin max_bounty = 4 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"max_bounty\""];
-//}
+// Theorem defines the core field members of an openmath theorem.
+message Theorem {
+  // id defines the unique id of the theorem.
+  uint64 id = 1;
 
-//// ProgramDetail defines a program detail.
-//type ProgramDetail struct {
-//    Type           string        `json:"type"`
-//    Logo           string        `json:"logo"`
-//    Desc           string        `json:"desc"`
-//    Targets        []string      `json:"targets"`
-//    ScopeRules     string        `json:"scope_rules"`
-//    KnownIssues    string        `json:"known_issues"`
-//    TotalBounty    int           `json:"total_bounty"`
-//    BountyLevels   []BountyLevel `json:"bounty_levels"`
-//    PaymentInfo    string        `json:"payment_info"`
-//    PaymentChain   string        `json:"payment_chain"`
-//    ProgramSLA     []SLAItem     `json:"sla"`
-//}
+  // title is the title of the theorem
+  string title = 2;
 
-//// FindingDetail defines a finding detail.
-//type FindingDetail struct{
-//    ProgramTarget []string     `json:"program_target"`
-//    Impacts       []string     `json:"impacts"`
-//    Attachments   []string     `json:"attachments"`
-//    ReceiverInfo  ReceiverInfo `json:"receiver_info"`
-//    PaidInfo      PaidInfo     `json:"paid_info"`
-//}
+  // description is the description of the theorem
+  string description = 3;
+
+  // code is a summary of the theorem
+  string code = 4;
+
+  string proof_id = 5;
+
+  // status defines the theorem status.
+  TheoremStatus status = 6;
+
+  // submit_time is the time of theorem submission.
+  google.protobuf.Timestamp submit_time = 7 [(gogoproto.stdtime) = true];
+
+  // submit_time is the time of theorem submission.
+  google.protobuf.Timestamp grant_end_time = 8 [(gogoproto.stdtime) = true];
+
+  // voting_start_time is the starting time to submit proof of a theorem.
+  google.protobuf.Timestamp proof_start_time = 9 [(gogoproto.stdtime) = true];
+
+  google.protobuf.Timestamp proof_end_time = 10 [(gogoproto.stdtime) = true];
+
+  // total_deposit is the total grant on the theorem.
+  repeated cosmos.base.v1beta1.Coin total_grant = 11 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // proposer is the address of the theorem submitter
+  string proposer = 12 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message Proof {
+  uint64 theorem_id = 1;
+
+  // id defines the unique id of the proof.
+  string id = 2;
+
+  // proof_url is the proof data attached to the theorem stored in ipfs
+  string proof_content = 3;
+
+  // status defines the theorem status.
+  ProofStatus status = 4;
+
+  // submit_time is the time of proof submission.
+  google.protobuf.Timestamp submit_time = 5 [(gogoproto.stdtime) = true];
+
+  //  prover is the address of the proof submitter
+  string prover = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  //
+  cosmos.base.v1beta1.Coin Deposit = 7 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+// Grant defines an amount granted by a grantor to an active theorem.
+message Grant {
+  // theorem_id defines the unique id of the theorem.
+  uint64 theorems_id = 1;
+
+  // grantor defines the grant addresses.
+  string grantor = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // amount to be deposited by the grantor.
+  repeated cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+message Params {
+  // Minimum grant for a theorem to enter the proof period.
+  repeated cosmos.base.v1beta1.Coin min_grant = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // Maximum period for Shentu holders to grant on a theorem. Initial value: 2 weeks.
+  google.protobuf.Duration max_grant_period = 2 [(gogoproto.stdduration) = true];
+
+  // Duration of the proof period.
+  google.protobuf.Duration proof_period = 3 [(gogoproto.stdduration) = true];
+
+  // Duration of the proof lock period. 10min
+  google.protobuf.Duration proof_hash_lock_period = 4 [(gogoproto.stdduration) = true];
+}
+
+enum TheoremStatus {
+  // default theorem status.
+  THEOREM_STATUS_UNSPECIFIED = 0;
+  // theorem status during the grant period.
+  THEOREM_STATUS_GRANT_PERIOD = 1;
+  // theorem status during the proof period.
+  THEOREM_STATUS_PROOF_PERIOD = 2;
+  // theorem that has passed.
+  THEOREM_STATUS_PASSED = 3;
+  // theorem that has closed.
+  THEOREM_STATUS_CLOSED = 4;
+}
+
+enum ProofStatus {
+  // default proof status.
+  PROOF_STATUS_UNSPECIFIED = 0;
+  // proof status during the creation period.
+  PROOF_STATUS_HASH_LOCK_PERIOD = 1;
+  // proof status during the upload proof period.
+  PROOF_STATUS_HASH_PROOF_PERIOD = 2;
+  // theorem that has passed.
+  PROOF_STATUS_PASSED = 3;
+  // theorem that has failed.
+  PROOF_STATUS_FAILED = 4;
+  // theorem that has timeout.
+  PROOF_STATUS_TIMEOUT = 5;
+}

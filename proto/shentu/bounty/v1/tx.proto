@@ -48,12 +48,21 @@ service Msg {
 
   // PublishFinding defines a method for publish a finding.
   rpc PublishFinding(MsgPublishFinding) returns (MsgPublishFindingResponse);
+
+  // SubmitTheorem defines a method to create new theorem given the messages.
+  rpc SubmitTheorem(MsgSubmitTheorem) returns (MsgSubmitTheoremResponse);
+
+  // SubmitProof defines a method to submit a proof for a theorem given the messages.
+  rpc SubmitProof(MsgProof) returns (MsgProofResponse);
+
+  // Grant defines a method to grant theorem given the messages.
+  rpc Grant(MsgGrant) returns (MsgGrantResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new program.
 message MsgCreateProgram {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/CreateProgram";
+  option (amino.name) = "bounty/CreateProgram";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -67,7 +76,7 @@ message MsgCreateProgram {
 // MsgEditProgram defines a SDK message for editing a program.
 message MsgEditProgram {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/EditProgram";
+  option (amino.name) = "bounty/EditProgram";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -87,7 +96,7 @@ message MsgEditProgramResponse {}
 
 message MsgActivateProgram {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/ActivateProgram";
+  option (amino.name) = "bounty/ActivateProgram";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -100,7 +109,7 @@ message MsgActivateProgramResponse {}
 
 message MsgCloseProgram {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/CloseProgram";
+  option (amino.name) = "bounty/CloseProgram";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -114,7 +123,7 @@ message MsgCloseProgramResponse {}
 // MsgSubmitFinding defines a message to submit a finding.
 message MsgSubmitFinding {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/SubmitFinding";
+  option (amino.name) = "bounty/SubmitFinding";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -132,7 +141,7 @@ message MsgSubmitFindingResponse {}
 // MsgEditFinding defines a message to edit a finding.
 message MsgEditFinding {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/EditFinding";
+  option (amino.name) = "bounty/EditFinding";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -150,7 +159,7 @@ message MsgEditFindingResponse {}
 // MsgConfirmFinding defines a message to confirm a finding to an existing finding.
 message MsgConfirmFinding {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/ConfirmFinding";
+  option (amino.name) = "bounty/ConfirmFinding";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -166,7 +175,7 @@ message MsgConfirmFindingResponse {}
 // MsgActivateFinding defines a message to activate a finding to an existing finding.
 message MsgActivateFinding {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/ActivateFinding";
+  option (amino.name) = "bounty/ActivateFinding";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -181,7 +190,7 @@ message MsgActivateFindingResponse {}
 // MsgConfirmFindingPaid defines a message to close a finding to an existing finding.
 message MsgConfirmFindingPaid {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/ConfirmFindingPaid";
+  option (amino.name) = "bounty/ConfirmFindingPaid";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -196,7 +205,7 @@ message MsgConfirmFindingPaidResponse {}
 // MsgCloseFinding defines a message to close a finding to an existing finding.
 message MsgCloseFinding {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/CloseFinding";
+  option (amino.name) = "bounty/CloseFinding";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -211,7 +220,7 @@ message MsgCloseFindingResponse {}
 // MsgPublishFinding defines a message to publish a finding.
 message MsgPublishFinding {
   option (cosmos.msg.v1.signer) = "operator_address";
-  option (amino.name)           = "bounty/PublishFinding";
+  option (amino.name) = "bounty/PublishFinding";
 
   option (gogoproto.equal) = false;
 
@@ -225,3 +234,49 @@ message MsgPublishFinding {
 
 // MsgPublishFindingResponse defines the MsgPublishFinding response type.
 message MsgPublishFindingResponse {}
+
+message MsgSubmitTheorem {
+  option (cosmos.msg.v1.signer) = "proposer";
+  option (amino.name) = "bounty/MsgSubmitTheorem";
+
+  string title = 1;
+
+  string summary = 2;
+
+  repeated cosmos.base.v1beta1.Coin initial_grant = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  string proposer = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgSubmitTheoremResponse {
+  uint64 theorem_id = 1;
+}
+
+message MsgGrant {
+  option (cosmos.msg.v1.signer) = "grantor";
+  option (amino.name) = "bounty/MsgDeposit";
+
+  // theorem_id defines the unique id of the theorem.
+  uint64 theorem_id = 1 [(gogoproto.jsontag) = "theorem_id", (amino.dont_omitempty) = true];
+
+  string grantor = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  repeated cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+message MsgGrantResponse {}
+
+message MsgProof {
+  option (cosmos.msg.v1.signer) = "prover";
+  option (amino.name) = "bounty/MsgProof";
+
+  uint64 theorem_id = 1 [(gogoproto.jsontag) = "proposal_id", (amino.dont_omitempty) = true];
+
+  string prover = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  string proof_hash = 3;
+
+  repeated cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+message MsgProofResponse {}
