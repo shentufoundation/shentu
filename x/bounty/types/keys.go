@@ -22,18 +22,18 @@ var (
 
 	// TheoremIDKey stores the sequence representing the next theorem ID.
 	TheoremIDKey = collections.NewPrefix(11)
-	// TheoremsKeyProofPKeyPrefix stores the theorem raw bytes.
-	TheoremsKeyProofPKeyPrefix = collections.NewPrefix(12)
+	// TheoremsKeyKeyPrefix stores the theorem raw bytes.
+	TheoremsKeyKeyPrefix = collections.NewPrefix(12)
 	// ActiveTheoremQueuePrefix stores the active theorems.
 	ActiveTheoremQueuePrefix = collections.NewPrefix(13)
 	// InactiveTheoremQueuePrefix stores the inactive theorems.
 	InactiveTheoremQueuePrefix = collections.NewPrefix(14)
-	// ProofPeriodProposalKeyPrefix stores which theorem are on proof period.
-	ProofPeriodProposalKeyPrefix = collections.NewPrefix(15)
 	// ProofsKeyPrefix stores the proof raw bytes.
-	ProofsKeyPrefix = collections.NewPrefix(16)
-	// ActiveProofQueuePrefix stores the active proofs.
-	ActiveProofQueuePrefix = collections.NewPrefix(17)
+	ProofsKeyPrefix = collections.NewPrefix(15)
+	// HashLockProofQueuePrefix stores the active proofs.
+	HashLockProofQueuePrefix = collections.NewPrefix(16)
+	// DetailProofQueuePrefix stores the detail proofs.
+	DetailProofQueuePrefix = collections.NewPrefix(17)
 	// GrantsKeyPrefix stores grants.
 	GrantsKeyPrefix = collections.NewPrefix(18)
 

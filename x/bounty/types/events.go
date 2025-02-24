@@ -15,8 +15,12 @@ const (
 	EventTypeCloseFinding           = "close_finding"
 	EventTypePublishFinding         = "publish_finding"
 
-	AttributeKeyProgramID = "program_id"
-	AttributeKeyFindingID = "finding_id"
+	EventTypeCreateTheorem = "create_theorem"
+
+	AttributeKeyProgramID        = "program_id"
+	AttributeKeyFindingID        = "finding_id"
+	AttributeKeyTheoremID        = "theorem_id"
+	AttributeKeyProofPeriodStart = "proof_period_start"
 
 	AttributeValueCategory = ModuleName
 )

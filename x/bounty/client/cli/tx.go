@@ -7,11 +7,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 // NewTxCmd returns the transaction commands for the certification module.
@@ -33,6 +34,7 @@ func NewTxCmd() *cobra.Command {
 		NewConfirmFindingPaidCmd(),
 		NewCloseFindingCmd(),
 		NewPublishFindingCmd(),
+		NewCreateTheoremCmd(),
 	)
 
 	return bountyTxCmds
@@ -190,7 +192,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 				return err
 			}
 
-			desc, err := cmd.Flags().GetString(FlagFindingDescription)
+			desc, err := cmd.Flags().GetString(FlagDescription)
 			if err != nil {
 				return err
 			}
@@ -207,7 +209,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 
 	cmd.Flags().String(FlagProgramID, "", "The program's ID")
 	cmd.Flags().String(FlagFindingID, "", "The finding's ID")
-	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
+	cmd.Flags().String(FlagDescription, "", "The finding's description")
 	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's proof of content")
 	cmd.Flags().String(FlagFindingSeverityLevel, "unspecified", "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
@@ -215,8 +217,8 @@ func NewSubmitFindingCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagProgramID)
 	_ = cmd.MarkFlagRequired(FlagFindingID)
-	_ = cmd.MarkFlagRequired(FlagFindingTitle)
-	_ = cmd.MarkFlagRequired(FlagFindingDescription)
+	_ = cmd.MarkFlagRequired(FlagTitle)
+	_ = cmd.MarkFlagRequired(FlagDescription)
 	_ = cmd.MarkFlagRequired(FlagFindingProofOfContent)
 
 	return cmd
@@ -246,7 +248,7 @@ func NewEditFindingCmd() *cobra.Command {
 				return err
 			}
 
-			desc, err := cmd.Flags().GetString(FlagFindingDescription)
+			desc, err := cmd.Flags().GetString(FlagDescription)
 			if err != nil {
 				return err
 			}
@@ -282,7 +284,7 @@ func NewEditFindingCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String(FlagFindingID, "", "The finding's ID")
-	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
+	cmd.Flags().String(FlagDescription, "", "The finding's description")
 	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's proof of content")
 	cmd.Flags().String(FlagFindingSeverityLevel, "unspecified", "The finding's severity level")
 	cmd.Flags().String(FlagFindingPaymentHash, "", "The finding's payment hash")
@@ -396,7 +398,7 @@ func NewPublishFindingCmd() *cobra.Command {
 				return err
 			}
 			submitAddr := clientCtx.GetFromAddress()
-			desc, err := cmd.Flags().GetString(FlagFindingDescription)
+			desc, err := cmd.Flags().GetString(FlagDescription)
 			if err != nil {
 				return err
 			}
@@ -409,12 +411,64 @@ func NewPublishFindingCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
+	cmd.Flags().String(FlagDescription, "", "The finding's description")
 	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's poc")
 	flags.AddTxFlagsToCmd(cmd)
 
-	_ = cmd.MarkFlagRequired(FlagFindingDescription)
+	_ = cmd.MarkFlagRequired(FlagDescription)
 	_ = cmd.MarkFlagRequired(FlagFindingProofOfContent)
+
+	return cmd
+}
+
+func NewCreateTheoremCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-theorem",
+		Short: "create new theorem",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			title, err := cmd.Flags().GetString(FlagTitle)
+			if err != nil {
+				return err
+			}
+			desc, err := cmd.Flags().GetString(FlagDescription)
+			if err != nil {
+				return err
+			}
+			code, err := cmd.Flags().GetString(FlagCode)
+			if err != nil {
+				return err
+			}
+			flagGrant, err := cmd.Flags().GetString(FlagGrant)
+			if err != nil {
+				return err
+			}
+			grant, err := sdk.ParseCoinsNormalized(flagGrant)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateTheorem(title, desc, code, clientCtx.GetFromAddress().String(), grant)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagTitle, "", "The theorem's title")
+	cmd.Flags().String(FlagDescription, "", "The theorem's desc")
+	cmd.Flags().String(FlagCode, "", "The theorem's code")
+	cmd.Flags().String(FlagGrant, "", "The theorem's grant")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(FlagTitle)
+	_ = cmd.MarkFlagRequired(FlagDescription)
+	_ = cmd.MarkFlagRequired(FlagCode)
+	_ = cmd.MarkFlagRequired(FlagGrant)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
 }

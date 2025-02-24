@@ -4,10 +4,13 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+
+	"cosmossdk.io/errors"
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 type msgServer struct {
@@ -513,17 +516,82 @@ func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFi
 	return &types.MsgPublishFindingResponse{}, nil
 }
 
-func (k msgServer) SubmitTheorem(ctx context.Context, theorem *types.MsgSubmitTheorem) (*types.MsgSubmitTheoremResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheorem) (*types.MsgCreateTheoremResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// TODO msg check
+	if msg.Title == "" {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "theorem title cannot be empty")
+	}
+	if msg.Description == "" {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "theorem description cannot be empty")
+
+	}
+	if msg.Code == "" {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "theorem code cannot be empty")
+	}
+	if len(msg.Title+msg.Description+msg.Code) > 5000 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "theorem description too large")
+	}
+
+	proposer, err := k.authKeeper.AddressCodec().StringToBytes(msg.GetProposer())
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
+	}
+
+	initialGrant := msg.GetInitialGrant()
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get theorem parameters: %w", err)
+	}
+
+	if err := k.validateInitialGrant(ctx, params, initialGrant); err != nil {
+		return nil, err
+	}
+	if err := k.validateDepositDenom(ctx, params, initialGrant); err != nil {
+		return nil, err
+	}
+
+	submitTime := ctx.BlockHeader().Time
+	theorem, err := k.Keeper.CreateTheorem(ctx, proposer, msg.Title, msg.Description, msg.Code, submitTime, submitTime.Add(*params.MaxGrantPeriod), *params.ProofPeriod)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO add event
+	//ctx.EventManager().EmitEvent(
+	//	sdk.NewEvent(types.EventTypeCreateTheorem,
+	//		sdk.NewAttribute(types.AttributeKeyProofPeriodStart, fmt.Sprintf("%d", theorem.Id)),
+	//	),
+	//)
+
+	if err = k.Keeper.AddGrant(ctx, theorem.Id, proposer, msg.GetInitialGrant()); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgCreateTheoremResponse{
+		TheoremId: theorem.Id,
+	}, nil
 }
 
-func (k msgServer) SubmitProof(ctx context.Context, proof *types.MsgProof) (*types.MsgProofResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitProofHash) (*types.MsgSubmitProofHashResponse, error) {
+	// TODO msg check
+	err := k.Keeper.SubmitProofHash(goCtx, msg.TheoremId, msg.ProofHash, msg.Prover, msg.Deposit)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgSubmitProofHashResponse{}, nil
 }
 
-func (k msgServer) Grant(ctx context.Context, grant *types.MsgGrant) (*types.MsgGrantResponse, error) {
+func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmitProofDetail) (*types.MsgSubmitProofHashResponse, error) {
+	//TODO implement me
+	panic("implement me")
+
+	// TODO msg check
+}
+
+func (k msgServer) Grant(ctx context.Context, msg *types.MsgGrant) (*types.MsgGrantResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

@@ -157,7 +157,7 @@ var (
 		oracletypes.ModuleName:         {authtypes.Burner},
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		bountytypes.ModuleName:         {authtypes.Burner},
+		bountytypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
 		wasmtypes.ModuleName:           {authtypes.Burner},
 	}
 )
@@ -393,8 +393,10 @@ func NewShentuApp(
 	app.BountyKeeper = bountykeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[bountytypes.StoreKey]),
+		app.AccountKeeper,
 		app.CertKeeper,
-		app.GetSubspace(bountytypes.ModuleName),
+		app.BankKeeper,
+		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
 	app.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,

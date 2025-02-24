@@ -4,11 +4,13 @@ const (
 	FlagProgramID = "program-id"
 	FlagFindingID = "finding-id"
 
-	FlagName   = "name"
-	FlagDetail = "detail"
+	FlagName        = "name"
+	FlagDetail      = "detail"
+	FlagGrant       = "grant"
+	FlagTitle       = "title"
+	FlagDescription = "desc"
+	FlagCode        = "code"
 
-	FlagFindingTitle          = "title"
-	FlagFindingDescription    = "desc"
 	FlagFindingProofOfContent = "poc"
 	FlagFindingSeverityLevel  = "severity-level"
 	FlagFindingPaymentHash    = "payment-hash"

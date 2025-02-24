@@ -1,22 +1,32 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
-)
+	"time"
 
-// NewGenesisState creates a new GenesisState object
-func NewGenesisState(programs []Program, findings []Finding) *GenesisState {
-	return &GenesisState{
-		Programs: programs,
-		Findings: findings,
-	}
-}
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
+	"github.com/shentufoundation/shentu/v2/common"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() *GenesisState {
+	minGrant := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdkmath.NewInt(10000000)))
+	maxGrantPeriod := time.Hour * 24 * 30
+	proofPeriod := time.Hour * 24 * 30
+	proofHashLockPeriod := time.Minute * 5
+
 	return &GenesisState{
-		Programs: []Program{},
-		Findings: []Finding{},
+		Programs:          []Program{},
+		Findings:          []Finding{},
+		StartingTheoremId: 1,
+		Params: &Params{
+			MinGrant:            minGrant,
+			MaxGrantPeriod:      &maxGrantPeriod,
+			ProofPeriod:         &proofPeriod,
+			ProofHashLockPeriod: &proofHashLockPeriod,
+		},
 	}
 }
 

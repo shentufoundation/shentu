@@ -159,7 +159,7 @@ message Proof {
   string prover = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   //
-  cosmos.base.v1beta1.Coin Deposit = 7 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated cosmos.base.v1beta1.Coin Deposit = 7 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
 // Grant defines an amount granted by a grantor to an active theorem.

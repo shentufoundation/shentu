@@ -13,4 +13,15 @@ message GenesisState {
 
   repeated Program programs = 1 [(gogoproto.moretags) = "yaml:\"programs\"", (gogoproto.nullable) = false];
   repeated Finding findings = 2 [(gogoproto.moretags) = "yaml:\"findings\"", (gogoproto.nullable) = false];
+
+  // starting_theorem_id is the ID of the starting theorem.
+  uint64 starting_theorem_id = 3;
+  // theorems defines all the theorems present at genesis.
+  repeated Theorem theorems = 4;
+  // proofs defines all the proofs present at genesis.
+  repeated Proof proofs = 5;
+  // grants defines all the grants present at genesis.
+  repeated Grant grants = 6;
+
+  Params params = 7;
 }

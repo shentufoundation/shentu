@@ -24,6 +24,7 @@ const (
 var (
 	_, _, _, _       sdk.Msg = &MsgCreateProgram{}, &MsgEditProgram{}, &MsgActivateProgram{}, &MsgCloseProgram{}
 	_, _, _, _, _, _ sdk.Msg = &MsgSubmitFinding{}, &MsgEditFinding{}, &MsgActivateFinding{}, &MsgConfirmFinding{}, &MsgCloseFinding{}, &MsgPublishFinding{}
+	_, _, _, _       sdk.Msg = &MsgCreateTheorem{}, &MsgGrant{}, &MsgSubmitProofHash{}, &MsgSubmitProofDetail{}
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -447,4 +448,14 @@ func (msg MsgPublishFinding) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty proofOfConcept")
 	}
 	return nil
+}
+
+func NewMsgCreateTheorem(title, desc, code, proposer string, initialGrant sdk.Coins) *MsgCreateTheorem {
+	return &MsgCreateTheorem{
+		Title:        title,
+		Description:  desc,
+		Code:         code,
+		InitialGrant: initialGrant,
+		Proposer:     proposer,
+	}
 }

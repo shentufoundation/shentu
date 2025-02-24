@@ -4,6 +4,8 @@ import (
 	"cosmossdk.io/errors"
 )
 
+// Common
+
 // Program
 const (
 	errProgramAlreadyExists uint32 = iota + 101
@@ -50,4 +52,22 @@ var (
 	ErrFindingSeverityLevelInvalid = errors.Register(ModuleName, errFindingSeverityLevelInvalid, "invalid finding severity level")
 	ErrFindingOperatorNotAllowed   = errors.Register(ModuleName, errFindingOperatorNotAllowed, "finding access denied")
 	ErrFindingID                   = errors.Register(ModuleName, errFindingID, "invalid finding id")
+)
+
+// [3xx] Theorem
+var (
+	ErrNoTheoremMsgs        = errors.Register(ModuleName, 301, "no valid content")
+	ErrTheoremProposal      = errors.Register(ModuleName, 302, "inactive theorem")
+	ErrTheoremStatusInvalid = errors.Register(ModuleName, 303, "theorem status not hack locked")
+)
+
+// [4xx] Proof
+var (
+	ErrProofStatusInvalid = errors.Register(ModuleName, 401, "proof status not hack locked")
+)
+
+// [5xx] Deposit
+var (
+	ErrMinDepositTooSmall  = errors.Register(ModuleName, 501, "minimum deposit is too small")
+	ErrInvalidDepositDenom = errors.Register(ModuleName, 23, "invalid deposit denom")
 )

@@ -49,11 +49,14 @@ service Msg {
   // PublishFinding defines a method for publish a finding.
   rpc PublishFinding(MsgPublishFinding) returns (MsgPublishFindingResponse);
 
-  // SubmitTheorem defines a method to create new theorem given the messages.
-  rpc SubmitTheorem(MsgSubmitTheorem) returns (MsgSubmitTheoremResponse);
+  // CreateTheorem defines a method to create new theorem given the messages.
+  rpc CreateTheorem(MsgCreateTheorem) returns (MsgCreateTheoremResponse);
 
-  // SubmitProof defines a method to submit a proof for a theorem given the messages.
-  rpc SubmitProof(MsgProof) returns (MsgProofResponse);
+  // SubmitProofHash defines a method to submit a proof with hash.
+  rpc SubmitProofHash(MsgSubmitProofHash) returns (MsgSubmitProofHashResponse);
+
+  // SubmitProofDetail defines a method to submit a proof with detail.
+  rpc SubmitProofDetail(MsgSubmitProofDetail) returns (MsgSubmitProofHashResponse);
 
   // Grant defines a method to grant theorem given the messages.
   rpc Grant(MsgGrant) returns (MsgGrantResponse);
@@ -235,26 +238,28 @@ message MsgPublishFinding {
 // MsgPublishFindingResponse defines the MsgPublishFinding response type.
 message MsgPublishFindingResponse {}
 
-message MsgSubmitTheorem {
+message MsgCreateTheorem {
   option (cosmos.msg.v1.signer) = "proposer";
-  option (amino.name) = "bounty/MsgSubmitTheorem";
+  option (amino.name) = "bounty/MsgCreateTheorem";
 
   string title = 1;
 
-  string summary = 2;
+  string description = 2;
 
-  repeated cosmos.base.v1beta1.Coin initial_grant = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  string code = 3;
 
-  string proposer = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated cosmos.base.v1beta1.Coin initial_grant = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  string proposer = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-message MsgSubmitTheoremResponse {
+message MsgCreateTheoremResponse {
   uint64 theorem_id = 1;
 }
 
 message MsgGrant {
   option (cosmos.msg.v1.signer) = "grantor";
-  option (amino.name) = "bounty/MsgDeposit";
+  option (amino.name) = "bounty/MsgGrant";
 
   // theorem_id defines the unique id of the theorem.
   uint64 theorem_id = 1 [(gogoproto.jsontag) = "theorem_id", (amino.dont_omitempty) = true];
@@ -266,9 +271,9 @@ message MsgGrant {
 
 message MsgGrantResponse {}
 
-message MsgProof {
+message MsgSubmitProofHash {
   option (cosmos.msg.v1.signer) = "prover";
-  option (amino.name) = "bounty/MsgProof";
+  option (amino.name) = "bounty/MsgSubmitProofHash";
 
   uint64 theorem_id = 1 [(gogoproto.jsontag) = "proposal_id", (amino.dont_omitempty) = true];
 
@@ -279,4 +284,19 @@ message MsgProof {
   repeated cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
-message MsgProofResponse {}
+message MsgSubmitProofHashResponse {}
+
+message MsgSubmitProofDetail {
+  option (cosmos.msg.v1.signer) = "prover";
+  option (amino.name) = "bounty/MsgSubmitProofDetail";
+
+  uint64 theorem_id = 1 [(gogoproto.jsontag) = "proposal_id", (amino.dont_omitempty) = true];
+
+  string prover = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  string proof_hash = 3;
+
+  repeated cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+message MsgSubmitProofDetailResponse {}
