@@ -545,7 +545,7 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 		return nil, fmt.Errorf("failed to get theorem parameters: %w", err)
 	}
 
-	if err := k.validateInitialGrant(ctx, params, initialGrant); err != nil {
+	if err := k.validateMinGrant(ctx, params, initialGrant); err != nil {
 		return nil, err
 	}
 	if err := k.validateDepositDenom(ctx, params, initialGrant); err != nil {
@@ -553,7 +553,7 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 	}
 
 	submitTime := ctx.BlockHeader().Time
-	theorem, err := k.Keeper.CreateTheorem(ctx, proposer, msg.Title, msg.Description, msg.Code, submitTime, submitTime.Add(*params.MaxGrantPeriod), *params.ProofPeriod)
+	theorem, err := k.Keeper.CreateTheorem(ctx, proposer, msg.Title, msg.Description, msg.Code, submitTime, submitTime.Add(*params.TheoremMaxGrantPeriod), *params.TheoremMaxProofPeriod)
 	if err != nil {
 		return nil, err
 	}
@@ -575,9 +575,35 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 }
 
 func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitProofHash) (*types.MsgSubmitProofHashResponse, error) {
-	// TODO msg check
-	err := k.Keeper.SubmitProofHash(goCtx, msg.TheoremId, msg.ProofHash, msg.Prover, msg.Deposit)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// msg check
+	if msg.ProofHash == "" {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash cannot be empty")
+	}
+
+	params, err := k.Params.Get(ctx)
 	if err != nil {
+		return nil, fmt.Errorf("failed to get theorem parameters: %w", err)
+	}
+	if err := k.validateMinDeposit(ctx, params, msg.Deposit); err != nil {
+		return nil, err
+	}
+	if err := k.validateDepositDenom(ctx, params, msg.Deposit); err != nil {
+		return nil, err
+	}
+
+	proposer, err := k.authKeeper.AddressCodec().StringToBytes(msg.GetProver())
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
+	}
+
+	proof, err := k.Keeper.SubmitProofHash(goCtx, msg.TheoremId, msg.ProofHash, msg.Prover, msg.Deposit)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := k.Keeper.AddDeposit(ctx, proof.Id, proposer, msg.Deposit); err != nil {
 		return nil, err
 	}
 
@@ -585,13 +611,44 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 }
 
 func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmitProofDetail) (*types.MsgSubmitProofHashResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO msg check
+	// hash check
+	if msg.Detail == "" {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash cannot be empty")
+	}
+	proof, err := k.Proofs.Get(ctx, msg.ProofId)
+	if err != nil {
+		return nil, err
+	}
+
+	hash := k.Keeper.GetProofHash(msg.ProofId, msg.GetProver(), msg.Detail)
+
+	if proof.Id != hash {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash inconsistent")
+	}
+
+	err = k.Keeper.SubmitProofDetail(ctx, msg.ProofId, msg.Detail)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgSubmitProofHashResponse{}, nil
 }
 
-func (k msgServer) Grant(ctx context.Context, msg *types.MsgGrant) (*types.MsgGrantResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (k msgServer) Grant(goCtx context.Context, msg *types.MsgGrant) (*types.MsgGrantResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	grantor, err := k.authKeeper.AddressCodec().StringToBytes(msg.GetGrantor())
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
+	}
+
+	err = k.Keeper.AddGrant(ctx, msg.TheoremId, grantor, msg.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgGrantResponse{}, nil
 }

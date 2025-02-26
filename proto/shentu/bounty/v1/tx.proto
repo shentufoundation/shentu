@@ -290,13 +290,11 @@ message MsgSubmitProofDetail {
   option (cosmos.msg.v1.signer) = "prover";
   option (amino.name) = "bounty/MsgSubmitProofDetail";
 
-  uint64 theorem_id = 1 [(gogoproto.jsontag) = "proposal_id", (amino.dont_omitempty) = true];
+  string proof_id = 1 [(gogoproto.jsontag) = "proof_id", (amino.dont_omitempty) = true];
 
   string prover = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  string proof_hash = 3;
-
-  repeated cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  string detail = 3;
 }
 
 message MsgSubmitProofDetailResponse {}

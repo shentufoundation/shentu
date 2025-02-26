@@ -41,8 +41,16 @@ func NewProof(theoremId uint64, proofHash, prover string, submitTime time.Time, 
 
 func NewGrant(theoremID uint64, grantor sdk.AccAddress, amount sdk.Coins) Grant {
 	return Grant{
-		TheoremsId: theoremID,
-		Grantor:    grantor.String(),
-		Amount:     amount,
+		TheoremId: theoremID,
+		Grantor:   grantor.String(),
+		Amount:    amount,
+	}
+}
+
+func NewDeposit(proofID string, depositor sdk.AccAddress, amount sdk.Coins) Deposit {
+	return Deposit{
+		ProofId:   proofID,
+		Depositor: depositor.String(),
+		Amount:    amount,
 	}
 }

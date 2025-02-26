@@ -68,6 +68,7 @@ var (
 
 // [5xx] Deposit
 var (
-	ErrMinDepositTooSmall  = errors.Register(ModuleName, 501, "minimum deposit is too small")
+	ErrMinGrantTooSmall    = errors.Register(ModuleName, 501, "minimum grant is too small")
+	ErrMinDepositTooSmall  = errors.Register(ModuleName, 502, "minimum deposit is too small")
 	ErrInvalidDepositDenom = errors.Register(ModuleName, 23, "invalid deposit denom")
 )

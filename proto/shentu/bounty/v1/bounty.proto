@@ -146,8 +146,8 @@ message Proof {
   // id defines the unique id of the proof.
   string id = 2;
 
-  // proof_url is the proof data attached to the theorem stored in ipfs
-  string proof_content = 3;
+  // detail is the proof data attached to the theorem stored in ipfs
+  string detail = 3;
 
   // status defines the theorem status.
   ProofStatus status = 4;
@@ -165,7 +165,7 @@ message Proof {
 // Grant defines an amount granted by a grantor to an active theorem.
 message Grant {
   // theorem_id defines the unique id of the theorem.
-  uint64 theorems_id = 1;
+  uint64 theorem_id = 1;
 
   // grantor defines the grant addresses.
   string grantor = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -174,18 +174,36 @@ message Grant {
   repeated cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
+// Deposit defines an amount granted by a grantor to an active theorem.
+message Deposit {
+  // theorem_id defines the unique id of the theorem.
+  string proof_id = 1;
+
+  // depositor defines the deposit addresses.
+  string depositor = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // amount to be deposited by the depositor.
+  repeated cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
 message Params {
   // Minimum grant for a theorem to enter the proof period.
   repeated cosmos.base.v1beta1.Coin min_grant = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
+  // Minimum deposit for a proof to enter the proof_hash_lock period.
+  repeated cosmos.base.v1beta1.Coin min_deposit = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
   // Maximum period for Shentu holders to grant on a theorem. Initial value: 2 weeks.
-  google.protobuf.Duration max_grant_period = 2 [(gogoproto.stdduration) = true];
+  google.protobuf.Duration theorem_max_grant_period = 3 [(gogoproto.stdduration) = true];
 
-  // Duration of the proof period.
-  google.protobuf.Duration proof_period = 3 [(gogoproto.stdduration) = true];
+  // Duration of the theorem proof period. Initial value: 2 weeks.
+  google.protobuf.Duration theorem_max_proof_period = 4 [(gogoproto.stdduration) = true];
 
-  // Duration of the proof lock period. 10min
-  google.protobuf.Duration proof_hash_lock_period = 4 [(gogoproto.stdduration) = true];
+  // Duration of the proof hash lock period. 10min
+  google.protobuf.Duration proof_hash_lock_period = 5 [(gogoproto.stdduration) = true];
+
+  // Duration of the proof detail lock period. 10min
+  google.protobuf.Duration proof_detail_lock_period = 6 [(gogoproto.stdduration) = true];
 }
 
 enum TheoremStatus {

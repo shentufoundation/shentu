@@ -35,6 +35,8 @@ type Keeper struct {
 	Theorems collections.Map[uint64, types.Theorem]
 	// Grants key: Grantor+TheoremID | value: Grant
 	Grants collections.Map[collections.Pair[sdk.AccAddress, uint64], types.Grant]
+	// Deposit key: Depositor+TheoremID | value: Grant
+	Deposits collections.Map[collections.Pair[sdk.AccAddress, string], types.Deposit]
 	// Proofs key: ProofsID | value: Proof
 	Proofs              collections.Map[string, types.Proof]
 	ActiveTheoremsQueue collections.Map[collections.Pair[time.Time, uint64], uint64]
@@ -70,7 +72,8 @@ func NewKeeper(
 		Params:                collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		TheoremID:             collections.NewSequence(sb, types.TheoremIDKey, "theorem_id"),
 		Theorems:              collections.NewMap(sb, types.TheoremsKeyKeyPrefix, "theorems", collections.Uint64Key, codec.CollValue[types.Theorem](cdc)),
-		Grants:                collections.NewMap(sb, types.GrantsKeyPrefix, "grants", collections.PairKeyCodec(sdk.LengthPrefixedAddressKey(sdk.AccAddressKey), collections.Uint64Key), codec.CollValue[types.Grant](cdc)), // nolint: staticcheck // sdk.LengthPrefixedAddressKey is needed to retain state compatibility
+		Grants:                collections.NewMap(sb, types.GrantsKeyPrefix, "grants", collections.PairKeyCodec(sdk.LengthPrefixedAddressKey(sdk.AccAddressKey), collections.Uint64Key), codec.CollValue[types.Grant](cdc)),   // nolint: staticcheck // sdk.LengthPrefixedAddressKey is needed to retain state compatibility
+		Deposits:              collections.NewMap(sb, types.GrantsKeyPrefix, "grants", collections.PairKeyCodec(sdk.LengthPrefixedAddressKey(sdk.AccAddressKey), collections.StringKey), codec.CollValue[types.Deposit](cdc)), // nolint: staticcheck // sdk.LengthPrefixedAddressKey is needed to retain state compatibility
 		Proofs:                collections.NewMap(sb, types.ProofsKeyPrefix, "proofs", collections.StringKey, codec.CollValue[types.Proof](cdc)),
 		ActiveTheoremsQueue:   collections.NewMap(sb, types.ActiveTheoremQueuePrefix, "active_theorems_queue", collections.PairKeyCodec(sdk.TimeKey, collections.Uint64Key), collections.Uint64Value),
 		HashLockedProofsQueue: collections.NewMap(sb, types.HashLockProofQueuePrefix, "hash_lock_proofs_queue", collections.PairKeyCodec(sdk.TimeKey, collections.StringKey), collections.StringValue),
