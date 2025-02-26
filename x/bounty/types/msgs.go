@@ -459,3 +459,28 @@ func NewMsgCreateTheorem(title, desc, code, proposer string, initialGrant sdk.Co
 		Proposer:     proposer,
 	}
 }
+
+func NewMsgGrant(theoremID uint64, grantor string, amount sdk.Coins) *MsgGrant {
+	return &MsgGrant{
+		TheoremId: theoremID,
+		Grantor:   grantor,
+		Amount:    amount,
+	}
+}
+
+func NewMsgSubmitProofHash(theoremID uint64, prover, hash string, amount sdk.Coins) *MsgSubmitProofHash {
+	return &MsgSubmitProofHash{
+		TheoremId: theoremID,
+		Prover:    prover,
+		ProofHash: hash,
+		Deposit:   amount,
+	}
+}
+
+func NewMsgSubmitProofDetail(proofID, prover, detail string) *MsgSubmitProofDetail {
+	return &MsgSubmitProofDetail{
+		ProofId: proofID,
+		Prover:  prover,
+		Detail:  detail,
+	}
+}

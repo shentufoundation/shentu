@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -31,6 +32,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryFindings(),
 		GetCmdQueryFindingFingerprint(),
 		GetCmdQueryProgramFingerprint(),
+		GetCmdQueryTheorem(),
+		GetCmdQueryProof(),
 	)
 
 	return bountyQueryCmd
@@ -307,6 +310,87 @@ $ %s query bounty program 1
 			}
 
 			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryTheorem implements the query theorem command.
+func GetCmdQueryTheorem() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "theorem [theorem-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query details of a theorem",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a theorem. You can find the theorem-id by running "%s query theorem".
+Example:
+$ %s query bounty theorem 1
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			theoremId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("theorem-id %s is not a valid uint, please input a valid theorem-id", args[0])
+			}
+
+			// Query the program
+			res, err := queryClient.Theorem(
+				cmd.Context(),
+				&types.QueryTheoremRequest{TheoremId: theoremId},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Theorem)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryProof implements the query proof command.
+func GetCmdQueryProof() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "proof [proof-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query details of a proof",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a proof. You can find the proof-id by running "%s query proof".
+Example:
+$ %s query bounty proof "hash"
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// Query the program
+			res, err := queryClient.Proof(
+				cmd.Context(),
+				&types.QueryProofRequest{ProofId: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Proof)
 		},
 	}
 

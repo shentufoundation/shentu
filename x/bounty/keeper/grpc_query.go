@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/collections"
+	"cosmossdk.io/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -158,4 +160,49 @@ func (k Keeper) ProgramFingerprint(c context.Context, req *types.QueryProgramFin
 	}
 	programFingerPrintHash := k.GetProgramFingerprintHash(&program)
 	return &types.QueryProgramFingerprintResponse{Fingerprint: programFingerPrintHash}, nil
+}
+
+func (k Keeper) AllTheorems(c context.Context, req *types.QueryTheoremsRequest) (*types.QueryTheoremsResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (k Keeper) Theorem(c context.Context, req *types.QueryTheoremRequest) (*types.QueryTheoremResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if req.TheoremId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "theorem id can not be 0")
+	}
+
+	theorem, err := k.Theorems.Get(c, req.TheoremId)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "theorem %d doesn't exist", req.TheoremId)
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryTheoremResponse{Theorem: theorem}, nil
+}
+
+func (k Keeper) Proof(c context.Context, req *types.QueryProofRequest) (*types.QueryProofResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if req.ProofId == "" {
+		return nil, status.Error(codes.InvalidArgument, "proof id can not be empty")
+	}
+
+	proof, err := k.Proofs.Get(c, req.ProofId)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "proof %d doesn't exist", req.ProofId)
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryProofResponse{Proof: proof}, nil
 }

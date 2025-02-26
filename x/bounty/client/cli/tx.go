@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -35,6 +37,9 @@ func NewTxCmd() *cobra.Command {
 		NewCloseFindingCmd(),
 		NewPublishFindingCmd(),
 		NewCreateTheoremCmd(),
+		NewGrantTheoremCmd(),
+		NewSubmitProofHashCmd(),
+		NewSubmitProofDetailCmd(),
 	)
 
 	return bountyTxCmds
@@ -468,6 +473,122 @@ func NewCreateTheoremCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagDescription)
 	_ = cmd.MarkFlagRequired(FlagCode)
 	_ = cmd.MarkFlagRequired(FlagGrant)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+func NewGrantTheoremCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "grant-theorem",
+		Args:  cobra.ExactArgs(2),
+		Short: "grant a theorem",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			theoremId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("theorem-id %s is not a valid uint, please input a valid theorem-id", args[0])
+			}
+			grantor := clientCtx.GetFromAddress()
+			coins, err := sdk.ParseCoinsNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgGrant(theoremId, grantor.String(), coins)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewSubmitProofHashCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "proof-hash",
+		Short: "submit proof hash for theorem",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			theoremID, err := cmd.Flags().GetUint64(FlagTheoremID)
+			if err != nil {
+				return err
+			}
+			hash, err := cmd.Flags().GetString(FlagHash)
+			if err != nil {
+				return err
+			}
+			prover := clientCtx.GetFromAddress()
+			deposit, err := cmd.Flags().GetString(FlagDeposit)
+			if err != nil {
+				return err
+			}
+			coins, err := sdk.ParseCoinsNormalized(deposit)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgSubmitProofHash(theoremID, prover.String(), hash, coins)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().Uint64(FlagTheoremID, 1, "The theorem id")
+	cmd.Flags().String(FlagHash, "", "The proof's hash")
+	cmd.Flags().String(FlagDeposit, "1000000uctk", "The proof's deposit")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(FlagTheoremID)
+	_ = cmd.MarkFlagRequired(FlagHash)
+	_ = cmd.MarkFlagRequired(FlagDeposit)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+func NewSubmitProofDetailCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "proof-detail",
+		Short: "submit proof detail for a proof",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proofID, err := cmd.Flags().GetString(FlagProofID)
+			if err != nil {
+				return err
+			}
+			prover := clientCtx.GetFromAddress()
+			detail, err := cmd.Flags().GetString(FlagDetail)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgSubmitProofDetail(proofID, prover.String(), detail)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagProofID, "", "The proof id")
+	cmd.Flags().String(FlagDetail, "", "The proof's detail")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(FlagProofID)
+	_ = cmd.MarkFlagRequired(FlagDetail)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd

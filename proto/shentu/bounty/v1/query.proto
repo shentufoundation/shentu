@@ -41,6 +41,21 @@ service Query {
   rpc ProgramFingerprint(QueryProgramFingerprintRequest) returns (QueryProgramFingerprintResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/programs/{program_id}/fingerprint";
   }
+
+  // Theorems queries all theorems based on given status.
+  rpc AllTheorems(QueryTheoremsRequest) returns (QueryTheoremsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/theorems";
+  }
+
+  // Theorem queries theorem details based on theoremID.
+  rpc Theorem(QueryTheoremRequest) returns (QueryTheoremResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/theorems/{theorem_id}";
+  }
+
+  // Proof queries proof details based on proofID.
+  rpc Proof(QueryProofRequest) returns (QueryProofResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/proofs/{proof_id}";
+  }
 }
 
 // QueryHostsRequest is the request type for the Query/Hosts RPC method.
@@ -134,4 +149,40 @@ message QueryProgramFingerprintRequest {
 // QueryProgramFingerprintResponse is the response type for the Query/Finding RPC method.
 message QueryProgramFingerprintResponse {
   string fingerprint = 1;
+}
+
+// QueryTheoremsRequest is the request type for the Query/Theorems RPC method.
+message QueryTheoremsRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryTheoremsResponse is the response type for the Query/Theorems RPC method.
+message QueryTheoremsResponse {
+  repeated Theorem theorems = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryTheoremRequest is the request type for the Query/Theorem RPC method.
+message QueryTheoremRequest {
+  // theorem_id defines the unique id of the theorem.
+  uint64 theorem_id = 1;
+}
+
+// QueryTheoremResponse is the response type for the Query/Theorem RPC method.
+message QueryTheoremResponse {
+  Theorem theorem = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryProofRequest is the request type for the Query/Proof RPC method.
+message QueryProofRequest {
+  // proof_id defines the unique id of the proof.
+  string proof_id = 1;
+}
+
+// QueryProofResponse is the response type for the Query/Proof RPC method.
+message QueryProofResponse {
+  Proof proof = 1 [(gogoproto.nullable) = false];
 }
