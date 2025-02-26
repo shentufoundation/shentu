@@ -28,12 +28,15 @@ func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, su
 	}, nil
 }
 
-func NewProof(theoremId uint64, proofHash, prover string, submitTime time.Time, deposit sdk.Coins) (Proof, error) {
+func NewProof(theoremId uint64, proofHash, prover string, submitTime time.Time, deposit sdk.Coins, timeout time.Duration) (Proof, error) {
+
+	timeOut := submitTime.Add(timeout)
 	return Proof{
 		TheoremId:  theoremId,
 		Id:         proofHash,
 		Status:     ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD,
 		SubmitTime: &submitTime,
+		TimeOut:    &timeOut,
 		Prover:     prover,
 		Deposit:    deposit,
 	}, nil

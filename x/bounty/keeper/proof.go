@@ -29,13 +29,12 @@ func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, 
 		return nil, types.ErrTheoremStatusInvalid
 	}
 
-	// Check coins to be deposited match the proposal's deposit params
-	_, err = k.Params.Get(ctx)
+	param, err := k.Params.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	proof, err := types.NewProof(theoremID, proofID, prover, submitTime, deposit)
+	proof, err := types.NewProof(theoremID, proofID, prover, submitTime, deposit, *param.ProofDetailLockPeriod)
 	if err != nil {
 		return nil, err
 	}
