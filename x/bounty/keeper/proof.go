@@ -107,15 +107,24 @@ func (k Keeper) AddDeposit(ctx context.Context, proofID string, depositorAddr sd
 		return err
 	}
 
-	// TODO add event
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeProofDeposit,
+			sdk.NewAttribute(types.AttributeKeyProofDepositor, depositorAddr.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.String()),
+			sdk.NewAttribute(types.AttributeKeyProofID, proofID),
+		),
+	)
+
 	return k.SetDeposit(ctx, deposit)
 }
 
-func (k Keeper) GetProofHash(proofID, prover, detail string) string {
-	proofHash := &types.MsgSubmitProofDetail{
-		ProofId: proofID,
-		Prover:  prover,
-		Detail:  detail,
+func (k Keeper) GetProofHash(theoremId uint64, prover, detail string) string {
+	proofHash := &types.ProofHash{
+		TheoremId: theoremId,
+		Prover:    prover,
+		Detail:    detail,
 	}
 
 	bz := k.cdc.MustMarshal(proofHash)

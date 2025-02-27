@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -64,7 +65,16 @@ func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccA
 		return err
 	}
 
-	// TODO add event
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeTheoremGrant,
+			sdk.NewAttribute(types.AttributeKeyTheoremGrantor, grantor.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, grantAmount.String()),
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theoremID)),
+		),
+	)
+
 	return k.SetGrant(ctx, grant)
 }
 

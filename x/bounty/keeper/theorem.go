@@ -29,7 +29,6 @@ func (k Keeper) CreateTheorem(ctx context.Context, proposer sdk.AccAddress, titl
 	if err := k.ActiveTheoremsQueue.Set(ctx, collections.Join(submitTime.Add(proofTime), theoremID), theoremID); err != nil {
 		return types.Theorem{}, err
 	}
-
 	return theorem, nil
 }
 

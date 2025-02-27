@@ -519,7 +519,6 @@ func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFi
 func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheorem) (*types.MsgCreateTheoremResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO msg check
 	if msg.Title == "" {
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "theorem title cannot be empty")
 	}
@@ -558,16 +557,16 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 		return nil, err
 	}
 
-	// TODO add event
-	//ctx.EventManager().EmitEvent(
-	//	sdk.NewEvent(types.EventTypeCreateTheorem,
-	//		sdk.NewAttribute(types.AttributeKeyProofPeriodStart, fmt.Sprintf("%d", theorem.Id)),
-	//	),
-	//)
-
 	if err = k.Keeper.AddGrant(ctx, theorem.Id, proposer, msg.GetInitialGrant()); err != nil {
 		return nil, err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(types.EventTypeCreateTheorem,
+			sdk.NewAttribute(types.AttributeKeyTheoremProofPeriodStart, fmt.Sprintf("%d", theorem.Id)),
+			sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProposer()),
+		),
+	)
 
 	return &types.MsgCreateTheoremResponse{
 		TheoremId: theorem.Id,
@@ -607,23 +606,35 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 		return nil, err
 	}
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(types.EventTypeSubmitProofHash,
+			sdk.NewAttribute(types.AttributeKeyProofHashLockPeriodStart, proof.Id),
+			sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
+		),
+	)
+
 	return &types.MsgSubmitProofHashResponse{}, nil
 }
 
 func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmitProofDetail) (*types.MsgSubmitProofHashResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO msg check
-	// hash check
-	if msg.Detail == "" {
-		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash cannot be empty")
-	}
+	// Check if proof exists
 	proof, err := k.Proofs.Get(ctx, msg.ProofId)
 	if err != nil {
 		return nil, err
 	}
 
-	hash := k.Keeper.GetProofHash(msg.ProofId, msg.GetProver(), msg.Detail)
+	// hash check
+	if msg.Detail == "" {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash cannot be empty")
+	}
+	_, err = k.Proofs.Get(ctx, msg.ProofId)
+	if err != nil {
+		return nil, err
+	}
+
+	hash := k.Keeper.GetProofHash(proof.TheoremId, msg.GetProver(), msg.Detail)
 
 	if proof.Id != hash {
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash inconsistent")
@@ -633,6 +644,13 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 	if err != nil {
 		return nil, err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(types.EventTypeSubmitProofDetail,
+			sdk.NewAttribute(types.AttributeKeyProofHashDetailPeriodStart, proof.Id),
+			sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
+		),
+	)
 
 	return &types.MsgSubmitProofHashResponse{}, nil
 }

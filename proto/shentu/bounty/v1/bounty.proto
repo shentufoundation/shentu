@@ -165,6 +165,14 @@ message Proof {
   repeated cosmos.base.v1beta1.Coin Deposit = 8 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
+message ProofHash {
+  uint64 theorem_id = 1;
+
+  string detail = 2;
+
+  string prover = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
 // Grant defines an amount granted by a grantor to an active theorem.
 message Grant {
   // theorem_id defines the unique id of the theorem.

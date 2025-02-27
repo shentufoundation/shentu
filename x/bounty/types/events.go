@@ -1,11 +1,12 @@
 package types
 
 const (
-	EventTypeCreateProgram   = "create_program"
-	EventTypeEditProgram     = "edit_program"
-	EventTypeActivateProgram = "activate_program"
-	EventTypeCloseProgram    = "close_program"
+	AttributeValueCategory = ModuleName
 
+	EventTypeCreateProgram          = "create_program"
+	EventTypeEditProgram            = "edit_program"
+	EventTypeActivateProgram        = "activate_program"
+	EventTypeCloseProgram           = "close_program"
 	EventTypeSubmitFinding          = "submit_finding"
 	EventTypeEditFinding            = "edit_finding"
 	EventTypeEditFindingPaymentHash = "edit_finding_payment_hash"
@@ -15,12 +16,22 @@ const (
 	EventTypeCloseFinding           = "close_finding"
 	EventTypePublishFinding         = "publish_finding"
 
-	EventTypeCreateTheorem = "create_theorem"
+	AttributeKeyProgramID = "program_id"
+	AttributeKeyFindingID = "finding_id"
 
-	AttributeKeyProgramID        = "program_id"
-	AttributeKeyFindingID        = "finding_id"
-	AttributeKeyTheoremID        = "theorem_id"
-	AttributeKeyProofPeriodStart = "proof_period_start"
+	EventTypeCreateTheorem     = "create_theorem"
+	EventTypeSubmitProofHash   = "submit_proof_hash"
+	EventTypeSubmitProofDetail = "submit_proof_detail"
+	EventTypeTheoremGrant      = "theorem_grant"
+	EventTypeProofDeposit      = "proof_deposit"
 
-	AttributeValueCategory = ModuleName
+	AttributeKeyTheoremID       = "theorem_id"
+	AttributeKeyProofID         = "proof_id"
+	AttributeKeyTheoremProposer = "proposer"
+	AttributeKeyTheoremGrantor  = "grantor"
+	AttributeKeyProofDepositor  = "depositor"
+
+	AttributeKeyTheoremProofPeriodStart    = "theorem_proof_period_start"
+	AttributeKeyProofHashLockPeriodStart   = "proof_hash_lock_period_start"
+	AttributeKeyProofHashDetailPeriodStart = "proof_hash_detail_period_start"
 )
