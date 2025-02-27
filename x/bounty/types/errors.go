@@ -59,11 +59,13 @@ var (
 	ErrNoTheoremMsgs        = errors.Register(ModuleName, 301, "no valid content")
 	ErrTheoremProposal      = errors.Register(ModuleName, 302, "inactive theorem")
 	ErrTheoremStatusInvalid = errors.Register(ModuleName, 303, "theorem status not hack locked")
+	ErrTheoremHasProof      = errors.Register(ModuleName, 303, "theorem has a processing proof")
 )
 
 // [4xx] Proof
 var (
-	ErrProofStatusInvalid = errors.Register(ModuleName, 401, "proof status not hack locked")
+	ErrProofStatusInvalid      = errors.Register(ModuleName, 401, "proof status not hack locked")
+	ErrProofOperatorNotAllowed = errors.Register(ModuleName, 402, "proof access denied")
 )
 
 // [5xx] Deposit

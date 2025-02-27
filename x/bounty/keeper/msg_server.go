@@ -670,3 +670,65 @@ func (k msgServer) Grant(goCtx context.Context, msg *types.MsgGrant) (*types.Msg
 
 	return &types.MsgGrantResponse{}, nil
 }
+
+func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.MsgSubmitProofVerification) (*types.MsgSubmitProofVerificationResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// msg check
+	checkerAddr, err := k.authKeeper.AddressCodec().StringToBytes(msg.Checker)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid checker address: %s", err)
+	}
+	// checker is bounty admin
+	if !k.certKeeper.IsBountyAdmin(ctx, checkerAddr) {
+		return nil, types.ErrProofOperatorNotAllowed
+	}
+	if msg.Status != types.ProofStatus_PROOF_STATUS_PASSED && msg.Status != types.ProofStatus_PROOF_STATUS_FAILED {
+		return nil, types.ErrProofStatusInvalid
+	}
+
+	// proof is valid
+	proof, err := k.Proofs.Get(ctx, msg.ProofId)
+	if err != nil {
+		return nil, err
+	}
+	if proof.Status != types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD {
+		return nil, types.ErrProofStatusInvalid
+	}
+
+	proverAddr, err := k.authKeeper.AddressCodec().StringToBytes(proof.Prover)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid checker address: %s", err)
+	}
+
+	proof.Status = msg.Status
+	if msg.Status == types.ProofStatus_PROOF_STATUS_PASSED {
+		// change proof status
+		if err = k.SetProof(ctx, proof); err != nil {
+			return nil, err
+		}
+		// distribution reward
+		err := k.DistributionGrants(ctx, checkerAddr, proverAddr)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if msg.Status == types.ProofStatus_PROOF_STATUS_FAILED {
+		// delete proof
+		if err = k.DeleteProof(ctx, proof.Id); err != nil {
+			return nil, err
+		}
+	}
+
+	err = k.TheoremProof.Remove(ctx, proof.TheoremId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgSubmitProofVerificationResponse{}, nil
+}
+
+func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

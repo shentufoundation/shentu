@@ -201,14 +201,8 @@ message Params {
   // Duration of the theorem proof period. Initial value: 2 weeks.
   google.protobuf.Duration theorem_max_proof_period = 3 [(gogoproto.stdduration) = true];
 
-  // Duration of the proof hash lock period. 10min
-  google.protobuf.Duration proof_hash_lock_period = 4 [(gogoproto.stdduration) = true];
-
-  // Duration of the proof detail lock period. 10min
-  google.protobuf.Duration proof_detail_lock_period = 5 [(gogoproto.stdduration) = true];
-
-  // Duration of the checker response period. 10min
-  google.protobuf.Duration checker_response_period = 6 [(gogoproto.stdduration) = true];
+  // Duration of the proof max lock period. 10min
+  google.protobuf.Duration proof_max_lock_period = 4 [(gogoproto.stdduration) = true];
 }
 
 enum TheoremStatus {
@@ -227,10 +221,10 @@ enum ProofStatus {
   PROOF_STATUS_UNSPECIFIED = 0;
   // proof status during the creation period.
   PROOF_STATUS_HASH_LOCK_PERIOD = 1;
-  // proof status during the upload proof detail period.
-  PROOF_STATUS_HASH_DETAIL_PERIOD = 2;
   // proof status during the upload proof detail period timeout.
-  PROOF_STATUS_HASH_DETAIL_TIMEOUT = 3;
+  PROOF_STATUS_HASH_DETAIL_TIMEOUT = 2;
+  // proof status during the upload proof detail period.
+  PROOF_STATUS_HASH_DETAIL_PERIOD = 3;
   // theorem that has passed.
   PROOF_STATUS_PASSED = 4;
   // theorem that has failed.

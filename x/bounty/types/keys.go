@@ -32,14 +32,11 @@ var (
 	ProofsKeyPrefix = collections.NewPrefix(15)
 	// HashLockProofQueuePrefix stores the active proofs.
 	HashLockProofQueuePrefix = collections.NewPrefix(16)
-	// DetailProofQueuePrefix stores the detail proofs.
-	DetailProofQueuePrefix = collections.NewPrefix(17)
 	// GrantsKeyPrefix stores grants.
 	GrantsKeyPrefix = collections.NewPrefix(18)
 
 	ProofByTheoremIndexKey = collections.NewPrefix(31) // key for proofs by a theorem
 	GrantByTheoremIndexKey = collections.NewPrefix(32) // key for grants by a theorem
-	GrantByAddressIndexKey = collections.NewPrefix(33) // key for grants by an address
 	// ParamsKey stores the module's params.
 	ParamsKey = collections.NewPrefix(41)
 )

@@ -22,9 +22,17 @@ func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, 
 	if err != nil {
 		return nil, err
 	}
-	// Check theorem is still depositable
+	// Check theorem is still proof able
 	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
 		return nil, types.ErrTheoremStatusInvalid
+	}
+
+	exists, err := k.TheoremProof.Has(ctx, theorem.Id)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, types.ErrTheoremHasProof
 	}
 
 	param, err := k.Params.Get(ctx)
@@ -32,12 +40,21 @@ func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, 
 		return nil, err
 	}
 
-	proof, err := types.NewProof(theoremID, proofID, prover, submitTime, submitTime.Add(*param.ProofHashLockPeriod), deposit)
+	proof, err := types.NewProof(theoremID, proofID, prover, submitTime, submitTime.Add(*param.ProofMaxLockPeriod), deposit)
 	if err != nil {
 		return nil, err
 	}
 
 	if err := k.SetProof(ctx, proof); err != nil {
+		return nil, err
+	}
+
+	err = k.TheoremProof.Set(ctx, theoremID, proofID)
+	if err != nil {
+		return nil, err
+	}
+	err = k.ActiveProofsQueue.Set(ctx, collections.Join(submitTime.Add(*param.ProofMaxLockPeriod), proofID), proof)
+	if err != nil {
 		return nil, err
 	}
 
@@ -57,7 +74,7 @@ func (k Keeper) SubmitProofDetail(ctx context.Context, proofId string, detail st
 
 	// update proof
 	proof.Detail = detail
-
+	proof.Status = types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD
 	return k.SetProof(ctx, proof)
 }
 
@@ -128,6 +145,24 @@ func (k Keeper) GetProofHash(theoremId uint64, prover, detail string) string {
 	bz := k.cdc.MustMarshal(proofHash)
 	hash := sha256.Sum256(bz)
 	return hex.EncodeToString(hash[:])
+}
+
+func (k Keeper) DeleteProof(ctx context.Context, proofID string) error {
+	proof, err := k.Proofs.Get(ctx, proofID)
+	if err != nil {
+		return err
+	}
+
+	err = k.ActiveProofsQueue.Remove(ctx, collections.Join(*proof.EndTime, proof.Id))
+	if err != nil {
+		return err
+	}
+	err = k.Proofs.Remove(ctx, proof.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (k Keeper) SetProof(ctx context.Context, proof types.Proof) error {

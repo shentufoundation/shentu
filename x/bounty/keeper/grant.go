@@ -100,6 +100,15 @@ func (k Keeper) IterateGrants(ctx context.Context, theoremID uint64, cb func(key
 	return nil
 }
 
+func (k Keeper) DistributionGrants(ctx context.Context, checker, prover sdk.AccAddress) error {
+	_, err := k.Params.Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // validateMinGrant validates if initial grant is greater than or equal to the minimum
 // required at the time of theorem submission. Returns nil on success, error otherwise.
 func (k Keeper) validateMinGrant(ctx context.Context, params types.Params, initialDeposit sdk.Coins) error {

@@ -58,8 +58,14 @@ service Msg {
   // SubmitProofDetail defines a method to submit a proof with detail.
   rpc SubmitProofDetail(MsgSubmitProofDetail) returns (MsgSubmitProofHashResponse);
 
+  // SubmitProofVerification defines a method to submit a proof result.
+  rpc SubmitProofVerification(MsgSubmitProofVerification) returns (MsgSubmitProofVerificationResponse);
+
   // Grant defines a method to grant theorem given the messages.
   rpc Grant(MsgGrant) returns (MsgGrantResponse);
+
+  // Grant defines a method to grant theorem given the messages.
+  rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new program.
@@ -298,3 +304,29 @@ message MsgSubmitProofDetail {
 }
 
 message MsgSubmitProofDetailResponse {}
+
+
+message MsgSubmitProofVerification {
+  option (cosmos.msg.v1.signer) = "checker";
+  option (amino.name) = "bounty/MsgSubmitProofVerification";
+
+  string proof_id = 1;
+  ProofStatus status = 2;
+
+  string checker = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgSubmitProofVerificationResponse {}
+
+message MsgWithdrawReward {
+  option (cosmos.msg.v1.signer) = "address";
+  option (amino.name) = "bounty/MsgWithdrawReward";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgWithdrawRewardResponse {}
+

@@ -17,21 +17,34 @@ func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
 
 	logger := ctx.Logger().With("module", "x/"+types.ModuleName)
 
+	rngProof := collections.NewPrefixUntilPairRange[time.Time, string](ctx.BlockTime())
+	k.ActiveProofsQueue.Walk(ctx, rngProof, func(key collections.Pair[time.Time, string], value types.Proof) (stop bool, err error) {
+		err = k.DeleteProof(ctx, key.K2())
+		if err != nil {
+			return false, err
+		}
+
+		return false, nil
+	})
+
 	// delete dead theorems from store and returns theirs grant.
 	// A theorem is dead when it's active and didn't get correct proof on time to get into pass phase.
-	rng := collections.NewPrefixUntilPairRange[time.Time, uint64](ctx.BlockTime())
-	err := k.ActiveTheoremsQueue.Walk(ctx, rng, func(key collections.Pair[time.Time, uint64], value uint64) (stop bool, err error) {
+	rngTheorem := collections.NewPrefixUntilPairRange[time.Time, uint64](ctx.BlockTime())
+	err := k.ActiveTheoremsQueue.Walk(ctx, rngTheorem, func(key collections.Pair[time.Time, uint64], value uint64) (stop bool, err error) {
 		theorem, err := k.Theorems.Get(ctx, key.K2())
 		if err != nil {
 			return false, err
 		}
 
-		// TODO add to a func
-		err = k.ActiveTheoremsQueue.Remove(ctx, collections.Join(*theorem.EndTime, theorem.Id))
+		exist, err := k.TheoremProof.Has(ctx, theorem.Id)
 		if err != nil {
 			return false, err
 		}
-		err = k.Theorems.Remove(ctx, theorem.Id)
+		if exist {
+			return false, nil
+		}
+
+		err = k.DeleteTheorem(ctx, theorem.Id)
 		if err != nil {
 			return false, err
 		}

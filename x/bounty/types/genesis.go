@@ -14,10 +14,8 @@ import (
 func DefaultGenesisState() *GenesisState {
 	minGrant := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdkmath.NewInt(1000000)))
 	minDeposit := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdkmath.NewInt(1000000)))
-	maxProofPeriod := time.Minute * 5
-	proofHashLockPeriod := time.Minute * 5
-	proofDetailLockPeriod := time.Minute * 5
-	checkerResponsePeriod := time.Minute * 5
+	theoremMaxProofPeriod := time.Minute * 5
+	proofMaxLockPeriod := time.Minute * 5
 
 	return &GenesisState{
 		Programs:          []Program{},
@@ -26,10 +24,8 @@ func DefaultGenesisState() *GenesisState {
 		Params: &Params{
 			MinGrant:              minGrant,
 			MinDeposit:            minDeposit,
-			TheoremMaxProofPeriod: &maxProofPeriod,
-			ProofHashLockPeriod:   &proofHashLockPeriod,
-			ProofDetailLockPeriod: &proofDetailLockPeriod,
-			CheckerResponsePeriod: &checkerResponsePeriod,
+			TheoremMaxProofPeriod: &theoremMaxProofPeriod,
+			ProofMaxLockPeriod:    &proofMaxLockPeriod,
 		},
 	}
 }
