@@ -11,32 +11,26 @@ const (
 	DefaultStartingTheoremID uint64 = 1
 )
 
-func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, submitTime, grantEndTime time.Time, proofTime time.Duration) (Theorem, error) {
-
-	proofEndTime := submitTime.Add(proofTime)
+func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, submitTime, endTime time.Time) (Theorem, error) {
 	return Theorem{
-		Id:             id,
-		Title:          title,
-		Description:    desc,
-		Code:           code,
-		Status:         TheoremStatus_THEOREM_STATUS_GRANT_PERIOD,
-		SubmitTime:     &submitTime,
-		GrantEndTime:   &grantEndTime,
-		ProofStartTime: &submitTime,
-		ProofEndTime:   &proofEndTime,
-		Proposer:       proposer.String(),
+		Id:          id,
+		Title:       title,
+		Description: desc,
+		Code:        code,
+		Status:      TheoremStatus_THEOREM_STATUS_PROOF_PERIOD,
+		SubmitTime:  &submitTime,
+		EndTime:     &endTime,
+		Proposer:    proposer.String(),
 	}, nil
 }
 
-func NewProof(theoremId uint64, proofHash, prover string, submitTime time.Time, deposit sdk.Coins, timeout time.Duration) (Proof, error) {
-
-	timeOut := submitTime.Add(timeout)
+func NewProof(theoremId uint64, proofHash, prover string, submitTime, endTime time.Time, deposit sdk.Coins) (Proof, error) {
 	return Proof{
 		TheoremId:  theoremId,
 		Id:         proofHash,
 		Status:     ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD,
 		SubmitTime: &submitTime,
-		TimeOut:    &timeOut,
+		EndTime:    &endTime,
 		Prover:     prover,
 		Deposit:    deposit,
 	}, nil

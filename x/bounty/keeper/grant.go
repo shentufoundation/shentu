@@ -7,10 +7,10 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccAddress, grantAmount sdk.Coins) error {
@@ -20,8 +20,7 @@ func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccA
 		return err
 	}
 	// Check theorem is still depositable
-	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_GRANT_PERIOD &&
-		theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
+	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
 		return errors.Wrapf(types.ErrTheoremProposal, "%d", theoremID)
 	}
 
@@ -52,7 +51,7 @@ func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccA
 	}
 
 	// Add or update grant object
-	grant, err := k.Grants.Get(ctx, collections.Join(grantor, theoremID))
+	grant, err := k.Grants.Get(ctx, collections.Join(theoremID, grantor))
 	switch {
 	case err == nil:
 		// deposit exists
@@ -78,20 +77,27 @@ func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccA
 	return k.SetGrant(ctx, grant)
 }
 
-func (k Keeper) SetGrant(ctx context.Context, grant types.Grant) error {
-	grantor, err := k.authKeeper.AddressCodec().StringToBytes(grant.Grantor)
-	if err != nil {
-		return err
-	}
-	return k.Grants.Set(ctx, collections.Join(sdk.AccAddress(grantor), grant.TheoremId), grant)
+// RefundAndDeleteGrants refunds and deletes all the deposits on a timeout theorem.
+func (k Keeper) RefundAndDeleteGrants(ctx context.Context, theoremID uint64) error {
+	return k.IterateGrants(ctx, theoremID, func(key collections.Pair[uint64, sdk.AccAddress], grant types.Grant) (bool, error) {
+		grantor := key.K2()
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, grantor, grant.Amount)
+		if err != nil {
+			return false, err
+		}
+		err = k.Grants.Remove(ctx, key)
+		return false, err
+	})
 }
 
-func (k Keeper) SetDeposit(ctx context.Context, deposit types.Deposit) error {
-	depositor, err := k.authKeeper.AddressCodec().StringToBytes(deposit.Depositor)
+// IterateGrants iterates over all the theorems deposits and performs a callback function
+func (k Keeper) IterateGrants(ctx context.Context, theoremID uint64, cb func(key collections.Pair[uint64, sdk.AccAddress], value types.Grant) (bool, error)) error {
+	rng := collections.NewPrefixedPairRange[uint64, sdk.AccAddress](theoremID)
+	err := k.Grants.Walk(ctx, rng, cb)
 	if err != nil {
 		return err
 	}
-	return k.Deposits.Set(ctx, collections.Join(sdk.AccAddress(depositor), deposit.ProofId), deposit)
+	return nil
 }
 
 // validateMinGrant validates if initial grant is greater than or equal to the minimum
@@ -105,21 +111,6 @@ func (k Keeper) validateMinGrant(ctx context.Context, params types.Params, initi
 	// Check if the initial deposit meets the minimum required grant amount
 	if !initialDeposit.IsAllGTE(params.MinGrant) {
 		return errors.Wrapf(types.ErrMinGrantTooSmall, "was (%s), need (%s)", initialDeposit, params.MinGrant)
-	}
-	return nil
-}
-
-// validateMinDeposit validates if deposit is greater than or equal to the minimum
-// required at the time of proof submission. Returns nil on success, error otherwise.
-func (k Keeper) validateMinDeposit(ctx context.Context, params types.Params, initialDeposit sdk.Coins) error {
-	// Check if the initial deposit is valid and has no negative amount
-	if !initialDeposit.IsValid() || initialDeposit.IsAnyNegative() {
-		return errors.Wrap(sdkerrors.ErrInvalidCoins, initialDeposit.String())
-	}
-
-	// Check if the initial deposit meets the minimum required grant amount
-	if !initialDeposit.IsAllGTE(params.MinDeposit) {
-		return errors.Wrapf(types.ErrMinDepositTooSmall, "was (%s), need (%s)", initialDeposit, params.MinGrant)
 	}
 	return nil
 }
@@ -145,4 +136,12 @@ func (k Keeper) validateDepositDenom(ctx context.Context, params types.Params, d
 	}
 
 	return nil
+}
+
+func (k Keeper) SetGrant(ctx context.Context, grant types.Grant) error {
+	grantor, err := k.authKeeper.AddressCodec().StringToBytes(grant.Grantor)
+	if err != nil {
+		return err
+	}
+	return k.Grants.Set(ctx, collections.Join(grant.TheoremId, sdk.AccAddress(grantor)), grant)
 }

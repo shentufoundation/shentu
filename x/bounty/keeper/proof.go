@@ -23,9 +23,7 @@ func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, 
 		return nil, err
 	}
 	// Check theorem is still depositable
-	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_GRANT_PERIOD &&
-		theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
-
+	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
 		return nil, types.ErrTheoremStatusInvalid
 	}
 
@@ -34,7 +32,7 @@ func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, 
 		return nil, err
 	}
 
-	proof, err := types.NewProof(theoremID, proofID, prover, submitTime, deposit, *param.ProofDetailLockPeriod)
+	proof, err := types.NewProof(theoremID, proofID, prover, submitTime, submitTime.Add(*param.ProofHashLockPeriod), deposit)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +92,7 @@ func (k Keeper) AddDeposit(ctx context.Context, proofID string, depositorAddr sd
 	}
 
 	// Add or update grant object
-	deposit, err := k.Deposits.Get(ctx, collections.Join(depositorAddr, proofID))
+	deposit, err := k.Deposits.Get(ctx, collections.Join(proofID, depositorAddr))
 	switch {
 	case err == nil:
 		// deposit exists

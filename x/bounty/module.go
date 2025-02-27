@@ -1,6 +1,7 @@
 package bounty
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -136,6 +137,13 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 3 }
+
+// EndBlock returns the end blocker for the bounty module. It returns no validator
+// updates.
+func (am AppModule) EndBlock(ctx context.Context) error {
+	c := sdk.UnwrapSDKContext(ctx)
+	return EndBlocker(c, &am.keeper)
+}
 
 //____________________________________________________________________________
 

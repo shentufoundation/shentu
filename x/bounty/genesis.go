@@ -33,7 +33,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	for _, theorem := range data.Theorems {
 		switch theorem.Status {
 		case types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD:
-			err := k.ActiveTheoremsQueue.Set(ctx, collections.Join(*theorem.ProofEndTime, theorem.Id), theorem.Id)
+			err := k.ActiveTheoremsQueue.Set(ctx, collections.Join(*theorem.EndTime, theorem.Id), theorem.Id)
 			if err != nil {
 				panic(err)
 			}

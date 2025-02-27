@@ -552,7 +552,7 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 	}
 
 	submitTime := ctx.BlockHeader().Time
-	theorem, err := k.Keeper.CreateTheorem(ctx, proposer, msg.Title, msg.Description, msg.Code, submitTime, submitTime.Add(*params.TheoremMaxGrantPeriod), *params.TheoremMaxProofPeriod)
+	theorem, err := k.Keeper.CreateTheorem(ctx, proposer, msg.Title, msg.Description, msg.Code, submitTime, submitTime.Add(*params.TheoremMaxProofPeriod))
 	if err != nil {
 		return nil, err
 	}
