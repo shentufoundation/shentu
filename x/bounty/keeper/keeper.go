@@ -35,8 +35,10 @@ type Keeper struct {
 	Theorems collections.Map[uint64, types.Theorem]
 	// Grants key: TheoremID+Grantor | value: Grant
 	Grants collections.Map[collections.Pair[uint64, sdk.AccAddress], types.Grant]
-	// Deposit key: ProofID+Depositor | value: Deposit
+	// Deposits key: ProofID+Depositor | value: Deposit
 	Deposits collections.Map[collections.Pair[string, sdk.AccAddress], types.Deposit]
+	// Rewards key: address | value: Reward
+	Rewards collections.Map[sdk.AccAddress, types.Reward]
 	// Proofs key: ProofID | value: Proof
 	Proofs collections.Map[string, types.Proof]
 	// TheoremProofList key: TheoremID | value: ProofID
@@ -64,20 +66,20 @@ func NewKeeper(
 	sb := collections.NewSchemaBuilder(storeService)
 
 	return Keeper{
-		cdc:          cdc,
-		certKeeper:   ck,
-		authKeeper:   ak,
-		bankKeeper:   bk,
-		authority:    authority,
-		storeService: storeService,
-		Params:       collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
-		TheoremID:    collections.NewSequence(sb, types.TheoremIDKey, "theorem_id"),
-		Theorems:     collections.NewMap(sb, types.TheoremsKeyKeyPrefix, "theorems", collections.Uint64Key, codec.CollValue[types.Theorem](cdc)),
-		Grants:       collections.NewMap(sb, types.GrantsKeyPrefix, "grants", collections.PairKeyCodec(collections.Uint64Key, sdk.LengthPrefixedAddressKey(sdk.AccAddressKey)), codec.CollValue[types.Grant](cdc)),
-		Deposits:     collections.NewMap(sb, types.GrantsKeyPrefix, "deposits", collections.PairKeyCodec(collections.StringKey, sdk.LengthPrefixedAddressKey(sdk.AccAddressKey)), codec.CollValue[types.Deposit](cdc)),
-		Proofs:       collections.NewMap(sb, types.ProofsKeyPrefix, "proofs", collections.StringKey, codec.CollValue[types.Proof](cdc)),
-		TheoremProof: collections.NewMap(sb, types.ProofsKeyPrefix, "theorem_proof", collections.Uint64Key, collections.StringValue),
-
+		cdc:                 cdc,
+		certKeeper:          ck,
+		authKeeper:          ak,
+		bankKeeper:          bk,
+		authority:           authority,
+		storeService:        storeService,
+		Params:              collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
+		TheoremID:           collections.NewSequence(sb, types.TheoremIDKey, "theorem_id"),
+		Theorems:            collections.NewMap(sb, types.TheoremsKeyKeyPrefix, "theorems", collections.Uint64Key, codec.CollValue[types.Theorem](cdc)),
+		Grants:              collections.NewMap(sb, types.GrantsKeyPrefix, "grants", collections.PairKeyCodec(collections.Uint64Key, sdk.LengthPrefixedAddressKey(sdk.AccAddressKey)), codec.CollValue[types.Grant](cdc)),
+		Rewards:             collections.NewMap(sb, types.RewardsKeyPrefix, "reward", sdk.LengthPrefixedAddressKey(sdk.AccAddressKey), codec.CollValue[types.Reward](cdc)),
+		Deposits:            collections.NewMap(sb, types.DepositsKeyPrefix, "deposits", collections.PairKeyCodec(collections.StringKey, sdk.LengthPrefixedAddressKey(sdk.AccAddressKey)), codec.CollValue[types.Deposit](cdc)),
+		Proofs:              collections.NewMap(sb, types.ProofsKeyPrefix, "proofs", collections.StringKey, codec.CollValue[types.Proof](cdc)),
+		TheoremProof:        collections.NewMap(sb, types.TheoremProofPrefix, "theorem_proof", collections.Uint64Key, collections.StringValue),
 		ActiveTheoremsQueue: collections.NewMap(sb, types.ActiveTheoremQueuePrefix, "active_theorems_queue", collections.PairKeyCodec(sdk.TimeKey, collections.Uint64Key), collections.Uint64Value),
 		ActiveProofsQueue:   collections.NewMap(sb, types.HashLockProofQueuePrefix, "active_proofs_queue", collections.PairKeyCodec(sdk.TimeKey, collections.StringKey), codec.CollValue[types.Proof](cdc)),
 	}

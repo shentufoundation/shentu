@@ -6,7 +6,6 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
-
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -100,8 +99,44 @@ func (k Keeper) IterateGrants(ctx context.Context, theoremID uint64, cb func(key
 	return nil
 }
 
-func (k Keeper) DistributionGrants(ctx context.Context, checker, prover sdk.AccAddress) error {
-	_, err := k.Params.Get(ctx)
+func (k Keeper) DistributionGrants(ctx context.Context, theoremID uint64, checker, prover sdk.AccAddress) error {
+	param, err := k.Params.Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	theorem, err := k.Theorems.Get(ctx, theoremID)
+	if err != nil {
+		return err
+	}
+	totalGrant := sdk.NewDecCoinsFromCoins(theorem.TotalGrant...)
+
+	cReward := totalGrant.MulDec(param.CheckerRate)
+	pReward := totalGrant.Sub(cReward)
+
+	checkerReward, err := k.Rewards.Get(ctx, checker)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			// not found
+			checkerReward.Reward = cReward
+		}
+
+		return err
+	} else {
+		checkerReward.Reward = checkerReward.Reward.Add(cReward...)
+	}
+
+	err = k.Rewards.Set(ctx, checker, checkerReward)
+	if err != nil {
+		return err
+	}
+
+	proverReward, err := k.Rewards.Get(ctx, prover)
+	if err != nil {
+		return err
+	}
+	checkerReward.Reward = proverReward.Reward.Add(pReward...)
+	err = k.Rewards.Set(ctx, checker, checkerReward)
 	if err != nil {
 		return err
 	}

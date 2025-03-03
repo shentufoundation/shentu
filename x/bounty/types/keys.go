@@ -34,6 +34,12 @@ var (
 	HashLockProofQueuePrefix = collections.NewPrefix(16)
 	// GrantsKeyPrefix stores grants.
 	GrantsKeyPrefix = collections.NewPrefix(18)
+	// DepositsKeyPrefix stores grants.
+	DepositsKeyPrefix = collections.NewPrefix(19)
+	// RewardsKeyPrefix stores rewards.
+	RewardsKeyPrefix = collections.NewPrefix(20)
+
+	TheoremProofPrefix = collections.NewPrefix(21)
 
 	ProofByTheoremIndexKey = collections.NewPrefix(31) // key for proofs by a theorem
 	GrantByTheoremIndexKey = collections.NewPrefix(32) // key for grants by a theorem

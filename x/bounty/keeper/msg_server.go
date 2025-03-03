@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 
@@ -708,7 +709,7 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 			return nil, err
 		}
 		// distribution reward
-		err := k.DistributionGrants(ctx, checkerAddr, proverAddr)
+		err := k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr)
 		if err != nil {
 			return nil, err
 		}
@@ -716,6 +717,9 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	if msg.Status == types.ProofStatus_PROOF_STATUS_FAILED {
 		// delete proof
 		if err = k.DeleteProof(ctx, proof.Id); err != nil {
+			return nil, err
+		}
+		if err = k.Deposits.Remove(ctx, collections.Join(proof.Id, sdk.AccAddress(proverAddr))); err != nil {
 			return nil, err
 		}
 	}
@@ -729,6 +733,33 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 }
 
 func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	//
+
+	addr, err := k.authKeeper.AddressCodec().StringToBytes(msg.Address)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid address: %s", err)
+	}
+
+	reward, err := k.Rewards.Get(ctx, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO remain asset should send to pool?
+	finalRewards, _ := reward.Reward.TruncateDecimal()
+	if !finalRewards.IsZero() {
+		err = k.Rewards.Remove(ctx, addr)
+		if err != nil {
+			return nil, err
+		}
+
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, finalRewards)
+		if err != nil {
+			return nil, err
+		}
+
+	}
+
+	return &types.MsgWithdrawRewardResponse{}, nil
 }
