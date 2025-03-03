@@ -16,6 +16,7 @@ func DefaultGenesisState() *GenesisState {
 	minDeposit := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdkmath.NewInt(1000000)))
 	theoremMaxProofPeriod := time.Minute * 5
 	proofMaxLockPeriod := time.Minute * 5
+	checkerRate := sdkmath.LegacyMustNewDecFromStr("0.2")
 
 	return &GenesisState{
 		Programs:          []Program{},
@@ -26,6 +27,7 @@ func DefaultGenesisState() *GenesisState {
 			MinDeposit:            minDeposit,
 			TheoremMaxProofPeriod: &theoremMaxProofPeriod,
 			ProofMaxLockPeriod:    &proofMaxLockPeriod,
+			CheckerRate:           checkerRate,
 		},
 	}
 }

@@ -734,7 +734,6 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 
 func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	//
 
 	addr, err := k.authKeeper.AddressCodec().StringToBytes(msg.Address)
 	if err != nil {
@@ -758,7 +757,6 @@ func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawR
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	return &types.MsgWithdrawRewardResponse{}, nil

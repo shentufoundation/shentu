@@ -19,27 +19,24 @@ var (
 	FindingKey = collections.NewPrefix(2)
 
 	ProgramIDFindingListKey = collections.NewPrefix(10)
-
 	// TheoremIDKey stores the sequence representing the next theorem ID.
 	TheoremIDKey = collections.NewPrefix(11)
 	// TheoremsKeyKeyPrefix stores the theorem raw bytes.
 	TheoremsKeyKeyPrefix = collections.NewPrefix(12)
 	// ActiveTheoremQueuePrefix stores the active theorems.
 	ActiveTheoremQueuePrefix = collections.NewPrefix(13)
-	// InactiveTheoremQueuePrefix stores the inactive theorems.
-	InactiveTheoremQueuePrefix = collections.NewPrefix(14)
 	// ProofsKeyPrefix stores the proof raw bytes.
-	ProofsKeyPrefix = collections.NewPrefix(15)
+	ProofsKeyPrefix = collections.NewPrefix(14)
 	// HashLockProofQueuePrefix stores the active proofs.
-	HashLockProofQueuePrefix = collections.NewPrefix(16)
+	HashLockProofQueuePrefix = collections.NewPrefix(15)
 	// GrantsKeyPrefix stores grants.
-	GrantsKeyPrefix = collections.NewPrefix(18)
+	GrantsKeyPrefix = collections.NewPrefix(16)
 	// DepositsKeyPrefix stores grants.
-	DepositsKeyPrefix = collections.NewPrefix(19)
+	DepositsKeyPrefix = collections.NewPrefix(17)
 	// RewardsKeyPrefix stores rewards.
-	RewardsKeyPrefix = collections.NewPrefix(20)
+	RewardsKeyPrefix = collections.NewPrefix(18)
 
-	TheoremProofPrefix = collections.NewPrefix(21)
+	TheoremProofPrefix = collections.NewPrefix(19)
 
 	ProofByTheoremIndexKey = collections.NewPrefix(31) // key for proofs by a theorem
 	GrantByTheoremIndexKey = collections.NewPrefix(32) // key for grants by a theorem
