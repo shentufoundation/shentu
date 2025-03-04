@@ -230,15 +230,13 @@ enum ProofStatus {
   // proof status during the creation period.
   PROOF_STATUS_HASH_LOCK_PERIOD = 1;
   // proof status during the upload proof detail period timeout.
-  PROOF_STATUS_HASH_DETAIL_TIMEOUT = 2;
+  PROOF_STATUS_HASH_LOCK_TIMEOUT = 2;
   // proof status during the upload proof detail period.
   PROOF_STATUS_HASH_DETAIL_PERIOD = 3;
   // theorem that has passed.
   PROOF_STATUS_PASSED = 4;
   // theorem that has failed.
   PROOF_STATUS_FAILED = 5;
-  // theorem that checker has timeout.
-  PROOF_STATUS_CHECKER_TIMEOUT = 6;
 }
 
 message Reward {

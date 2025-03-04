@@ -34,6 +34,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryProgramFingerprint(),
 		GetCmdQueryTheorem(),
 		GetCmdQueryProof(),
+		GetCmdQueryTheorems(),
 	)
 
 	return bountyQueryCmd
@@ -395,5 +396,40 @@ $ %s query bounty proof "hash"
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryTheorems implements the query all theorems command.
+func GetCmdQueryTheorems() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "theorems",
+		Short: "Query all theorems",
+		Long:  "Query all theorems with optional pagination",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.AllTheorems(cmd.Context(), &types.QueryTheoremsRequest{
+				Pagination: pageReq,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddPaginationFlagsToCmd(cmd, "theorems")
+	flags.AddQueryFlagsToCmd(cmd)
+
 	return cmd
 }

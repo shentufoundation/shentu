@@ -8,10 +8,11 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 type msgServer struct {
@@ -26,13 +27,84 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProgram) (*types.MsgCreateProgramResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
+// validateOperatorAddress validates the operator address and returns the decoded address
+func (k msgServer) validateOperatorAddress(operatorAddress string) (sdk.AccAddress, error) {
+	if operatorAddress == "" {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidAddress, "operator address cannot be empty")
+	}
+	operatorAddr, err := sdk.AccAddressFromBech32(operatorAddress)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid operator address: %s", err)
+	}
+	return operatorAddr, nil
+}
 
-	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+// validateProgramStatus checks if the program exists and is in the expected status
+func (k msgServer) validateProgramStatus(ctx sdk.Context, programID string, expectedStatus types.ProgramStatus) (*types.Program, error) {
+	program, found := k.GetProgram(ctx, programID)
+	if !found {
+		return nil, types.ErrProgramNotExists
+	}
+	if program.Status != expectedStatus {
+		return nil, types.ErrProgramNotActive
+	}
+	return &program, nil
+}
+
+// validateFindingStatus checks if the finding exists and is in the expected status
+func (k msgServer) validateFindingStatus(ctx sdk.Context, findingID string, expectedStatuses ...types.FindingStatus) (*types.Finding, error) {
+	finding, found := k.GetFinding(ctx, findingID)
+	if !found {
+		return nil, types.ErrFindingNotExists
+	}
+
+	validStatus := false
+	for _, status := range expectedStatuses {
+		if finding.Status == status {
+			validStatus = true
+			break
+		}
+	}
+	if !validStatus {
+		return nil, types.ErrFindingStatusInvalid
+	}
+	return &finding, nil
+}
+
+// validateProofStatus checks if the proof exists and is in the expected status
+func (k msgServer) validateProofStatus(ctx sdk.Context, proofID string, expectedStatus types.ProofStatus) (*types.Proof, error) {
+	proof, err := k.Proofs.Get(ctx, proofID)
 	if err != nil {
 		return nil, err
 	}
+	if proof.Status != expectedStatus {
+		return nil, types.ErrProofStatusInvalid
+	}
+	return &proof, nil
+}
+
+// emitEvent is a helper function to emit events
+func (k msgServer) emitEvent(ctx sdk.Context, eventType string, attributes ...sdk.Attribute) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			eventType,
+			attributes...,
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
+func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProgram) (*types.MsgCreateProgramResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr, err := k.validateOperatorAddress(msg.OperatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
 	_, found := k.GetProgram(ctx, msg.ProgramId)
 	if found {
 		return nil, types.ErrProgramAlreadyExists
@@ -46,17 +118,10 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 
 	k.SetProgram(ctx, program)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeCreateProgram,
-			sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
-		),
-	})
+	k.emitEvent(ctx, types.EventTypeCreateProgram,
+		sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+	)
 
 	return &types.MsgCreateProgramResponse{}, nil
 }
@@ -64,7 +129,7 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram) (*types.MsgEditProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	operatorAddr, err := k.validateOperatorAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -74,9 +139,7 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 		return nil, types.ErrProgramNotExists
 	}
 
-	// check the status.
-	// inactive: program admin, bounty certificate
-	// active: bounty certificate
+	// check the status and permissions
 	switch program.Status {
 	case types.ProgramStatusInactive:
 		if program.AdminAddress != msg.OperatorAddress && !k.certKeeper.IsBountyAdmin(ctx, operatorAddr) {
@@ -99,17 +162,10 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 
 	k.SetProgram(ctx, program)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeEditProgram,
-			sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
-		),
-	})
+	k.emitEvent(ctx, types.EventTypeEditProgram,
+		sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+	)
 
 	return &types.MsgEditProgramResponse{}, nil
 }
@@ -167,17 +223,14 @@ func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgCloseProgra
 func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFinding) (*types.MsgSubmitFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	operatorAddr, err := k.validateOperatorAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	program, isExist := k.GetProgram(ctx, msg.ProgramId)
-	if !isExist {
-		return nil, types.ErrProgramNotExists
-	}
-	if program.Status != types.ProgramStatusActive {
-		return nil, types.ErrProgramNotActive
+	_, err = k.validateProgramStatus(ctx, msg.ProgramId, types.ProgramStatusActive)
+	if err != nil {
+		return nil, err
 	}
 
 	_, found := k.GetFinding(ctx, msg.FindingId)
@@ -197,44 +250,34 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 
 	k.SetFinding(ctx, finding)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeSubmitFinding,
-			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
-			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
-		),
-	})
+	k.emitEvent(ctx, types.EventTypeSubmitFinding,
+		sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
+		sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+	)
 
 	return &types.MsgSubmitFindingResponse{}, nil
 }
 
 func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding) (*types.MsgEditFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	finding, found := k.GetFinding(ctx, msg.FindingId)
-	if !found {
-		return nil, types.ErrFindingNotExists
+
+	findingPtr, err := k.validateFindingStatus(ctx, msg.FindingId, types.FindingStatusSubmitted, types.FindingStatusActive)
+	if err != nil {
+		return nil, err
 	}
-	// check program
-	program, isExist := k.GetProgram(ctx, finding.ProgramId)
-	if !isExist {
-		return nil, types.ErrProgramNotExists
-	}
-	if program.Status != types.ProgramStatusActive {
-		return nil, types.ErrProgramNotActive
+	finding := *findingPtr
+
+	program, err := k.validateProgramStatus(ctx, finding.ProgramId, types.ProgramStatusActive)
+	if err != nil {
+		return nil, err
 	}
 
 	// program admin edit paymentHash
 	if len(msg.PaymentHash) > 0 {
-		// check status
 		if finding.Status != types.FindingStatusConfirmed {
 			return nil, types.ErrFindingStatusInvalid
 		}
-		// check operator is program admin
 		if program.AdminAddress != msg.OperatorAddress {
 			return nil, types.ErrFindingOperatorNotAllowed
 		}
@@ -242,28 +285,15 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 
 		k.SetFinding(ctx, finding)
 
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeEditFindingPaymentHash,
-				sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
-				sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-			),
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-				sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
-			),
-		})
+		k.emitEvent(ctx, types.EventTypeEditFindingPaymentHash,
+			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
+			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+		)
 		return &types.MsgEditFindingResponse{}, nil
 	}
 
 	// whitehat edit finding
-	//  StatusSubmitted and StatusActive can be edited
-	if finding.Status != types.FindingStatusSubmitted && finding.Status != types.FindingStatusActive {
-		return nil, types.ErrFindingStatusInvalid
-	}
-
-	// check operator is whitehat
 	if finding.SubmitterAddress != msg.OperatorAddress {
 		return nil, types.ErrFindingOperatorNotAllowed
 	}
@@ -276,18 +306,11 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 
 	k.SetFinding(ctx, finding)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeEditFinding,
-			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
-			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
-		),
-	})
+	k.emitEvent(ctx, types.EventTypeEditFinding,
+		sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
+		sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+	)
 
 	return &types.MsgEditFindingResponse{}, nil
 }
@@ -620,23 +643,16 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmitProofDetail) (*types.MsgSubmitProofHashResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Check if proof exists
-	proof, err := k.Proofs.Get(ctx, msg.ProofId)
-	if err != nil {
-		return nil, err
+	if msg.Detail == "" {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof detail cannot be empty")
 	}
 
-	// hash check
-	if msg.Detail == "" {
-		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash cannot be empty")
-	}
-	_, err = k.Proofs.Get(ctx, msg.ProofId)
+	proof, err := k.validateProofStatus(ctx, msg.ProofId, types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD)
 	if err != nil {
 		return nil, err
 	}
 
 	hash := k.Keeper.GetProofHash(proof.TheoremId, msg.GetProver(), msg.Detail)
-
 	if proof.Id != hash {
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash inconsistent")
 	}
@@ -646,11 +662,9 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(types.EventTypeSubmitProofDetail,
-			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
-			sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
-		),
+	k.emitEvent(ctx, types.EventTypeSubmitProofDetail,
+		sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
+		sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
 	)
 
 	return &types.MsgSubmitProofHashResponse{}, nil
@@ -675,47 +689,39 @@ func (k msgServer) Grant(goCtx context.Context, msg *types.MsgGrant) (*types.Msg
 func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.MsgSubmitProofVerification) (*types.MsgSubmitProofVerificationResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// msg check
-	checkerAddr, err := k.authKeeper.AddressCodec().StringToBytes(msg.Checker)
+	checkerAddr, err := k.validateOperatorAddress(msg.Checker)
 	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid checker address: %s", err)
+		return nil, err
 	}
-	// checker is bounty admin
+
 	if !k.certKeeper.IsBountyAdmin(ctx, checkerAddr) {
 		return nil, types.ErrProofOperatorNotAllowed
 	}
+
 	if msg.Status != types.ProofStatus_PROOF_STATUS_PASSED && msg.Status != types.ProofStatus_PROOF_STATUS_FAILED {
 		return nil, types.ErrProofStatusInvalid
 	}
 
-	// proof is valid
-	proof, err := k.Proofs.Get(ctx, msg.ProofId)
+	proofPtr, err := k.validateProofStatus(ctx, msg.ProofId, types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD)
 	if err != nil {
 		return nil, err
 	}
-	if proof.Status != types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD {
-		return nil, types.ErrProofStatusInvalid
-	}
+	proof := *proofPtr
 
 	proverAddr, err := k.authKeeper.AddressCodec().StringToBytes(proof.Prover)
 	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid checker address: %s", err)
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid prover address: %s", err)
 	}
 
 	proof.Status = msg.Status
 	if msg.Status == types.ProofStatus_PROOF_STATUS_PASSED {
-		// change proof status
 		if err = k.SetProof(ctx, proof); err != nil {
 			return nil, err
 		}
-		// distribution reward
-		err := k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr)
-		if err != nil {
+		if err = k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr); err != nil {
 			return nil, err
 		}
-	}
-	if msg.Status == types.ProofStatus_PROOF_STATUS_FAILED {
-		// delete proof
+	} else if msg.Status == types.ProofStatus_PROOF_STATUS_FAILED {
 		if err = k.DeleteProof(ctx, proof.Id); err != nil {
 			return nil, err
 		}
@@ -724,8 +730,7 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 		}
 	}
 
-	err = k.TheoremProof.Remove(ctx, proof.TheoremId)
-	if err != nil {
+	if err = k.TheoremProof.Remove(ctx, proof.TheoremId); err != nil {
 		return nil, err
 	}
 
@@ -745,16 +750,13 @@ func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawR
 		return nil, err
 	}
 
-	// TODO remain asset should send to pool?
 	finalRewards, _ := reward.Reward.TruncateDecimal()
 	if !finalRewards.IsZero() {
-		err = k.Rewards.Remove(ctx, addr)
-		if err != nil {
+		if err = k.Rewards.Remove(ctx, addr); err != nil {
 			return nil, err
 		}
 
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, finalRewards)
-		if err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, finalRewards); err != nil {
 			return nil, err
 		}
 	}

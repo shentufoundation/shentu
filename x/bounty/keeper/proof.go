@@ -13,6 +13,12 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
+// SubmitProofHash creates a new proof hash for a theorem. It checks if:
+// - the theorem exists and is in proof period
+// - the theorem doesn't already have a proof
+// - the proof parameters are valid
+// Then creates and stores the proof, updates theorem proof mapping, and adds to active proofs queue.
+// Returns the created proof and any error.
 func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, prover string, deposit sdk.Coins) (*types.Proof, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	submitTime := sdkCtx.BlockHeader().Time
@@ -61,6 +67,11 @@ func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, 
 	return &proof, nil
 }
 
+// SubmitProofHash creates a new proof for a theorem with a hash lock.
+// It checks if the theorem exists and is in proof period, ensures no proof exists yet,
+// validates parameters, and creates a new proof with the given details.
+// The proof is stored, mapped to the theorem, and added to the active proofs queue.
+// Returns the created proof and any error.
 func (k Keeper) SubmitProofDetail(ctx context.Context, proofId string, detail string) error {
 	// Check if proof exists
 	proof, err := k.Proofs.Get(ctx, proofId)
@@ -141,7 +152,6 @@ func (k Keeper) GetProofHash(theoremId uint64, prover, detail string) string {
 		Prover:    prover,
 		Detail:    detail,
 	}
-
 	bz := k.cdc.MustMarshal(proofHash)
 	hash := sha256.Sum256(bz)
 	return hex.EncodeToString(hash[:])

@@ -163,7 +163,6 @@ func (k Keeper) ProgramFingerprint(c context.Context, req *types.QueryProgramFin
 }
 
 func (k Keeper) AllTheorems(c context.Context, req *types.QueryTheoremsRequest) (*types.QueryTheoremsResponse, error) {
-	//TODO implement me
 	panic("implement me")
 }
 
@@ -199,7 +198,7 @@ func (k Keeper) Proof(c context.Context, req *types.QueryProofRequest) (*types.Q
 	proof, err := k.Proofs.Get(c, req.ProofId)
 	if err != nil {
 		if errors.IsOf(err, collections.ErrNotFound) {
-			return nil, status.Errorf(codes.NotFound, "proof %d doesn't exist", req.ProofId)
+			return nil, status.Errorf(codes.NotFound, "proof %s doesn't exist", req.ProofId)
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}

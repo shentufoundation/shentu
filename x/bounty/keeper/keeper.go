@@ -7,10 +7,10 @@ import (
 	"cosmossdk.io/collections"
 	corestoretypes "cosmossdk.io/core/store"
 
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 // Keeper - bounty keeper
