@@ -648,7 +648,7 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeSubmitProofDetail,
-			sdk.NewAttribute(types.AttributeKeyProofHashDetailPeriodStart, proof.Id),
+			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
 			sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
 		),
 	)

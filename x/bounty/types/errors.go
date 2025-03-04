@@ -59,7 +59,7 @@ var (
 	ErrNoTheoremMsgs        = errors.Register(ModuleName, 301, "no valid content")
 	ErrTheoremProposal      = errors.Register(ModuleName, 302, "inactive theorem")
 	ErrTheoremStatusInvalid = errors.Register(ModuleName, 303, "theorem status not hack locked")
-	ErrTheoremHasProof      = errors.Register(ModuleName, 303, "theorem has a processing proof")
+	ErrTheoremHasProof      = errors.Register(ModuleName, 304, "theorem has a processing proof")
 )
 
 // [4xx] Proof
