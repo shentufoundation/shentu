@@ -205,3 +205,23 @@ func (k Keeper) Proof(c context.Context, req *types.QueryProofRequest) (*types.Q
 
 	return &types.QueryProofResponse{Proof: proof}, nil
 }
+func (k Keeper) Reward(c context.Context, req *types.QueryRewardsRequest) (*types.QueryRewardsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	addr, err := k.authKeeper.AddressCodec().StringToBytes(req.Address)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid address")
+	}
+
+	reward, err := k.Rewards.Get(c, addr)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "reward for address %s doesn't exist", req.Address)
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryRewardsResponse{Rewards: reward.Reward}, nil
+}

@@ -35,6 +35,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryTheorem(),
 		GetCmdQueryProof(),
 		GetCmdQueryTheorems(),
+		GetCmdQueryRewards(),
 	)
 
 	return bountyQueryCmd
@@ -431,5 +432,44 @@ func GetCmdQueryTheorems() *cobra.Command {
 	flags.AddPaginationFlagsToCmd(cmd, "theorems")
 	flags.AddQueryFlagsToCmd(cmd)
 
+	return cmd
+}
+
+// GetCmdQueryRewards implements the query rewards command.
+func GetCmdQueryRewards() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "rewards [address]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query rewards for an address",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query rewards for a given address.
+
+Example:
+$ %s query bounty rewards [address]
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// Query the rewards
+			res, err := queryClient.Reward(
+				cmd.Context(),
+				&types.QueryRewardsRequest{Address: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

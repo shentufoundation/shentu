@@ -4,6 +4,9 @@ package shentu.bounty.v1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
+import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
 import "shentu/bounty/v1/bounty.proto";
@@ -55,6 +58,11 @@ service Query {
   // Proof queries proof details based on proofID.
   rpc Proof(QueryProofRequest) returns (QueryProofResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/proofs/{proof_id}";
+  }
+
+  // Proof queries proof details based on proofID.
+  rpc Reward(QueryRewardsRequest) returns (QueryRewardsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/rewards/{address}";
   }
 }
 
@@ -185,4 +193,22 @@ message QueryProofRequest {
 // QueryProofResponse is the response type for the Query/Proof RPC method.
 message QueryProofResponse {
   Proof proof = 1 [(gogoproto.nullable) = false];
+}
+
+
+// QueryRewardRequest is the request type for the Query/Proof RPC method.
+message QueryRewardsRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // address defines the address to query for.
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message QueryRewardsResponse {
+  repeated cosmos.base.v1beta1.DecCoin rewards = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
+  ];
 }
