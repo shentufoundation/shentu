@@ -19,13 +19,14 @@ const (
 	AttributeKeyProgramID = "program_id"
 	AttributeKeyFindingID = "finding_id"
 
-	EventTypeCreateTheorem     = "create_theorem"
-	EventTypeSubmitProofHash   = "submit_proof_hash"
-	EventTypeSubmitProofDetail = "submit_proof_detail"
-	EventTypeTheoremGrant      = "theorem_grant"
-	EventTypeProofDeposit      = "proof_deposit"
-	EventTypeActiveTheorem     = "active_theorem"
-	EventTypeActiveProof       = "active_proof"
+	EventTypeCreateTheorem           = "create_theorem"
+	EventTypeTheoremGrant            = "theorem_grant"
+	EventTypeActiveTheorem           = "active_theorem"
+	EventTypeSubmitProofHash         = "submit_proof_hash"
+	EventTypeSubmitProofDetail       = "submit_proof_detail"
+	EventTypeSubmitProofVerification = "submit_proof_verification"
+	EventTypeProofDeposit            = "proof_deposit"
+	EventTypeActiveProof             = "active_proof"
 
 	AttributeKeyTheoremID                = "theorem_id"
 	AttributeKeyProofID                  = "proof_id"
@@ -36,4 +37,6 @@ const (
 	AttributeValueTheoremDropped         = "theorem_dropped"
 	AttributeKeyTheoremProofPeriodStart  = "theorem_proof_period_start"
 	AttributeKeyProofHashLockPeriodStart = "proof_hash_lock_period_start"
+	AttributeKeyChecker                  = "checker"
+	AttributeKeyProofStatus              = "proof_status"
 )

@@ -14,6 +14,7 @@ const (
 	FlagHash        = "hash"
 	FlagTheoremID   = "theorem-id"
 	FlagProofID     = "proof-id"
+	FlagStatus      = "status"
 
 	FlagFindingProofOfContent = "poc"
 	FlagFindingSeverityLevel  = "severity-level"

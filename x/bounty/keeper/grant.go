@@ -119,9 +119,9 @@ func (k Keeper) DistributionGrants(ctx context.Context, theoremID uint64, checke
 		if errors.IsOf(err, collections.ErrNotFound) {
 			// not found
 			checkerReward.Reward = cReward
+		} else {
+			return err
 		}
-
-		return err
 	} else {
 		checkerReward.Reward = checkerReward.Reward.Add(cReward...)
 	}

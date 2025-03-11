@@ -51,24 +51,20 @@ func (k msgServer) validateProgramStatus(ctx sdk.Context, programID string, expe
 	return &program, nil
 }
 
-// validateFindingStatus checks if the finding exists and is in the expected status
+// validateFindingStatus checks if the finding exists and is in any of the expected statuses
 func (k msgServer) validateFindingStatus(ctx sdk.Context, findingID string, expectedStatuses ...types.FindingStatus) (*types.Finding, error) {
 	finding, found := k.GetFinding(ctx, findingID)
 	if !found {
 		return nil, types.ErrFindingNotExists
 	}
 
-	validStatus := false
 	for _, status := range expectedStatuses {
 		if finding.Status == status {
-			validStatus = true
-			break
+			return &finding, nil
 		}
 	}
-	if !validStatus {
-		return nil, types.ErrFindingStatusInvalid
-	}
-	return &finding, nil
+
+	return nil, types.ErrFindingStatusInvalid
 }
 
 // validateProofStatus checks if the proof exists and is in the expected status
@@ -647,7 +643,7 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof detail cannot be empty")
 	}
 
-	proof, err := k.validateProofStatus(ctx, msg.ProofId, types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD)
+	proof, err := k.validateProofStatus(ctx, msg.ProofId, types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD)
 	if err != nil {
 		return nil, err
 	}
@@ -689,52 +685,76 @@ func (k msgServer) Grant(goCtx context.Context, msg *types.MsgGrant) (*types.Msg
 func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.MsgSubmitProofVerification) (*types.MsgSubmitProofVerificationResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// Validate checker address and authority
 	checkerAddr, err := k.validateOperatorAddress(msg.Checker)
 	if err != nil {
 		return nil, err
 	}
-
 	if !k.certKeeper.IsBountyAdmin(ctx, checkerAddr) {
 		return nil, types.ErrProofOperatorNotAllowed
 	}
 
-	if msg.Status != types.ProofStatus_PROOF_STATUS_PASSED && msg.Status != types.ProofStatus_PROOF_STATUS_FAILED {
+	// Validate proof status
+	if !isValidProofStatus(msg.Status) {
 		return nil, types.ErrProofStatusInvalid
 	}
 
-	proofPtr, err := k.validateProofStatus(ctx, msg.ProofId, types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD)
+	// Get and validate proof
+	proof, err := k.validateProofStatus(ctx, msg.ProofId, types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD)
 	if err != nil {
 		return nil, err
 	}
-	proof := *proofPtr
 
+	// Get prover address
 	proverAddr, err := k.authKeeper.AddressCodec().StringToBytes(proof.Prover)
 	if err != nil {
 		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid prover address: %s", err)
 	}
 
-	proof.Status = msg.Status
-	if msg.Status == types.ProofStatus_PROOF_STATUS_PASSED {
-		if err = k.SetProof(ctx, proof); err != nil {
-			return nil, err
-		}
-		if err = k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr); err != nil {
-			return nil, err
-		}
-	} else if msg.Status == types.ProofStatus_PROOF_STATUS_FAILED {
-		if err = k.DeleteProof(ctx, proof.Id); err != nil {
-			return nil, err
-		}
-		if err = k.Deposits.Remove(ctx, collections.Join(proof.Id, sdk.AccAddress(proverAddr))); err != nil {
-			return nil, err
-		}
+	// Handle proof verification based on status
+	if err = k.handleProofVerification(ctx, msg.Status, *proof, checkerAddr, proverAddr); err != nil {
+		return nil, err
 	}
 
+	// Remove theorem proof mapping
 	if err = k.TheoremProof.Remove(ctx, proof.TheoremId); err != nil {
 		return nil, err
 	}
 
+	k.emitEvent(ctx, types.EventTypeSubmitProofVerification,
+		sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
+		sdk.NewAttribute(types.AttributeKeyProofStatus, msg.Status.String()),
+		sdk.NewAttribute(types.AttributeKeyChecker, msg.Checker),
+	)
+
 	return &types.MsgSubmitProofVerificationResponse{}, nil
+}
+
+func isValidProofStatus(status types.ProofStatus) bool {
+	return status == types.ProofStatus_PROOF_STATUS_PASSED ||
+		status == types.ProofStatus_PROOF_STATUS_FAILED
+}
+
+func (k msgServer) handleProofVerification(
+	ctx sdk.Context,
+	status types.ProofStatus,
+	proof types.Proof,
+	checkerAddr, proverAddr sdk.AccAddress,
+) error {
+	proof.Status = status
+
+	if status == types.ProofStatus_PROOF_STATUS_PASSED {
+		if err := k.SetProof(ctx, proof); err != nil {
+			return err
+		}
+		return k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr)
+	}
+
+	// Handle failed status
+	if err := k.DeleteProof(ctx, proof.Id); err != nil {
+		return err
+	}
+	return k.Deposits.Remove(ctx, collections.Join(proof.Id, proverAddr))
 }
 
 func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {

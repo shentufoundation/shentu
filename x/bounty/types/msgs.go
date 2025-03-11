@@ -484,3 +484,10 @@ func NewMsgSubmitProofDetail(proofID, prover, detail string) *MsgSubmitProofDeta
 		Detail:  detail,
 	}
 }
+func NewMsgSubmitProofVerification(proofID string, status ProofStatus, checker string) *MsgSubmitProofVerification {
+	return &MsgSubmitProofVerification{
+		ProofId: proofID,
+		Status:  status,
+		Checker: checker,
+	}
+}

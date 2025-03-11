@@ -40,6 +40,7 @@ func NewTxCmd() *cobra.Command {
 		NewGrantTheoremCmd(),
 		NewSubmitProofHashCmd(),
 		NewSubmitProofDetailCmd(),
+		NewSubmitProofVerificationCmd(),
 	)
 
 	return bountyTxCmds
@@ -589,6 +590,52 @@ func NewSubmitProofDetailCmd() *cobra.Command {
 
 	_ = cmd.MarkFlagRequired(FlagProofID)
 	_ = cmd.MarkFlagRequired(FlagDetail)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+func NewSubmitProofVerificationCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "proof-verification",
+		Short: "submit proof verification for a proof",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proofID, err := cmd.Flags().GetString(FlagProofID)
+			if err != nil {
+				return err
+			}
+			checker := clientCtx.GetFromAddress()
+			status, err := cmd.Flags().GetString(FlagStatus)
+			if err != nil {
+				return err
+			}
+
+			var proofStatus types.ProofStatus
+			switch status {
+			case "approved":
+				proofStatus = types.ProofStatus_PROOF_STATUS_PASSED
+			case "rejected":
+				proofStatus = types.ProofStatus_PROOF_STATUS_FAILED
+			default:
+				return fmt.Errorf("invalid status: %s", status)
+			}
+
+			msg := types.NewMsgSubmitProofVerification(proofID, proofStatus, checker.String())
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagProofID, "", "The proof id")
+	cmd.Flags().String(FlagStatus, "", "The proof verification status (approved/rejected)")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(FlagProofID)
+	_ = cmd.MarkFlagRequired(FlagStatus)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
