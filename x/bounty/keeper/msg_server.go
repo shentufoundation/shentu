@@ -647,7 +647,7 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof detail cannot be empty")
 	}
 
-	proof, err := k.validateProofStatus(ctx, msg.ProofId, types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD)
+	proof, err := k.validateProofStatus(ctx, msg.ProofId, types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD)
 	if err != nil {
 		return nil, err
 	}
