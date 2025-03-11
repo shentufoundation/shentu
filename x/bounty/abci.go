@@ -19,6 +19,11 @@ func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
 
 	rngProof := collections.NewPrefixUntilPairRange[time.Time, string](ctx.BlockTime())
 	k.ActiveProofsQueue.Walk(ctx, rngProof, func(key collections.Pair[time.Time, string], value types.Proof) (stop bool, err error) {
+		// only delete proofs in hash_lock phase
+		if value.Status != types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD {
+			return false, nil
+		}
+
 		err = k.DeleteProof(ctx, key.K2())
 		if err != nil {
 			return false, err
