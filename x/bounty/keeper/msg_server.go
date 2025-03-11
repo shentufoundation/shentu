@@ -781,5 +781,10 @@ func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawR
 		}
 	}
 
+	k.emitEvent(ctx, types.EventTypeWithdrawReward,
+		sdk.NewAttribute(types.AttributeKeyReward, finalRewards.String()),
+		sdk.NewAttribute(types.AttributeKeyAddress, msg.Address),
+	)
+
 	return &types.MsgWithdrawRewardResponse{}, nil
 }

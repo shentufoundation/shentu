@@ -27,6 +27,7 @@ const (
 	EventTypeSubmitProofVerification = "submit_proof_verification"
 	EventTypeProofDeposit            = "proof_deposit"
 	EventTypeActiveProof             = "active_proof"
+	EventTypeWithdrawReward          = "withdraw_reward"
 
 	AttributeKeyTheoremID                = "theorem_id"
 	AttributeKeyProofID                  = "proof_id"
@@ -39,4 +40,6 @@ const (
 	AttributeKeyProofHashLockPeriodStart = "proof_hash_lock_period_start"
 	AttributeKeyChecker                  = "checker"
 	AttributeKeyProofStatus              = "proof_status"
+	AttributeKeyReward                   = "reward"
+	AttributeKeyAddress                  = "address"
 )
