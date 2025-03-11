@@ -67,7 +67,7 @@ func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, 
 	return &proof, nil
 }
 
-// SubmitProofHash creates a new proof for a theorem with a hash lock.
+// SubmitProofDetail creates a new proof for a theorem with a hash lock.
 // It checks if the theorem exists and is in proof period, ensures no proof exists yet,
 // validates parameters, and creates a new proof with the given details.
 // The proof is stored, mapped to the theorem, and added to the active proofs queue.
@@ -81,6 +81,12 @@ func (k Keeper) SubmitProofDetail(ctx context.Context, proofId string, detail st
 	// Check proof status
 	if proof.Status != types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD {
 		return types.ErrProofStatusInvalid
+	}
+
+	// Remove from active proofs queue since we're transitioning out of hash lock period
+	// The proof will no longer need to be tracked for potential expiration
+	if err = k.ActiveProofsQueue.Remove(ctx, collections.Join(*proof.EndTime, proof.Id)); err != nil {
+		return err
 	}
 
 	// update proof
@@ -167,6 +173,12 @@ func (k Keeper) DeleteProof(ctx context.Context, proofID string) error {
 	if err != nil {
 		return err
 	}
+
+	err = k.TheoremProof.Remove(ctx, proof.TheoremId)
+	if err != nil {
+		return err
+	}
+
 	err = k.Proofs.Remove(ctx, proof.Id)
 	if err != nil {
 		return err

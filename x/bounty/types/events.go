@@ -27,6 +27,7 @@ const (
 	EventTypeSubmitProofVerification = "submit_proof_verification"
 	EventTypeProofDeposit            = "proof_deposit"
 	EventTypeActiveProof             = "active_proof"
+	EventTypeDeleteProof             = "delete_proof"
 	EventTypeWithdrawReward          = "withdraw_reward"
 
 	AttributeKeyTheoremID                = "theorem_id"

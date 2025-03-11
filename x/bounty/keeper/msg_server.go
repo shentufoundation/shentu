@@ -734,7 +734,6 @@ func isValidProofStatus(status types.ProofStatus) bool {
 	return status == types.ProofStatus_PROOF_STATUS_PASSED ||
 		status == types.ProofStatus_PROOF_STATUS_FAILED
 }
-
 func (k msgServer) handleProofVerification(
 	ctx sdk.Context,
 	status types.ProofStatus,
@@ -743,17 +742,59 @@ func (k msgServer) handleProofVerification(
 ) error {
 	proof.Status = status
 
-	if status == types.ProofStatus_PROOF_STATUS_PASSED {
-		if err := k.SetProof(ctx, proof); err != nil {
-			return err
-		}
-		return k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr)
+	switch status {
+	case types.ProofStatus_PROOF_STATUS_PASSED:
+		return k.handlePassedProof(ctx, proof, checkerAddr, proverAddr)
+	case types.ProofStatus_PROOF_STATUS_FAILED:
+		return k.handleFailedProof(ctx, proof, proverAddr)
+	default:
+		return types.ErrProofStatusInvalid
+	}
+}
+
+func (k msgServer) handlePassedProof(
+	ctx sdk.Context,
+	proof types.Proof,
+	checkerAddr, proverAddr sdk.AccAddress,
+) error {
+	// Update proof status
+	if err := k.SetProof(ctx, proof); err != nil {
+		return err
 	}
 
-	// Handle failed status
+	// Update theorem status
+	theorem, err := k.Theorems.Get(ctx, proof.TheoremId)
+	if err != nil {
+		return err
+	}
+
+	theorem.Status = types.TheoremStatus_THEOREM_STATUS_PASSED
+	if err := k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
+		return err
+	}
+
+	// Remove from active theorems queue
+	if err := k.ActiveTheoremsQueue.Remove(ctx, collections.Join(*theorem.EndTime, theorem.Id)); err != nil {
+		return err
+	}
+
+	// Distribute grants
+	return k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr)
+}
+
+func (k msgServer) handleFailedProof(
+	ctx sdk.Context,
+	proof types.Proof,
+	proverAddr sdk.AccAddress,
+) error {
 	if err := k.DeleteProof(ctx, proof.Id); err != nil {
 		return err
 	}
+
+	if err := k.TheoremProof.Remove(ctx, proof.TheoremId); err != nil {
+		return err
+	}
+
 	return k.Deposits.Remove(ctx, collections.Join(proof.Id, proverAddr))
 }
 
