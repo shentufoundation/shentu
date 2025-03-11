@@ -491,3 +491,9 @@ func NewMsgSubmitProofVerification(proofID string, status ProofStatus, checker s
 		Checker: checker,
 	}
 }
+
+func NewMsgWithdrawReward(address string) *MsgWithdrawReward {
+	return &MsgWithdrawReward{
+		Address: address,
+	}
+}

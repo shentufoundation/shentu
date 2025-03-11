@@ -41,6 +41,7 @@ func NewTxCmd() *cobra.Command {
 		NewSubmitProofHashCmd(),
 		NewSubmitProofDetailCmd(),
 		NewSubmitProofVerificationCmd(),
+		NewWithdrawRewardCmd(),
 	)
 
 	return bountyTxCmds
@@ -636,6 +637,29 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 
 	_ = cmd.MarkFlagRequired(FlagProofID)
 	_ = cmd.MarkFlagRequired(FlagStatus)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+func NewWithdrawRewardCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "gs",
+		Short: "withdraw rewards for an address",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			address := clientCtx.GetFromAddress()
+			msg := types.NewMsgWithdrawReward(address.String())
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
