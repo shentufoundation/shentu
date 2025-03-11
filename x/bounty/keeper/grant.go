@@ -133,10 +133,16 @@ func (k Keeper) DistributionGrants(ctx context.Context, theoremID uint64, checke
 
 	proverReward, err := k.Rewards.Get(ctx, prover)
 	if err != nil {
-		return err
+		if errors.IsOf(err, collections.ErrNotFound) {
+			// not found
+			proverReward.Reward = pReward
+		} else {
+			return err
+		}
+	} else {
+		proverReward.Reward = proverReward.Reward.Add(pReward...)
 	}
-	checkerReward.Reward = proverReward.Reward.Add(pReward...)
-	err = k.Rewards.Set(ctx, checker, checkerReward)
+	err = k.Rewards.Set(ctx, prover, proverReward)
 	if err != nil {
 		return err
 	}
