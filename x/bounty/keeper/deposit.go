@@ -22,7 +22,7 @@ func (k Keeper) SetDeposit(ctx context.Context, deposit types.Deposit) error {
 
 // validateMinDeposit validates if deposit is greater than or equal to the minimum
 // required at the time of proof submission. Returns nil on success, error otherwise.
-func (k Keeper) validateMinDeposit(ctx context.Context, params types.Params, initialDeposit sdk.Coins) error {
+func (k Keeper) validateMinDeposit(_ context.Context, params types.Params, initialDeposit sdk.Coins) error {
 	// Check if the initial deposit is valid and has no negative amount
 	if !initialDeposit.IsValid() || initialDeposit.IsAnyNegative() {
 		return errors.Wrap(sdkerrors.ErrInvalidCoins, initialDeposit.String())
