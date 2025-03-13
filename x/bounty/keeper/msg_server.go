@@ -645,7 +645,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	return &types.MsgSubmitProofHashResponse{}, nil
 }
 
-func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmitProofDetail) (*types.MsgSubmitProofHashResponse, error) {
+func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmitProofDetail) (*types.MsgSubmitProofDetailResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.Detail == "" {
@@ -672,7 +672,7 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 		sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
 	)
 
-	return &types.MsgSubmitProofHashResponse{}, nil
+	return &types.MsgSubmitProofDetailResponse{}, nil
 }
 
 func (k msgServer) Grant(goCtx context.Context, msg *types.MsgGrant) (*types.MsgGrantResponse, error) {
