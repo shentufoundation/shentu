@@ -21,12 +21,11 @@ const (
 
 	EventTypeCreateTheorem           = "create_theorem"
 	EventTypeTheoremGrant            = "theorem_grant"
-	EventTypeActiveTheorem           = "active_theorem"
+	EventTypeDeleteTheorem           = "delete_theorem"
 	EventTypeSubmitProofHash         = "submit_proof_hash"
 	EventTypeSubmitProofDetail       = "submit_proof_detail"
 	EventTypeSubmitProofVerification = "submit_proof_verification"
 	EventTypeProofDeposit            = "proof_deposit"
-	EventTypeActiveProof             = "active_proof"
 	EventTypeDeleteProof             = "delete_proof"
 	EventTypeWithdrawReward          = "withdraw_reward"
 

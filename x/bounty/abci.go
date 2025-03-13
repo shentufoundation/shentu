@@ -72,7 +72,7 @@ func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeActiveTheorem,
+				types.EventTypeDeleteTheorem,
 				sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
 				sdk.NewAttribute(types.AttributeKeyTheoremResult, types.AttributeValueTheoremDropped),
 			),
