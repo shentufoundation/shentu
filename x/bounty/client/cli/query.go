@@ -36,6 +36,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryProof(),
 		GetCmdQueryTheorems(),
 		GetCmdQueryRewards(),
+		GetCmdQueryParams(),
 	)
 
 	return bountyQueryCmd
@@ -418,7 +419,7 @@ func GetCmdQueryTheorems() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.AllTheorems(cmd.Context(), &types.QueryTheoremsRequest{
+			res, err := queryClient.Theorems(cmd.Context(), &types.QueryTheoremsRequest{
 				Pagination: pageReq,
 			})
 			if err != nil {
@@ -461,6 +462,45 @@ $ %s query bounty rewards [address]
 			res, err := queryClient.Reward(
 				cmd.Context(),
 				&types.QueryRewardsRequest{Address: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryParams implements the query params command.
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Args:  cobra.NoArgs,
+		Short: "Query the current bounty module parameters",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the current bounty module parameters.
+
+Example:
+$ %s query bounty params
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// Query the params
+			res, err := queryClient.Params(
+				cmd.Context(),
+				&types.QueryParamsRequest{},
 			)
 			if err != nil {
 				return err

@@ -46,7 +46,7 @@ service Query {
   }
 
   // Theorems queries all theorems based on given status.
-  rpc AllTheorems(QueryTheoremsRequest) returns (QueryTheoremsResponse) {
+  rpc Theorems(QueryTheoremsRequest) returns (QueryTheoremsResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/theorems";
   }
 
@@ -60,9 +60,14 @@ service Query {
     option (google.api.http).get = "/shentu/bounty/v1/proofs/{proof_id}";
   }
 
-  // Proof queries proof details based on proofID.
+  // Reward queries reward details based on address.
   rpc Reward(QueryRewardsRequest) returns (QueryRewardsResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/rewards/{address}";
+  }
+
+  // Params queries the bounty module parameters.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/params";
   }
 }
 
@@ -195,8 +200,7 @@ message QueryProofResponse {
   Proof proof = 1 [(gogoproto.nullable) = false];
 }
 
-
-// QueryRewardRequest is the request type for the Query/Proof RPC method.
+// QueryRewardsRequest is the request type for the Query/Rewards RPC method.
 message QueryRewardsRequest {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -205,10 +209,19 @@ message QueryRewardsRequest {
   string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
+// QueryRewardsResponse is the response type for the Query/Rewards RPC method.
 message QueryRewardsResponse {
   repeated cosmos.base.v1beta1.DecCoin rewards = 1 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
   ];
+}
+
+// QueryParamsRequest defines the request type for querying x/bounty parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/bounty parameters.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
 }
