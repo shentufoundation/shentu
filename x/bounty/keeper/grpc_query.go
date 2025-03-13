@@ -169,7 +169,21 @@ func (q queryServer) ProgramFingerprint(c context.Context, req *types.QueryProgr
 }
 
 func (q queryServer) Theorems(c context.Context, req *types.QueryTheoremsRequest) (*types.QueryTheoremsResponse, error) {
-	panic("implement me")
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	filteredTheorems, pageRes, err := query.CollectionFilteredPaginate(c, q.k.Theorems, req.Pagination, func(key uint64, t types.Theorem) (include bool, err error) {
+		return true, nil
+	}, func(_ uint64, value types.Theorem) (*types.Theorem, error) {
+		return &value, nil
+	})
+
+	if err != nil && !errors.IsOf(err, collections.ErrInvalidIterator) {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryTheoremsResponse{Theorems: filteredTheorems, Pagination: pageRes}, nil
 }
 
 func (q queryServer) Theorem(c context.Context, req *types.QueryTheoremRequest) (*types.QueryTheoremResponse, error) {
@@ -210,6 +224,40 @@ func (q queryServer) Proof(c context.Context, req *types.QueryProofRequest) (*ty
 	}
 
 	return &types.QueryProofResponse{Proof: proof}, nil
+}
+
+func (q queryServer) Proofs(c context.Context, req *types.QueryProofsRequest) (*types.QueryProofsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if req.TheoremId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "theorem id can not be 0")
+	}
+
+	var (
+		proofs  []*types.Proof
+		pageRes *query.PageResponse
+		err     error
+	)
+
+	proofs, pageRes, err = query.CollectionPaginate(c, q.k.ProofsByTheorem,
+		req.Pagination, func(key collections.Pair[uint64, string], _ []byte) (*types.Proof, error) {
+			proof, err := q.k.Proofs.Get(c, key.K2())
+			if err != nil {
+				return nil, err
+			}
+			return &proof, nil
+		}, query.WithCollectionPaginationPairPrefix[uint64, string](req.TheoremId),
+	)
+	if err != nil && !errors.IsOf(err, collections.ErrInvalidIterator) {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryProofsResponse{
+		Proofs:     proofs,
+		Pagination: pageRes,
+	}, nil
 }
 
 func (q queryServer) Reward(c context.Context, req *types.QueryRewardsRequest) (*types.QueryRewardsResponse, error) {

@@ -13,22 +13,20 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-// Keeper - bounty keeper
+// Keeper defines the bounty keeper
 type Keeper struct {
-	// The codec for binary encoding/decoding.
-	cdc codec.BinaryCodec
+	cdc codec.BinaryCodec // The codec for binary encoding/decoding
 
-	//authKeeper authtypes.AccountKeeper
 	certKeeper types.CertKeeper
 	authKeeper types.AccountKeeper
 	bankKeeper types.BankKeeper
 	authority  string
 
-	// The (unexposed) keys used to access the stores from the Context.
-	storeService corestoretypes.KVStoreService
+	storeService corestoretypes.KVStoreService // The store service for accessing KV stores
 
 	Schema collections.Schema
 
+	// State
 	Params    collections.Item[types.Params]
 	TheoremID collections.Sequence
 	// Theorems key: TheoremID | value: Theorem
@@ -41,6 +39,8 @@ type Keeper struct {
 	Rewards collections.Map[sdk.AccAddress, types.Reward]
 	// Proofs key: ProofID | value: Proof
 	Proofs collections.Map[string, types.Proof]
+	// ProofsByTheorem key: ProofID+TheoremID | value: none used (index key for proofs by theorem index)
+	ProofsByTheorem collections.Map[collections.Pair[uint64, string], []byte]
 	// TheoremProofList key: TheoremID | value: ProofID
 	TheoremProof collections.Map[uint64, string]
 	// ActiveTheoremsQueue key: EndTime+TheoremID | value: TheoremID
@@ -49,7 +49,7 @@ type Keeper struct {
 	ActiveProofsQueue collections.Map[collections.Pair[time.Time, string], types.Proof]
 }
 
-// NewKeeper creates a new Keeper object
+// NewKeeper creates a new bounty Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService corestoretypes.KVStoreService,
@@ -58,14 +58,13 @@ func NewKeeper(
 	bk types.BankKeeper,
 	authority string,
 ) Keeper {
-
 	if _, err := ak.AddressCodec().StringToBytes(authority); err != nil {
 		panic(fmt.Sprintf("invalid authority address: %s", authority))
 	}
 
 	sb := collections.NewSchemaBuilder(storeService)
 
-	return Keeper{
+	k := Keeper{
 		cdc:                 cdc,
 		certKeeper:          ck,
 		authKeeper:          ak,
@@ -74,13 +73,22 @@ func NewKeeper(
 		storeService:        storeService,
 		Params:              collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		TheoremID:           collections.NewSequence(sb, types.TheoremIDKey, "theorem_id"),
-		Theorems:            collections.NewMap(sb, types.TheoremsKeyKeyPrefix, "theorems", collections.Uint64Key, codec.CollValue[types.Theorem](cdc)),
-		Grants:              collections.NewMap(sb, types.GrantsKeyPrefix, "grants", collections.PairKeyCodec(collections.Uint64Key, sdk.LengthPrefixedAddressKey(sdk.AccAddressKey)), codec.CollValue[types.Grant](cdc)),
-		Rewards:             collections.NewMap(sb, types.RewardsKeyPrefix, "reward", sdk.LengthPrefixedAddressKey(sdk.AccAddressKey), codec.CollValue[types.Reward](cdc)),
-		Deposits:            collections.NewMap(sb, types.DepositsKeyPrefix, "deposits", collections.PairKeyCodec(collections.StringKey, sdk.LengthPrefixedAddressKey(sdk.AccAddressKey)), codec.CollValue[types.Deposit](cdc)),
-		Proofs:              collections.NewMap(sb, types.ProofsKeyPrefix, "proofs", collections.StringKey, codec.CollValue[types.Proof](cdc)),
+		Theorems:            collections.NewMap(sb, types.TheoremKeyPrefix, "theorems", collections.Uint64Key, codec.CollValue[types.Theorem](cdc)),
+		Grants:              collections.NewMap(sb, types.GrantKeyPrefix, "grants", collections.PairKeyCodec(collections.Uint64Key, sdk.LengthPrefixedAddressKey(sdk.AccAddressKey)), codec.CollValue[types.Grant](cdc)),
+		Rewards:             collections.NewMap(sb, types.RewardKeyPrefix, "rewards", sdk.LengthPrefixedAddressKey(sdk.AccAddressKey), codec.CollValue[types.Reward](cdc)),
+		Deposits:            collections.NewMap(sb, types.DepositKeyPrefix, "deposits", collections.PairKeyCodec(collections.StringKey, sdk.LengthPrefixedAddressKey(sdk.AccAddressKey)), codec.CollValue[types.Deposit](cdc)),
+		Proofs:              collections.NewMap(sb, types.ProofKeyPrefix, "proofs", collections.StringKey, codec.CollValue[types.Proof](cdc)),
+		ProofsByTheorem:     collections.NewMap(sb, types.ProofByTheoremPrefix, "proofs_by_theorem", collections.PairKeyCodec(collections.Uint64Key, collections.StringKey), collections.BytesValue),
 		TheoremProof:        collections.NewMap(sb, types.TheoremProofPrefix, "theorem_proof", collections.Uint64Key, collections.StringValue),
-		ActiveTheoremsQueue: collections.NewMap(sb, types.ActiveTheoremQueuePrefix, "active_theorems_queue", collections.PairKeyCodec(sdk.TimeKey, collections.Uint64Key), collections.Uint64Value),
-		ActiveProofsQueue:   collections.NewMap(sb, types.HashLockProofQueuePrefix, "active_proofs_queue", collections.PairKeyCodec(sdk.TimeKey, collections.StringKey), codec.CollValue[types.Proof](cdc)),
+		ActiveTheoremsQueue: collections.NewMap(sb, types.ActiveTheoremQueueKey, "active_theorems_queue", collections.PairKeyCodec(sdk.TimeKey, collections.Uint64Key), collections.Uint64Value),
+		ActiveProofsQueue:   collections.NewMap(sb, types.ActiveProofQueueKey, "active_proofs_queue", collections.PairKeyCodec(sdk.TimeKey, collections.StringKey), codec.CollValue[types.Proof](cdc)),
 	}
+
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+	k.Schema = schema
+
+	return k
 }

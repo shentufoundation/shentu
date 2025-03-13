@@ -64,6 +64,11 @@ func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, 
 		return nil, err
 	}
 
+	err = k.ProofsByTheorem.Set(ctx, collections.Join(theoremID, proofID), []byte{})
+	if err != nil {
+		return nil, err
+	}
+
 	return &proof, nil
 }
 
@@ -169,6 +174,11 @@ func (k Keeper) DeleteProof(ctx context.Context, proofID string) error {
 		return err
 	}
 
+	err = k.Proofs.Remove(ctx, proof.Id)
+	if err != nil {
+		return err
+	}
+
 	err = k.ActiveProofsQueue.Remove(ctx, collections.Join(*proof.EndTime, proof.Id))
 	if err != nil {
 		return err
@@ -179,7 +189,7 @@ func (k Keeper) DeleteProof(ctx context.Context, proofID string) error {
 		return err
 	}
 
-	err = k.Proofs.Remove(ctx, proof.Id)
+	err = k.ProofsByTheorem.Remove(ctx, collections.Join(proof.TheoremId, proof.Id))
 	if err != nil {
 		return err
 	}

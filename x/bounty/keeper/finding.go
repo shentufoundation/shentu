@@ -43,13 +43,13 @@ func (k Keeper) SetPidFindingIDList(ctx sdk.Context, pid string, findingIds []st
 	if err != nil {
 		return err
 	}
-	store.Set(types.GetProgramIDFindingListKey(pid), bytes)
+	store.Set(types.GetProgramFindingListKey(pid), bytes)
 	return nil
 }
 
 func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid string) ([]string, error) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	findingIDs := store.Get(types.GetProgramIDFindingListKey(pid))
+	findingIDs := store.Get(types.GetProgramFindingListKey(pid))
 	if findingIDs == nil {
 		return []string{}, nil
 	}
@@ -82,7 +82,7 @@ func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid string) error {
 			if len(fids) == 1 {
 				// Delete fid list if empty
 				store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-				store.Delete(types.GetProgramIDFindingListKey(pid))
+				store.Delete(types.GetProgramFindingListKey(pid))
 				return nil
 			}
 			fids = append(fids[:idx], fids[idx+1:]...)

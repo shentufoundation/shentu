@@ -55,6 +55,11 @@ service Query {
     option (google.api.http).get = "/shentu/bounty/v1/theorems/{theorem_id}";
   }
 
+  // Proofs queries all proofs based on theorem id.
+  rpc Proofs(QueryProofsRequest) returns (QueryProofsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/proofs";
+  }
+
   // Proof queries proof details based on proofID.
   rpc Proof(QueryProofRequest) returns (QueryProofResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/proofs/{proof_id}";
@@ -172,7 +177,7 @@ message QueryTheoremsRequest {
 
 // QueryTheoremsResponse is the response type for the Query/Theorems RPC method.
 message QueryTheoremsResponse {
-  repeated Theorem theorems = 1 [(gogoproto.nullable) = false];
+  repeated Theorem theorems = 1;
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -187,6 +192,23 @@ message QueryTheoremRequest {
 // QueryTheoremResponse is the response type for the Query/Theorem RPC method.
 message QueryTheoremResponse {
   Theorem theorem = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryProofsRequest is the request type for the Query/Proofs RPC method.
+message QueryProofsRequest {
+  // theorem_id defines the unique id of the theorem.
+  uint64 theorem_id = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryProofsResponse is the response type for the Query/Proofs RPC method.
+message QueryProofsResponse {
+  repeated Proof proofs = 1;
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryProofRequest is the request type for the Query/Proof RPC method.

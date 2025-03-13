@@ -37,6 +37,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryTheorems(),
 		GetCmdQueryRewards(),
 		GetCmdQueryParams(),
+		GetCmdQueryProofs(),
 	)
 
 	return bountyQueryCmd
@@ -511,5 +512,57 @@ $ %s query bounty params
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryProofs implements the query proofs command.
+func GetCmdQueryProofs() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "proofs [theorem-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query all proofs for a theorem",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query all proofs for a theorem by theorem ID.
+
+Example:
+$ %s query bounty proofs 1
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			theoremID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("theorem-id %s not a valid uint", args[0])
+			}
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Proofs(
+				cmd.Context(),
+				&types.QueryProofsRequest{
+					TheoremId:  theoremID,
+					Pagination: pageReq,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "proofs")
 	return cmd
 }

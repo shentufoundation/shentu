@@ -15,46 +15,45 @@ const (
 )
 
 var (
-	ProgramKey = collections.NewPrefix(1)
-	FindingKey = collections.NewPrefix(2)
+	// Program related keys
+	ProgramKey            = collections.NewPrefix(1)
+	FindingKey            = collections.NewPrefix(2)
+	ProgramFindingListKey = collections.NewPrefix(10)
 
-	ProgramIDFindingListKey = collections.NewPrefix(10)
-	// TheoremIDKey stores the sequence representing the next theorem ID.
-	TheoremIDKey = collections.NewPrefix(11)
-	// TheoremsKeyKeyPrefix stores the theorem raw bytes.
-	TheoremsKeyKeyPrefix = collections.NewPrefix(12)
-	// ActiveTheoremQueuePrefix stores the active theorems.
-	ActiveTheoremQueuePrefix = collections.NewPrefix(13)
-	// ProofsKeyPrefix stores the proof raw bytes.
-	ProofsKeyPrefix = collections.NewPrefix(14)
-	// HashLockProofQueuePrefix stores the active proofs.
-	HashLockProofQueuePrefix = collections.NewPrefix(15)
-	// GrantsKeyPrefix stores grants.
-	GrantsKeyPrefix = collections.NewPrefix(16)
-	// DepositsKeyPrefix stores grants.
-	DepositsKeyPrefix = collections.NewPrefix(17)
-	// RewardsKeyPrefix stores rewards.
-	RewardsKeyPrefix = collections.NewPrefix(18)
+	// Theorem related keys
+	TheoremIDKey          = collections.NewPrefix(21)
+	TheoremKeyPrefix      = collections.NewPrefix(22)
+	ActiveTheoremQueueKey = collections.NewPrefix(23)
 
-	TheoremProofPrefix = collections.NewPrefix(19)
+	// Proof related keys
+	ProofKeyPrefix      = collections.NewPrefix(31)
+	ActiveProofQueueKey = collections.NewPrefix(32)
 
-	ProofByTheoremIndexKey = collections.NewPrefix(31) // key for proofs by a theorem
-	GrantByTheoremIndexKey = collections.NewPrefix(32) // key for grants by a theorem
-	// ParamsKey stores the module's params.
-	ParamsKey = collections.NewPrefix(41)
+	// Grant and deposit related keys
+	GrantKeyPrefix   = collections.NewPrefix(41)
+	DepositKeyPrefix = collections.NewPrefix(42)
+	RewardKeyPrefix  = collections.NewPrefix(43)
+
+	// Relationship keys
+	TheoremProofPrefix   = collections.NewPrefix(51)
+	ProofByTheoremPrefix = collections.NewPrefix(52)
+	GrantByTheoremPrefix = collections.NewPrefix(53)
+
+	// Parameter key
+	ParamsKey = collections.NewPrefix(61)
 )
 
 // GetProgramKey creates the key for a program
-// VALUE: staking/Validator
 func GetProgramKey(id string) []byte {
 	return append(ProgramKey, []byte(id)...)
 }
 
-// GetFindingKey creates the key for a program
+// GetFindingKey creates the key for a finding
 func GetFindingKey(id string) []byte {
 	return append(FindingKey, []byte(id)...)
 }
 
-func GetProgramIDFindingListKey(id string) []byte {
-	return append(ProgramIDFindingListKey, []byte(id)...)
+// GetProgramFindingListKey creates the key for a program's finding list
+func GetProgramFindingListKey(id string) []byte {
+	return append(ProgramFindingListKey, []byte(id)...)
 }
