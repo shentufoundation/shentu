@@ -617,6 +617,15 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
 	}
 
+	// Check if proof already exists
+	exists, err := k.Proofs.Has(ctx, msg.ProofHash)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, types.ErrProofAlreadyExists
+	}
+
 	proof, err := k.Keeper.SubmitProofHash(goCtx, msg.TheoremId, msg.ProofHash, msg.Prover, msg.Deposit)
 	if err != nil {
 		return nil, err

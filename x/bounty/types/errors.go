@@ -66,6 +66,7 @@ var (
 var (
 	ErrProofStatusInvalid      = errors.Register(ModuleName, 401, "proof status not hack locked")
 	ErrProofOperatorNotAllowed = errors.Register(ModuleName, 402, "proof access denied")
+	ErrProofAlreadyExists      = errors.Register(ModuleName, 403, "proof already exists")
 )
 
 // [5xx] Deposit
