@@ -99,7 +99,7 @@ message QueryProgramsRequest {
 
 // QueryProgramsResponse is the response type for the Query/Programs RPC method.
 message QueryProgramsResponse {
-  repeated Program programs = 1 [(gogoproto.nullable) = false];
+  repeated Program programs = 1;
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -113,7 +113,7 @@ message QueryProgramRequest {
 
 // QueryProgramResponse is the response type for the Query/Program RPC method.
 message QueryProgramResponse {
-  Program program = 1 [(gogoproto.nullable) = false];
+  Program program = 1;
 }
 
 // QueryFindingRequests is the request type for the Query/Findings RPC method.
@@ -130,7 +130,7 @@ message QueryFindingsRequest {
 
 // QueryFindingsResponse is the response type for the Query/Findings RPC method.
 message QueryFindingsResponse {
-  repeated Finding findings = 1 [(gogoproto.nullable) = false];
+  repeated Finding findings = 1;
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -144,7 +144,7 @@ message QueryFindingRequest {
 
 // QueryFindingResponse is the response type for the Query/Finding RPC method.
 message QueryFindingResponse {
-  Finding finding = 1 [(gogoproto.nullable) = false];
+  Finding finding = 1;
 }
 
 // QueryFindingFingerPrint is the request type for the Query/Finding RPC method.
@@ -191,7 +191,7 @@ message QueryTheoremRequest {
 
 // QueryTheoremResponse is the response type for the Query/Theorem RPC method.
 message QueryTheoremResponse {
-  Theorem theorem = 1 [(gogoproto.nullable) = false];
+  Theorem theorem = 1;
 }
 
 // QueryProofsRequest is the request type for the Query/Proofs RPC method.
@@ -219,7 +219,7 @@ message QueryProofRequest {
 
 // QueryProofResponse is the response type for the Query/Proof RPC method.
 message QueryProofResponse {
-  Proof proof = 1 [(gogoproto.nullable) = false];
+  Proof proof = 1;
 }
 
 // QueryRewardsRequest is the request type for the Query/Rewards RPC method.
@@ -245,5 +245,5 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse defines the response type for querying x/bounty parameters.
 message QueryParamsResponse {
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1;
 }

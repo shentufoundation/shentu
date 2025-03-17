@@ -3,23 +3,29 @@ package bounty
 import (
 	"cosmossdk.io/collections"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // InitGenesis stores genesis parameters.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
-	for _, finding := range data.Findings {
-		k.SetFinding(ctx, finding)
-		if err := k.AppendFidToFidList(ctx, finding.ProgramId, finding.FindingId); err != nil {
+	for _, program := range data.Programs {
+		err := k.Programs.Set(ctx, program.ProgramId, program)
+		if err != nil {
 			panic(err)
 		}
 	}
 
-	for _, program := range data.Programs {
-		k.SetProgram(ctx, program)
+	for _, finding := range data.Findings {
+		err := k.Findings.Set(ctx, finding.FindingId, finding)
+		if err != nil {
+			panic(err)
+		}
+		if err = k.ProgramFindings.Set(ctx, collections.Join(finding.ProgramId, finding.FindingId)); err != nil {
+			panic(err)
+		}
 	}
 
 	if err := k.TheoremID.Set(ctx, data.StartingTheoremId); err != nil {
@@ -58,8 +64,24 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 }
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	programs := k.GetAllPrograms(ctx)
-	findings := k.GetAllFindings(ctx)
+	var programs types.Programs
+	var findings types.Findings
+
+	err := k.Programs.Walk(ctx, nil, func(_ string, value types.Program) (stop bool, err error) {
+		programs = append(programs, value)
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = k.Findings.Walk(ctx, nil, func(_ string, value types.Finding) (stop bool, err error) {
+		findings = append(findings, value)
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	return &types.GenesisState{
 		Programs: programs,

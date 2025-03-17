@@ -41,9 +41,9 @@ func (k msgServer) validateOperatorAddress(operatorAddress string) (sdk.AccAddre
 
 // validateProgramStatus checks if the program exists and is in the expected status
 func (k msgServer) validateProgramStatus(ctx sdk.Context, programID string, expectedStatus types.ProgramStatus) (*types.Program, error) {
-	program, found := k.GetProgram(ctx, programID)
-	if !found {
-		return nil, types.ErrProgramNotExists
+	program, err := k.Programs.Get(ctx, programID)
+	if err != nil {
+		return nil, err
 	}
 	if program.Status != expectedStatus {
 		return nil, types.ErrProgramNotActive
@@ -53,9 +53,9 @@ func (k msgServer) validateProgramStatus(ctx sdk.Context, programID string, expe
 
 // validateFindingStatus checks if the finding exists and is in any of the expected statuses
 func (k msgServer) validateFindingStatus(ctx sdk.Context, findingID string, expectedStatuses ...types.FindingStatus) (*types.Finding, error) {
-	finding, found := k.GetFinding(ctx, findingID)
-	if !found {
-		return nil, types.ErrFindingNotExists
+	finding, err := k.Findings.Get(ctx, findingID)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, status := range expectedStatuses {
@@ -101,8 +101,11 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		return nil, err
 	}
 
-	_, found := k.GetProgram(ctx, msg.ProgramId)
-	if found {
+	exist, err := k.Programs.Has(ctx, msg.ProgramId)
+	if err != nil {
+		return nil, err
+	}
+	if exist {
 		return nil, types.ErrProgramAlreadyExists
 	}
 
@@ -112,7 +115,9 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		return nil, err
 	}
 
-	k.SetProgram(ctx, program)
+	if err = k.Programs.Set(ctx, program.ProgramId, program); err != nil {
+		return nil, err
+	}
 
 	k.emitEvent(ctx, types.EventTypeCreateProgram,
 		sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
@@ -130,8 +135,8 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 		return nil, err
 	}
 
-	program, found := k.GetProgram(ctx, msg.ProgramId)
-	if !found {
+	program, err := k.Programs.Get(goCtx, msg.ProgramId)
+	if err != nil {
 		return nil, types.ErrProgramNotExists
 	}
 
@@ -156,7 +161,9 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 		program.Detail = msg.Detail
 	}
 
-	k.SetProgram(ctx, program)
+	if err = k.Programs.Set(ctx, program.ProgramId, program); err != nil {
+		return nil, err
+	}
 
 	k.emitEvent(ctx, types.EventTypeEditProgram,
 		sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
@@ -229,9 +236,9 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, err
 	}
 
-	_, found := k.GetFinding(ctx, msg.FindingId)
-	if found {
-		return nil, types.ErrFindingAlreadyExists
+	_, err = k.Findings.Get(ctx, msg.FindingId)
+	if err != nil {
+		return nil, err
 	}
 
 	createTime := ctx.BlockHeader().Time
@@ -240,11 +247,13 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, err
 	}
 
-	if err = k.AppendFidToFidList(ctx, msg.ProgramId, msg.FindingId); err != nil {
+	if err = k.ProgramFindings.Set(ctx, collections.Join(msg.ProgramId, msg.FindingId)); err != nil {
 		return nil, err
 	}
 
-	k.SetFinding(ctx, finding)
+	if err = k.Findings.Set(ctx, finding.FindingId, finding); err != nil {
+		return nil, err
+	}
 
 	k.emitEvent(ctx, types.EventTypeSubmitFinding,
 		sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
@@ -279,7 +288,9 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 		}
 		finding.PaymentHash = msg.PaymentHash
 
-		k.SetFinding(ctx, finding)
+		if err = k.Findings.Set(ctx, finding.FindingId, finding); err != nil {
+			return nil, err
+		}
 
 		k.emitEvent(ctx, types.EventTypeEditFindingPaymentHash,
 			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
@@ -300,7 +311,9 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 		finding.SeverityLevel = msg.SeverityLevel
 	}
 
-	k.SetFinding(ctx, finding)
+	if err = k.Findings.Set(ctx, finding.FindingId, finding); err != nil {
+		return nil, err
+	}
 
 	k.emitEvent(ctx, types.EventTypeEditFinding,
 		sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
@@ -320,9 +333,9 @@ func (k msgServer) ActivateFinding(goCtx context.Context, msg *types.MsgActivate
 	}
 
 	// get finding
-	finding, found := k.GetFinding(ctx, msg.FindingId)
-	if !found {
-		return nil, types.ErrFindingNotExists
+	finding, err := k.Findings.Get(ctx, msg.FindingId)
+	if err != nil {
+		return nil, err
 	}
 	// only StatusSubmitted can activate
 	if finding.Status != types.FindingStatusSubmitted {
@@ -330,9 +343,9 @@ func (k msgServer) ActivateFinding(goCtx context.Context, msg *types.MsgActivate
 	}
 
 	// get program
-	program, isExist := k.GetProgram(ctx, finding.ProgramId)
-	if !isExist {
-		return nil, types.ErrProgramNotExists
+	program, err := k.Programs.Get(ctx, finding.ProgramId)
+	if err != nil {
+		return nil, err
 	}
 	if program.Status != types.ProgramStatusActive {
 		return nil, types.ErrProgramNotActive
@@ -344,7 +357,9 @@ func (k msgServer) ActivateFinding(goCtx context.Context, msg *types.MsgActivate
 	}
 
 	finding.Status = types.FindingStatusActive
-	k.SetFinding(ctx, finding)
+	if err = k.Findings.Set(ctx, finding.FindingId, finding); err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -371,7 +386,9 @@ func (k msgServer) ConfirmFinding(goCtx context.Context, msg *types.MsgConfirmFi
 	}
 
 	finding.Status = types.FindingStatusConfirmed
-	k.SetFinding(ctx, finding)
+	if err = k.Findings.Set(ctx, finding.FindingId, finding); err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -398,9 +415,9 @@ func (k msgServer) ConfirmFindingPaid(goCtx context.Context, msg *types.MsgConfi
 	}
 
 	// get finding
-	finding, ok := k.GetFinding(ctx, msg.FindingId)
-	if !ok {
-		return nil, types.ErrFindingNotExists
+	finding, err := k.Findings.Get(ctx, msg.FindingId)
+	if err != nil {
+		return nil, err
 	}
 	if finding.Status != types.FindingStatusConfirmed {
 		return nil, types.ErrFindingStatusInvalid
@@ -412,7 +429,9 @@ func (k msgServer) ConfirmFindingPaid(goCtx context.Context, msg *types.MsgConfi
 	}
 
 	finding.Status = types.FindingStatusPaid
-	k.SetFinding(ctx, finding)
+	if err = k.Findings.Set(ctx, finding.FindingId, finding); err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -439,18 +458,19 @@ func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFindin
 	}
 
 	// get finding
-	finding, ok := k.GetFinding(ctx, msg.FindingId)
-	if !ok {
-		return nil, types.ErrFindingNotExists
+	finding, err := k.Findings.Get(goCtx, msg.FindingId)
+	if err != nil {
+		return nil, err
 	}
+
 	// check finding status: StatusSubmitted and StatusActive can be closed
 	if finding.Status != types.FindingStatusSubmitted && finding.Status != types.FindingStatusActive {
 		return nil, types.ErrFindingStatusInvalid
 	}
 	// get program
-	program, isExist := k.GetProgram(ctx, finding.ProgramId)
-	if !isExist {
-		return nil, types.ErrProgramNotExists
+	program, err := k.Programs.Get(ctx, finding.ProgramId)
+	if err != nil {
+		return nil, err
 	}
 
 	// check operator
@@ -459,7 +479,9 @@ func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFindin
 		return nil, types.ErrFindingOperatorNotAllowed
 	}
 	finding.Status = types.FindingStatusClosed
-	k.SetFinding(ctx, finding)
+	if err = k.Findings.Set(ctx, finding.FindingId, finding); err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -481,14 +503,14 @@ func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFi
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// get finding
-	finding, isExist := k.GetFinding(ctx, msg.FindingId)
-	if !isExist {
-		return nil, types.ErrFindingNotExists
+	finding, err := k.Findings.Get(ctx, msg.FindingId)
+	if err != nil {
+		return nil, err
 	}
 	// get program
-	program, isExist := k.GetProgram(ctx, finding.ProgramId)
-	if !isExist {
-		return nil, types.ErrProgramNotExists
+	program, err := k.Programs.Get(goCtx, finding.ProgramId)
+	if err != nil {
+		return nil, err
 	}
 	if program.Status == types.ProgramStatusInactive {
 		return nil, types.ErrProgramNotActive
@@ -518,7 +540,9 @@ func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFi
 	finding.Detail = msg.Detail
 	finding.Description = msg.Description
 	finding.ProofOfConcept = msg.ProofOfConcept
-	k.SetFinding(ctx, finding)
+	if err = k.Findings.Set(ctx, finding.FindingId, finding); err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

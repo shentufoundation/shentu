@@ -8,12 +8,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"cosmossdk.io/store/prefix"
-
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 
-	"github.com/cosmos/cosmos-sdk/runtime"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 )
 
@@ -27,25 +23,17 @@ func NewQueryServer(k Keeper) types.QueryServer {
 
 // Programs implements the Query/Programs gRPC method
 func (q queryServer) Programs(c context.Context, req *types.QueryProgramsRequest) (*types.QueryProgramsResponse, error) {
-	var programs types.Programs
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
 
-	kvStore := runtime.KVStoreAdapter(q.k.storeService.OpenKVStore(c))
-	programStore := prefix.NewStore(kvStore, types.ProgramKey)
-
-	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		var p types.Program
-		if err := q.k.cdc.Unmarshal(value, &p); err != nil {
-			return false, status.Error(codes.Internal, err.Error())
-		}
-
-		if accumulate {
-			programs = append(programs, p)
-		}
-
+	programs, pageRes, err := query.CollectionFilteredPaginate(c, q.k.Programs, req.Pagination, func(key string, p types.Program) (include bool, err error) {
 		return true, nil
-
+	}, func(_ string, value types.Program) (*types.Program, error) {
+		return &value, nil
 	})
-	if err != nil {
+
+	if err != nil && !errors.IsOf(err, collections.ErrInvalidIterator) {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -60,59 +48,51 @@ func (q queryServer) Program(c context.Context, req *types.QueryProgramRequest) 
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	if len(req.ProgramId) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "program-id can not be 0")
+	if len(req.ProgramId) <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "program-id can not less than 0")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-	program, found := q.k.GetProgram(ctx, req.ProgramId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "program %s doesn't exist", req.ProgramId)
+	program, err := q.k.Programs.Get(c, req.ProgramId)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "program %s doesn't exist", req.ProgramId)
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryProgramResponse{Program: program}, nil
+	return &types.QueryProgramResponse{Program: &program}, nil
 }
 
 func (q queryServer) Findings(c context.Context, req *types.QueryFindingsRequest) (*types.QueryFindingsResponse, error) {
-	var queryFindings types.Findings
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
 
 	if len(req.ProgramId) == 0 && len(req.SubmitterAddress) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	kvStore := runtime.KVStoreAdapter(q.k.storeService.OpenKVStore(c))
-	programStore := prefix.NewStore(kvStore, types.FindingKey)
-
-	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		var finding types.Finding
-		if err := q.k.cdc.Unmarshal(value, &finding); err != nil {
-			return false, status.Error(codes.Internal, err.Error())
-		}
-
+	findings, pageRes, err := query.CollectionFilteredPaginate(c, q.k.Findings, req.Pagination, func(key string, f types.Finding) (include bool, err error) {
 		switch {
 		case len(req.ProgramId) != 0 && len(req.SubmitterAddress) != 0:
-			if finding.ProgramId == req.ProgramId && finding.SubmitterAddress == req.SubmitterAddress {
-				queryFindings = append(queryFindings, finding)
-			}
+			return f.ProgramId == req.ProgramId && f.SubmitterAddress == req.SubmitterAddress, nil
 		case len(req.ProgramId) != 0:
-			if finding.ProgramId == req.ProgramId {
-				queryFindings = append(queryFindings, finding)
-
-			}
+			return f.ProgramId == req.ProgramId, nil
 		case len(req.SubmitterAddress) != 0:
-			if finding.SubmitterAddress == req.SubmitterAddress {
-				queryFindings = append(queryFindings, finding)
-			}
+			return f.SubmitterAddress == req.SubmitterAddress, nil
+		default:
+			return true, nil
 		}
-
-		return true, nil
+	}, func(_ string, value types.Finding) (*types.Finding, error) {
+		return &value, nil
 	})
-	if err != nil {
+
+	if err != nil && !errors.IsOf(err, collections.ErrInvalidIterator) {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryFindingsResponse{
-		Findings:   queryFindings,
+		Findings:   findings,
 		Pagination: pageRes,
 	}, nil
 }
@@ -125,13 +105,15 @@ func (q queryServer) Finding(c context.Context, req *types.QueryFindingRequest) 
 		return nil, status.Error(codes.InvalidArgument, "finding-id can not be 0")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-	finding, found := q.k.GetFinding(ctx, req.FindingId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "finding %s doesn't exist", req.FindingId)
+	finding, err := q.k.Findings.Get(c, req.FindingId)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "finding %s doesn't exist", req.FindingId)
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryFindingResponse{Finding: finding}, nil
+	return &types.QueryFindingResponse{Finding: &finding}, nil
 }
 
 func (q queryServer) FindingFingerprint(c context.Context, req *types.QueryFindingFingerprintRequest) (*types.QueryFindingFingerprintResponse, error) {
@@ -142,10 +124,12 @@ func (q queryServer) FindingFingerprint(c context.Context, req *types.QueryFindi
 		return nil, status.Error(codes.InvalidArgument, "finding-id can not be 0")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-	finding, found := q.k.GetFinding(ctx, req.FindingId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "finding %s doesn't exist", req.FindingId)
+	finding, err := q.k.Findings.Get(c, req.FindingId)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "finding %s doesn't exist", req.FindingId)
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	findingFingerPrintHash := q.k.GetFindingFingerprintHash(&finding)
@@ -159,11 +143,15 @@ func (q queryServer) ProgramFingerprint(c context.Context, req *types.QueryProgr
 	if len(req.ProgramId) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "program-id can not be 0")
 	}
-	ctx := sdk.UnwrapSDKContext(c)
-	program, found := q.k.GetProgram(ctx, req.ProgramId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "program %s doesn't exist", req.ProgramId)
+
+	program, err := q.k.Programs.Get(c, req.ProgramId)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "program %s doesn't exist", req.ProgramId)
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
+
 	programFingerPrintHash := q.k.GetProgramFingerprintHash(&program)
 	return &types.QueryProgramFingerprintResponse{Fingerprint: programFingerPrintHash}, nil
 }
@@ -203,7 +191,7 @@ func (q queryServer) Theorem(c context.Context, req *types.QueryTheoremRequest) 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryTheoremResponse{Theorem: theorem}, nil
+	return &types.QueryTheoremResponse{Theorem: &theorem}, nil
 }
 
 func (q queryServer) Proof(c context.Context, req *types.QueryProofRequest) (*types.QueryProofResponse, error) {
@@ -223,7 +211,7 @@ func (q queryServer) Proof(c context.Context, req *types.QueryProofRequest) (*ty
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryProofResponse{Proof: proof}, nil
+	return &types.QueryProofResponse{Proof: &proof}, nil
 }
 
 func (q queryServer) Proofs(c context.Context, req *types.QueryProofsRequest) (*types.QueryProofsResponse, error) {
@@ -291,5 +279,5 @@ func (q queryServer) Params(c context.Context, req *types.QueryParamsRequest) (*
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryParamsResponse{Params: params}, nil
+	return &types.QueryParamsResponse{Params: &params}, nil
 }

@@ -16,8 +16,8 @@ const (
 
 var (
 	// Program related keys
-	ProgramKey            = collections.NewPrefix(1)
-	FindingKey            = collections.NewPrefix(2)
+	ProgramKeyPrefix      = collections.NewPrefix(1)
+	FindingKeyPrefix      = collections.NewPrefix(2)
 	ProgramFindingListKey = collections.NewPrefix(10)
 
 	// Theorem related keys
@@ -43,17 +43,7 @@ var (
 	ParamsKey = collections.NewPrefix(61)
 )
 
-// GetProgramKey creates the key for a program
-func GetProgramKey(id string) []byte {
-	return append(ProgramKey, []byte(id)...)
-}
-
-// GetFindingKey creates the key for a finding
-func GetFindingKey(id string) []byte {
-	return append(FindingKey, []byte(id)...)
-}
-
-// GetProgramFindingListKey creates the key for a program's finding list
-func GetProgramFindingListKey(id string) []byte {
-	return append(ProgramFindingListKey, []byte(id)...)
-}
+// // GetProgramFindingListKey creates the key for a program's finding list
+// func GetProgramFindingListKey(id string) []byte {
+// 	return append(ProgramFindingListKey, []byte(id)...)
+// }

@@ -73,7 +73,7 @@ $ %s query bounty program 1
 				return err
 			}
 
-			return clientCtx.PrintProto(&res.Program)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -161,7 +161,7 @@ $ %s query bounty finding 1
 				return err
 			}
 
-			return clientCtx.PrintProto(&res.Finding)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -356,7 +356,7 @@ $ %s query bounty theorem 1
 				return err
 			}
 
-			return clientCtx.PrintProto(&res.Theorem)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -394,7 +394,7 @@ $ %s query bounty proof "hash"
 				return err
 			}
 
-			return clientCtx.PrintProto(&res.Proof)
+			return clientCtx.PrintProto(res)
 		},
 	}
 

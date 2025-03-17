@@ -1,136 +1,21 @@
 package keeper
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/collections"
 
-	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-func (k Keeper) GetFinding(ctx sdk.Context, id string) (types.Finding, bool) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	findingData := store.Get(types.GetFindingKey(id))
-
-	if findingData == nil {
-		return types.Finding{}, false
-	}
-
-	var finding types.Finding
-	k.cdc.MustUnmarshal(findingData, &finding)
-	return finding, true
-}
-
-func (k Keeper) SetFinding(ctx sdk.Context, finding types.Finding) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	bz := k.cdc.MustMarshal(&finding)
-	store.Set(types.GetFindingKey(finding.FindingId), bz)
-}
-
-func (k Keeper) DeleteFinding(ctx sdk.Context, id string) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store.Delete(types.GetFindingKey(id))
-}
-
-func (k Keeper) SetPidFindingIDList(ctx sdk.Context, pid string, findingIds []string) error {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	bytes, err := StringsToBytes(findingIds)
-	if err != nil {
-		return err
-	}
-	store.Set(types.GetProgramFindingListKey(pid), bytes)
-	return nil
-}
-
-func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid string) ([]string, error) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	findingIDs := store.Get(types.GetProgramFindingListKey(pid))
-	if findingIDs == nil {
-		return []string{}, nil
-	}
-
-	findingIDList, err := BytesToStrings(findingIDs)
-	if err != nil {
-		return nil, err
-	}
-	return findingIDList, nil
-}
-
-func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid string) error {
-	fids, err := k.GetPidFindingIDList(ctx, pid)
-	if err != nil {
-		return err
-	}
-
-	fids = append(fids, fid)
-	err = k.SetPidFindingIDList(ctx, pid, fids)
-	return err
-}
-
-func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid string) error {
-	fids, err := k.GetPidFindingIDList(ctx, pid)
-	if err != nil {
-		return err
-	}
-	for idx, id := range fids {
-		if id == fid {
-			if len(fids) == 1 {
-				// Delete fid list if empty
-				store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-				store.Delete(types.GetProgramFindingListKey(pid))
-				return nil
-			}
-			fids = append(fids[:idx], fids[idx+1:]...)
-			return k.SetPidFindingIDList(ctx, pid, fids)
-		}
-	}
-	return types.ErrFindingNotExists
-}
-
-func (k Keeper) GetAllFindings(ctx sdk.Context) []types.Finding {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	iterator := storetypes.KVStorePrefixIterator(store, types.FindingKey)
-
-	var findings []types.Finding
-	var finding types.Finding
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		k.cdc.MustUnmarshal(iterator.Value(), &finding)
-		findings = append(findings, finding)
-	}
-	return findings
-}
-
-func StringsToBytes(list []string) ([]byte, error) {
-	marshal, err := json.Marshal(list)
-	if err != nil {
-		return nil, err
-	}
-	return marshal, nil
-}
-
-func BytesToStrings(list []byte) ([]string, error) {
-	var fids []string
-	err := json.Unmarshal(list, &fids)
-	if err != nil {
-		return nil, err
-	}
-
-	return fids, nil
-}
-
 func (k Keeper) ConfirmFinding(ctx sdk.Context, msg *types.MsgConfirmFinding) (types.Finding, error) {
-	var finding types.Finding
-	// get finding
-	finding, found := k.GetFinding(ctx, msg.FindingId)
-	if !found {
-		return finding, types.ErrFindingNotExists
+	finding, err := k.Findings.Get(ctx, msg.FindingId)
+	if err != nil {
+		return finding, err
 	}
 	// only StatusActive can be confirmed
 	if finding.Status != types.FindingStatusActive {
@@ -138,9 +23,9 @@ func (k Keeper) ConfirmFinding(ctx sdk.Context, msg *types.MsgConfirmFinding) (t
 	}
 
 	// get program
-	program, isExist := k.GetProgram(ctx, finding.ProgramId)
-	if !isExist {
-		return finding, types.ErrProgramNotExists
+	program, err := k.Programs.Get(ctx, finding.ProgramId)
+	if err != nil {
+		return finding, err
 	}
 	if program.Status != types.ProgramStatusActive {
 		return finding, types.ErrProgramNotActive
@@ -172,3 +57,49 @@ func (k Keeper) GetFindingFingerprintHash(finding *types.Finding) string {
 	hash := sha256.Sum256(bz)
 	return hex.EncodeToString(hash[:])
 }
+
+func (k Keeper) GetProgramFindings(ctx context.Context, programID string) ([]string, error) {
+	var findingIDs []string
+
+	rng := collections.NewPrefixedPairRange[string, string](programID)
+	err := k.ProgramFindings.Walk(ctx, rng, func(key collections.Pair[string, string]) (stop bool, err error) {
+		if key.K1() == programID {
+			findingIDs = append(findingIDs, key.K2())
+		}
+		return false, nil
+	})
+	if err != nil {
+		return findingIDs, err
+	}
+
+	return findingIDs, nil
+}
+
+//func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid string) error {
+//	fids, err := k.GetPidFindingIDList(ctx, pid)
+//	if err != nil {
+//		return err
+//	}
+//
+//	fids = append(fids, fid)
+//	err = k.SetPidFindingIDList(ctx, pid, fids)
+//	return err
+//}
+
+//func StringsToBytes(list []string) ([]byte, error) {
+//	marshal, err := json.Marshal(list)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return marshal, nil
+//}
+//
+//func BytesToStrings(list []byte) ([]string, error) {
+//	var fids []string
+//	err := json.Unmarshal(list, &fids)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return fids, nil
+//}
