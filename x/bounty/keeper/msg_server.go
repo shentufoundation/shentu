@@ -791,7 +791,7 @@ func (k msgServer) handlePassedProof(
 	checkerAddr, proverAddr sdk.AccAddress,
 ) error {
 	// Update proof status
-	if err := k.SetProof(ctx, proof); err != nil {
+	if err := k.Proofs.Set(ctx, proof.Id, proof); err != nil {
 		return err
 	}
 

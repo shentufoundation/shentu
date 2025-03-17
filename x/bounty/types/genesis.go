@@ -19,8 +19,6 @@ func DefaultGenesisState() *GenesisState {
 	checkerRate := sdkmath.LegacyMustNewDecFromStr("0.2")
 
 	return &GenesisState{
-		Programs:          []Program{},
-		Findings:          []Finding{},
 		StartingTheoremId: 1,
 		Params: &Params{
 			MinGrant:              minGrant,

@@ -554,7 +554,7 @@ func NewShentuApp(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		icaModule,
-		bounty.NewAppModule(app.BountyKeeper),
+		bounty.NewAppModule(app.AccountKeeper, app.BountyKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	)
 
@@ -699,7 +699,7 @@ func NewShentuApp(
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
-		bounty.NewAppModule(app.BountyKeeper),
+		bounty.NewAppModule(app.AccountKeeper, app.BountyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

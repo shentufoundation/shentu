@@ -51,7 +51,7 @@ func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, 
 		return nil, err
 	}
 
-	if err := k.SetProof(ctx, proof); err != nil {
+	if err := k.Proofs.Set(ctx, proof.Id, proof); err != nil {
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func (k Keeper) SubmitProofDetail(ctx context.Context, proofId string, detail st
 	// update proof
 	proof.Detail = detail
 	proof.Status = types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD
-	return k.SetProof(ctx, proof)
+	return k.Proofs.Set(ctx, proof.Id, proof)
 }
 
 func (k Keeper) AddDeposit(ctx context.Context, proofID string, depositorAddr sdk.AccAddress, depositAmount sdk.Coins) error {
@@ -195,8 +195,4 @@ func (k Keeper) DeleteProof(ctx context.Context, proofID string) error {
 	}
 
 	return nil
-}
-
-func (k Keeper) SetProof(ctx context.Context, proof types.Proof) error {
-	return k.Proofs.Set(ctx, proof.Id, proof)
 }

@@ -44,7 +44,7 @@ func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccA
 
 	// Update theorem
 	theorem.TotalGrant = sdk.NewCoins(theorem.TotalGrant...).Add(grantAmount...)
-	err = k.SetTheorem(ctx, theorem)
+	err = k.Theorems.Set(ctx, theorem.Id, theorem)
 	if err != nil {
 		return err
 	}

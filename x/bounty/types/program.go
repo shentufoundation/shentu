@@ -6,9 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Programs is an array of program
-type Programs []Program
-
 func NewProgram(pid, name, detail string, admin sdk.AccAddress,
 	status ProgramStatus, createTime time.Time) (Program, error) {
 

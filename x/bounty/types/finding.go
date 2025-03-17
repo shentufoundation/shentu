@@ -8,9 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Findings is an array of finding
-type Findings []Finding
-
 func NewFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, createTime time.Time, level SeverityLevel) (Finding, error) {
 	return Finding{
 		ProgramId:        pid,

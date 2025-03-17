@@ -49,7 +49,3 @@ func (k Keeper) DeleteTheorem(ctx context.Context, theoremID uint64) error {
 
 	return nil
 }
-
-func (k Keeper) SetTheorem(ctx context.Context, theorem types.Theorem) error {
-	return k.Theorems.Set(ctx, theorem.Id, theorem)
-}
