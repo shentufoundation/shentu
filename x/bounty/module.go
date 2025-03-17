@@ -20,6 +20,8 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
+const ConsensusVersion = 4
+
 var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
@@ -138,7 +140,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 3 }
+func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // EndBlock returns the end blocker for the bounty module. It returns no validator
 // updates.
