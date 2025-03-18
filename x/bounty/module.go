@@ -128,6 +128,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to migrate x/bounty from version 2 to 3: %v", err))
 	}
+	err = cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3to4)
+	if err != nil {
+		panic(fmt.Sprintf("failed to migrate x/bounty from version 3 to 4: %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the bounty module. It returns
