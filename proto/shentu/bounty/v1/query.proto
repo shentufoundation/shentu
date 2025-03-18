@@ -74,6 +74,11 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/params";
   }
+
+  // Grants queries theorem details based on theoremID.
+  rpc Grants(QueryGrantsRequest) returns (QueryGrantsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/grants/{theorem_id}";
+  }
 }
 
 // QueryHostsRequest is the request type for the Query/Hosts RPC method.
@@ -246,4 +251,21 @@ message QueryParamsRequest {}
 // QueryParamsResponse defines the response type for querying x/bounty parameters.
 message QueryParamsResponse {
   Params params = 1;
+}
+
+// QueryGrantsRequest is the request type for the Query/Grants RPC method.
+message QueryGrantsRequest {
+  // theorem_id defines the unique id of the theorem.
+  uint64 theorem_id = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryGrantsResponse defines the response type for querying x/bounty grants.
+message QueryGrantsResponse {
+  repeated Grant grants = 1;
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

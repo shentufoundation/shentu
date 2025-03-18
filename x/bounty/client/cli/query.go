@@ -38,6 +38,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryRewards(),
 		GetCmdQueryParams(),
 		GetCmdQueryProofs(),
+		GetCmdQueryGrants(),
 	)
 
 	return bountyQueryCmd
@@ -564,5 +565,51 @@ $ %s query bounty proofs 1
 
 	flags.AddQueryFlagsToCmd(cmd)
 	flags.AddPaginationFlagsToCmd(cmd, "proofs")
+	return cmd
+}
+
+// GetCmdQueryGrants implements the query grants command.
+func GetCmdQueryGrants() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "grants [theorem-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query grants for a theorem",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query grants for a theorem by theorem ID.
+
+Example:
+$ %s query bounty grants 1
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			theoremId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("theorem-id %s is not a valid uint, please input a valid theorem-id", args[0])
+			}
+
+			// Query the grants
+			res, err := queryClient.Grants(
+				cmd.Context(),
+				&types.QueryGrantsRequest{
+					TheoremId: theoremId,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

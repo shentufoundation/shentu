@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -280,4 +281,30 @@ func (q queryServer) Params(c context.Context, req *types.QueryParamsRequest) (*
 	}
 
 	return &types.QueryParamsResponse{Params: &params}, nil
+}
+
+func (q queryServer) Grants(c context.Context, req *types.QueryGrantsRequest) (*types.QueryGrantsResponse, error) {
+	if req.TheoremId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "theorem id can not be 0")
+	}
+
+	var (
+		grants  []*types.Grant
+		pageRes *query.PageResponse
+		err     error
+	)
+
+	grants, pageRes, err = query.CollectionPaginate(c, q.k.Grants,
+		req.Pagination, func(key collections.Pair[uint64, sdk.AccAddress], value types.Grant) (*types.Grant, error) {
+			return &value, nil
+		}, query.WithCollectionPaginationPairPrefix[uint64, sdk.AccAddress](req.TheoremId),
+	)
+	if err != nil && !errors.IsOf(err, collections.ErrInvalidIterator) {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryGrantsResponse{
+		Grants:     grants,
+		Pagination: pageRes,
+	}, nil
 }
