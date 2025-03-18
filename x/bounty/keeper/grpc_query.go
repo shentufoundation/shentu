@@ -8,9 +8,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
-
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 var _ types.QueryServer = queryServer{}
