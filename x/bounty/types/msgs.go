@@ -54,23 +54,23 @@ func (msg MsgCreateProgram) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{cAddr}
 }
 
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgCreateProgram) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-	if len(msg.ProgramId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
-	}
-	if len(msg.Name) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty name")
-	}
-	if len(msg.Detail) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
-	}
-	return nil
-}
+//// ValidateBasic implements the sdk.Msg interface.
+//func (msg MsgCreateProgram) ValidateBasic() error {
+//	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+//	if err != nil {
+//		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+//	}
+//	if len(msg.ProgramId) == 0 {
+//		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+//	}
+//	if len(msg.Name) == 0 {
+//		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty name")
+//	}
+//	if len(msg.Detail) == 0 {
+//		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
+//	}
+//	return nil
+//}
 
 // NewMsgEditProgram edit a program.
 func NewMsgEditProgram(pid, name, detail string, operator sdk.AccAddress) *MsgEditProgram {
@@ -484,6 +484,7 @@ func NewMsgSubmitProofDetail(proofID, prover, detail string) *MsgSubmitProofDeta
 		Detail:  detail,
 	}
 }
+
 func NewMsgSubmitProofVerification(proofID string, status ProofStatus, checker string) *MsgSubmitProofVerification {
 	return &MsgSubmitProofVerification{
 		ProofId: proofID,

@@ -74,32 +74,3 @@ func (k Keeper) GetProgramFindings(ctx context.Context, programID string) ([]str
 
 	return findingIDs, nil
 }
-
-//func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid string) error {
-//	fids, err := k.GetPidFindingIDList(ctx, pid)
-//	if err != nil {
-//		return err
-//	}
-//
-//	fids = append(fids, fid)
-//	err = k.SetPidFindingIDList(ctx, pid, fids)
-//	return err
-//}
-
-//func StringsToBytes(list []string) ([]byte, error) {
-//	marshal, err := json.Marshal(list)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return marshal, nil
-//}
-//
-//func BytesToStrings(list []byte) ([]string, error) {
-//	var fids []string
-//	err := json.Unmarshal(list, &fids)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return fids, nil
-//}

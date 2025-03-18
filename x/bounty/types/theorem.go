@@ -6,11 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const (
-	// DefaultStartingTheoremID is 1
-	DefaultStartingTheoremID uint64 = 1
-)
-
 func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, submitTime, endTime time.Time) (Theorem, error) {
 	return Theorem{
 		Id:          id,
