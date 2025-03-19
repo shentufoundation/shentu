@@ -27,76 +27,21 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-// validateOperatorAddress validates the operator address and returns the decoded address
-func (k msgServer) validateOperatorAddress(operatorAddress string) (sdk.AccAddress, error) {
-	if operatorAddress == "" {
-		return nil, errors.Wrap(sdkerrors.ErrInvalidAddress, "operator address cannot be empty")
-	}
-	operatorAddr, err := sdk.AccAddressFromBech32(operatorAddress)
-	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid operator address: %s", err)
-	}
-	return operatorAddr, nil
-}
-
-// validateProgramStatus checks if the program exists and is in the expected status
-func (k msgServer) validateProgramStatus(ctx sdk.Context, programID string, expectedStatus types.ProgramStatus) (*types.Program, error) {
-	program, err := k.Programs.Get(ctx, programID)
-	if err != nil {
-		return nil, err
-	}
-	if program.Status != expectedStatus {
-		return nil, types.ErrProgramNotActive
-	}
-	return &program, nil
-}
-
-// validateFindingStatus checks if the finding exists and is in any of the expected statuses
-func (k msgServer) validateFindingStatus(ctx sdk.Context, findingID string, expectedStatuses ...types.FindingStatus) (*types.Finding, error) {
-	finding, err := k.Findings.Get(ctx, findingID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, status := range expectedStatuses {
-		if finding.Status == status {
-			return &finding, nil
-		}
-	}
-
-	return nil, types.ErrFindingStatusInvalid
-}
-
-// validateProofStatus checks if the proof exists and is in the expected status
-func (k msgServer) validateProofStatus(ctx sdk.Context, proofID string, expectedStatus types.ProofStatus) (*types.Proof, error) {
-	proof, err := k.Proofs.Get(ctx, proofID)
-	if err != nil {
-		return nil, err
-	}
-	if proof.Status != expectedStatus {
-		return nil, types.ErrProofStatusInvalid
-	}
-	return &proof, nil
-}
-
-// emitEvent is a helper function to emit events
-func (k msgServer) emitEvent(ctx sdk.Context, eventType string, attributes ...sdk.Attribute) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			eventType,
-			attributes...,
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-}
-
 func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProgram) (*types.MsgCreateProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := k.validateOperatorAddress(msg.OperatorAddress)
+	// Validate basic message fields
+	if len(msg.ProgramId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+	}
+	if len(msg.Name) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty name")
+	}
+	if len(msg.Detail) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
+	}
+
+	operatorAddr, err := k.validateAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -119,9 +64,12 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		return nil, err
 	}
 
-	k.emitEvent(ctx, types.EventTypeCreateProgram,
-		sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeCreateProgram,
+			sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+		),
 	)
 
 	return &types.MsgCreateProgramResponse{}, nil
@@ -130,7 +78,12 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram) (*types.MsgEditProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := k.validateOperatorAddress(msg.OperatorAddress)
+	// Validate basic message fields
+	if len(msg.ProgramId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+	}
+
+	operatorAddr, err := k.validateAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -165,9 +118,12 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 		return nil, err
 	}
 
-	k.emitEvent(ctx, types.EventTypeEditProgram,
-		sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeEditProgram,
+			sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+		),
 	)
 
 	return &types.MsgEditProgramResponse{}, nil
@@ -176,31 +132,40 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 func (k msgServer) ActivateProgram(goCtx context.Context, msg *types.MsgActivateProgram) (*types.MsgActivateProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	// Validate basic message fields
+	if len(msg.ProgramId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+	}
+
+	operatorAddr, err := k.validateAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
+
 	if err = k.Keeper.ActivateProgram(ctx, msg.ProgramId, operatorAddr); err != nil {
 		return nil, err
 	}
-	ctx.EventManager().EmitEvents(sdk.Events{
+
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeActivateProgram,
 			sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
-	})
+	)
+
 	return &types.MsgActivateProgramResponse{}, nil
 }
 
 func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgCloseProgram) (*types.MsgCloseProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	// Validate basic message fields
+	if len(msg.ProgramId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+	}
+
+	operatorAddr, err := k.validateAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -209,24 +174,36 @@ func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgCloseProgra
 	if err != nil {
 		return nil, err
 	}
-	ctx.EventManager().EmitEvents(sdk.Events{
+
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCloseProgram,
 			sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
-	})
+	)
+
 	return &types.MsgCloseProgramResponse{}, nil
 }
 
 func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFinding) (*types.MsgSubmitFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := k.validateOperatorAddress(msg.OperatorAddress)
+	// Validate basic message fields
+	if len(msg.ProgramId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
+	}
+	if len(msg.FindingId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+	}
+	if len(msg.FindingHash) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingHash")
+	}
+	if !types.ValidFindingSeverityLevel(msg.SeverityLevel) {
+		return nil, errors.Wrap(types.ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
+	}
+
+	operatorAddr, err := k.validateAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -255,10 +232,13 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, err
 	}
 
-	k.emitEvent(ctx, types.EventTypeSubmitFinding,
-		sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
-		sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSubmitFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
+			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+		),
 	)
 
 	return &types.MsgSubmitFindingResponse{}, nil
@@ -266,6 +246,19 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 
 func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding) (*types.MsgEditFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Validate basic message fields
+	if len(msg.FindingId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+	}
+	if !types.ValidFindingSeverityLevel(msg.SeverityLevel) {
+		return nil, errors.Wrap(types.ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
+	}
+
+	// Validate operator address (already used in the existing code below)
+	if _, err := k.validateAddress(msg.OperatorAddress); err != nil {
+		return nil, err
+	}
 
 	findingPtr, err := k.validateFindingStatus(ctx, msg.FindingId, types.FindingStatusSubmitted, types.FindingStatusActive)
 	if err != nil {
@@ -292,10 +285,13 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 			return nil, err
 		}
 
-		k.emitEvent(ctx, types.EventTypeEditFindingPaymentHash,
-			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
-			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeEditFindingPaymentHash,
+				sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
+				sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+			),
 		)
 		return &types.MsgEditFindingResponse{}, nil
 	}
@@ -315,10 +311,13 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 		return nil, err
 	}
 
-	k.emitEvent(ctx, types.EventTypeEditFinding,
-		sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
-		sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeEditFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
+			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+		),
 	)
 
 	return &types.MsgEditFindingResponse{}, nil
@@ -327,7 +326,12 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 func (k msgServer) ActivateFinding(goCtx context.Context, msg *types.MsgActivateFinding) (*types.MsgActivateFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	// Validate basic message fields
+	if len(msg.FindingId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+	}
+
+	operatorAddr, err := k.validateAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -361,18 +365,14 @@ func (k msgServer) ActivateFinding(goCtx context.Context, msg *types.MsgActivate
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeActivateFinding,
 			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
 			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
-	})
+	)
 
 	return &types.MsgActivateFindingResponse{}, nil
 }
@@ -380,28 +380,32 @@ func (k msgServer) ActivateFinding(goCtx context.Context, msg *types.MsgActivate
 func (k msgServer) ConfirmFinding(goCtx context.Context, msg *types.MsgConfirmFinding) (*types.MsgConfirmFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// Validate basic message fields
+	if len(msg.FindingId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+	}
+	if len(msg.Fingerprint) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty fingerprint")
+	}
+
+	// Validate operator address
+	if _, err := k.validateAddress(msg.OperatorAddress); err != nil {
+		return nil, err
+	}
+
 	finding, err := k.Keeper.ConfirmFinding(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
-	finding.Status = types.FindingStatusConfirmed
-	if err = k.Findings.Set(ctx, finding.FindingId, finding); err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeConfirmFinding,
 			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
 			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
-	})
+	)
 
 	return &types.MsgConfirmFindingResponse{}, nil
 }
@@ -409,19 +413,21 @@ func (k msgServer) ConfirmFinding(goCtx context.Context, msg *types.MsgConfirmFi
 func (k msgServer) ConfirmFindingPaid(goCtx context.Context, msg *types.MsgConfirmFindingPaid) (*types.MsgConfirmFindingPaidResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	// Validate basic message fields
+	if len(msg.FindingId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+	}
+
+	operatorAddr, err := k.validateAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	// get finding
-	finding, err := k.Findings.Get(ctx, msg.FindingId)
+	findingPtr, err := k.validateFindingStatus(ctx, msg.FindingId, types.FindingStatusConfirmed)
 	if err != nil {
 		return nil, err
 	}
-	if finding.Status != types.FindingStatusConfirmed {
-		return nil, types.ErrFindingStatusInvalid
-	}
+	finding := *findingPtr
 
 	// check operator: finding owner, certificate
 	if finding.SubmitterAddress != msg.OperatorAddress && !k.certKeeper.IsBountyAdmin(ctx, operatorAddr) {
@@ -433,18 +439,14 @@ func (k msgServer) ConfirmFindingPaid(goCtx context.Context, msg *types.MsgConfi
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeConfirmFindingPaid,
-			sdk.NewAttribute(types.AttributeKeyFindingID, msg.FindingId),
+			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
 			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
-	})
+	)
 
 	return &types.MsgConfirmFindingPaidResponse{}, nil
 }
@@ -452,7 +454,12 @@ func (k msgServer) ConfirmFindingPaid(goCtx context.Context, msg *types.MsgConfi
 func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFinding) (*types.MsgCloseFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	// Validate basic message fields
+	if len(msg.FindingId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+	}
+
+	operatorAddr, err := k.validateAddress(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -483,24 +490,36 @@ func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFindin
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCloseFinding,
-			sdk.NewAttribute(types.AttributeKeyFindingID, msg.FindingId),
+			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
 			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
-	})
+	)
 
 	return &types.MsgCloseFindingResponse{}, nil
 }
 
 func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFinding) (*types.MsgPublishFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Validate basic message fields
+	if len(msg.FindingId) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
+	}
+	if len(msg.Description) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
+	}
+	if len(msg.ProofOfConcept) == 0 {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty proofOfConcept")
+	}
+
+	// Validate operator address
+	if _, err := k.validateAddress(msg.OperatorAddress); err != nil {
+		return nil, err
+	}
 
 	// get finding
 	finding, err := k.Findings.Get(ctx, msg.FindingId)
@@ -544,18 +563,14 @@ func (k msgServer) PublishFinding(goCtx context.Context, msg *types.MsgPublishFi
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypePublishFinding,
 			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
-			sdk.NewAttribute(types.AttributeKeyProgramID, program.ProgramId),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
-	})
+	)
 
 	return &types.MsgPublishFindingResponse{}, nil
 }
@@ -624,7 +639,27 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	if msg.ProofHash == "" {
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash cannot be empty")
 	}
-
+	proposer, err := k.authKeeper.AddressCodec().StringToBytes(msg.GetProver())
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
+	}
+	// Check if proof already exists
+	exists, err := k.Proofs.Has(ctx, msg.ProofHash)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, types.ErrProofAlreadyExists
+	}
+	// Check if theorem exists
+	theorem, err := k.Theorems.Get(ctx, msg.TheoremId)
+	if err != nil {
+		return nil, err
+	}
+	// Check theorem is still proof able
+	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
+		return nil, types.ErrTheoremStatusInvalid
+	}
 	params, err := k.Params.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get theorem parameters: %w", err)
@@ -636,21 +671,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 		return nil, err
 	}
 
-	proposer, err := k.authKeeper.AddressCodec().StringToBytes(msg.GetProver())
-	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
-	}
-
-	// Check if proof already exists
-	exists, err := k.Proofs.Has(ctx, msg.ProofHash)
-	if err != nil {
-		return nil, err
-	}
-	if exists {
-		return nil, types.ErrProofAlreadyExists
-	}
-
-	proof, err := k.Keeper.SubmitProofHash(goCtx, msg.TheoremId, msg.ProofHash, msg.Prover, msg.Deposit)
+	proof, err := k.Keeper.SubmitProofHash(goCtx, msg.TheoremId, msg.ProofHash, msg.Prover, msg.Deposit, *params.ProofMaxLockPeriod)
 	if err != nil {
 		return nil, err
 	}
@@ -691,9 +712,12 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 		return nil, err
 	}
 
-	k.emitEvent(ctx, types.EventTypeSubmitProofDetail,
-		sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
-		sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSubmitProofDetail,
+			sdk.NewAttribute(types.AttributeKeyProofID, msg.ProofId),
+			sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
+		),
 	)
 
 	return &types.MsgSubmitProofDetailResponse{}, nil
@@ -719,7 +743,7 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Validate checker address and authority
-	checkerAddr, err := k.validateOperatorAddress(msg.Checker)
+	checkerAddr, err := k.validateAddress(msg.Checker)
 	if err != nil {
 		return nil, err
 	}
@@ -754,13 +778,103 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 		return nil, err
 	}
 
-	k.emitEvent(ctx, types.EventTypeSubmitProofVerification,
-		sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
-		sdk.NewAttribute(types.AttributeKeyProofStatus, msg.Status.String()),
-		sdk.NewAttribute(types.AttributeKeyChecker, msg.Checker),
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSubmitProofVerification,
+			sdk.NewAttribute(types.AttributeKeyProofID, msg.ProofId),
+			sdk.NewAttribute(types.AttributeKeyProofStatus, msg.Status.String()),
+			sdk.NewAttribute(types.AttributeKeyChecker, msg.Checker),
+		),
 	)
 
 	return &types.MsgSubmitProofVerificationResponse{}, nil
+}
+
+func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	addr, err := k.authKeeper.AddressCodec().StringToBytes(msg.Address)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid address: %s", err)
+	}
+
+	reward, err := k.Rewards.Get(ctx, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	finalRewards, _ := reward.Reward.TruncateDecimal()
+	if !finalRewards.IsZero() {
+		if err = k.Rewards.Remove(ctx, addr); err != nil {
+			return nil, err
+		}
+
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, finalRewards); err != nil {
+			return nil, err
+		}
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeWithdrawReward,
+			sdk.NewAttribute(types.AttributeKeyReward, finalRewards.String()),
+			sdk.NewAttribute(types.AttributeKeyAddress, msg.Address),
+		),
+	)
+
+	return &types.MsgWithdrawRewardResponse{}, nil
+}
+
+// validateAddress validates the address string and returns the decoded address
+func (k msgServer) validateAddress(address string) (sdk.AccAddress, error) {
+	if address == "" {
+		return nil, errors.Wrap(sdkerrors.ErrInvalidAddress, "address cannot be empty")
+	}
+	addr, err := k.authKeeper.AddressCodec().StringToBytes(address)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid address: %s", err)
+	}
+	return addr, nil
+}
+
+// validateProgramStatus checks if the program exists and is in the expected status
+func (k msgServer) validateProgramStatus(ctx sdk.Context, programID string, expectedStatus types.ProgramStatus) (*types.Program, error) {
+	program, err := k.Programs.Get(ctx, programID)
+	if err != nil {
+		return nil, err
+	}
+	if program.Status != expectedStatus {
+		return nil, types.ErrProgramNotActive
+	}
+	return &program, nil
+}
+
+// validateFindingStatus checks if the finding exists and is in any of the expected statuses
+func (k msgServer) validateFindingStatus(ctx sdk.Context, findingID string, expectedStatuses ...types.FindingStatus) (*types.Finding, error) {
+	finding, err := k.Findings.Get(ctx, findingID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, status := range expectedStatuses {
+		if finding.Status == status {
+			return &finding, nil
+		}
+	}
+
+	return nil, types.ErrFindingStatusInvalid
+}
+
+// validateProofStatus checks if the proof exists and is in the expected status
+func (k msgServer) validateProofStatus(ctx sdk.Context, proofID string, expectedStatus types.ProofStatus) (*types.Proof, error) {
+	proof, err := k.Proofs.Get(ctx, proofID)
+	if err != nil {
+		return nil, err
+	}
+	if proof.Status != expectedStatus {
+		return nil, types.ErrProofStatusInvalid
+	}
+	return &proof, nil
 }
 
 func isValidProofStatus(status types.ProofStatus) bool {
@@ -829,36 +943,4 @@ func (k msgServer) handleFailedProof(
 	}
 
 	return k.Deposits.Remove(ctx, collections.Join(proof.Id, proverAddr))
-}
-
-func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	addr, err := k.authKeeper.AddressCodec().StringToBytes(msg.Address)
-	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid address: %s", err)
-	}
-
-	reward, err := k.Rewards.Get(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	finalRewards, _ := reward.Reward.TruncateDecimal()
-	if !finalRewards.IsZero() {
-		if err = k.Rewards.Remove(ctx, addr); err != nil {
-			return nil, err
-		}
-
-		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, finalRewards); err != nil {
-			return nil, err
-		}
-	}
-
-	k.emitEvent(ctx, types.EventTypeWithdrawReward,
-		sdk.NewAttribute(types.AttributeKeyReward, finalRewards.String()),
-		sdk.NewAttribute(types.AttributeKeyAddress, msg.Address),
-	)
-
-	return &types.MsgWithdrawRewardResponse{}, nil
 }

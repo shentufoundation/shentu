@@ -1,6 +1,8 @@
 package keeper_test
 
-import "github.com/shentufoundation/shentu/v2/x/bounty/types"
+import (
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
+)
 
 func (suite *KeeperTestSuite) TestSetGetProgram() {
 	type args struct {
@@ -38,11 +40,18 @@ func (suite *KeeperTestSuite) TestSetGetProgram() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			for _, program := range tc.args.program {
-				suite.keeper.SetProgram(suite.ctx, program)
-				storedProgram, isExist := suite.keeper.GetProgram(suite.ctx, program.ProgramId)
-				suite.Require().Equal(true, isExist)
+				err := suite.keeper.Programs.Set(suite.ctx, program.ProgramId, program)
+				suite.Require().NoError(err)
 
-				storedPrograms := suite.keeper.GetAllPrograms(suite.ctx)
+				storedProgram, err := suite.keeper.Programs.Get(suite.ctx, program.ProgramId)
+				suite.Require().NoError(err)
+
+				var storedPrograms []types.Program
+				err = suite.keeper.Programs.Walk(suite.ctx, nil, func(_ string, p types.Program) (bool, error) {
+					storedPrograms = append(storedPrograms, p)
+					return false, nil
+				})
+				suite.Require().NoError(err)
 				suite.Require().Equal(1, len(storedPrograms))
 
 				if tc.errArgs.shouldPass {
@@ -69,16 +78,18 @@ func (suite *KeeperTestSuite) TestOpenCloseProgram() {
 		AdminAddress: suite.programAddr.String(),
 		Status:       types.ProgramStatusInactive,
 	}
-	suite.keeper.SetProgram(suite.ctx, program)
-	storedProgram, isExist := suite.keeper.GetProgram(suite.ctx, program.ProgramId)
-	suite.Require().Equal(true, isExist)
+	err := suite.keeper.Programs.Set(suite.ctx, program.ProgramId, program)
+	suite.Require().NoError(err)
+
+	storedProgram, err := suite.keeper.Programs.Get(suite.ctx, program.ProgramId)
+	suite.Require().NoError(err)
 	suite.Require().Equal(program.ProgramId, storedProgram.ProgramId)
 
 	isCert := suite.app.CertKeeper.IsBountyAdmin(suite.ctx, suite.bountyAdminAddr)
 	suite.Require().True(isCert)
 
 	// normal addr open program
-	err := suite.keeper.ActivateProgram(suite.ctx, program.ProgramId, suite.normalAddr)
+	err = suite.keeper.ActivateProgram(suite.ctx, program.ProgramId, suite.normalAddr)
 	suite.Require().Error(err)
 	// certifier open program
 	err = suite.keeper.ActivateProgram(suite.ctx, program.ProgramId, suite.bountyAdminAddr)

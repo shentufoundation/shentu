@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"time"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -19,34 +20,16 @@ import (
 // - the proof parameters are valid
 // Then creates and stores the proof, updates theorem proof mapping, and adds to active proofs queue.
 // Returns the created proof and any error.
-func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, prover string, deposit sdk.Coins) (*types.Proof, error) {
+func (k Keeper) SubmitProofHash(ctx context.Context, theoremID uint64, proofID, prover string, deposit sdk.Coins, lockTime time.Duration) (*types.Proof, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	submitTime := sdkCtx.BlockHeader().Time
-
-	// Check if theorem exists
-	theorem, err := k.Theorems.Get(ctx, theoremID)
-	if err != nil {
-		return nil, err
-	}
-	// Check theorem is still proof able
-	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
-		return nil, types.ErrTheoremStatusInvalid
-	}
-
-	exists, err := k.TheoremProof.Has(ctx, theorem.Id)
-	if err != nil {
-		return nil, err
-	}
-	if exists {
-		return nil, types.ErrTheoremHasProof
-	}
 
 	param, err := k.Params.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	proof, err := types.NewProof(theoremID, proofID, prover, submitTime, submitTime.Add(*param.ProofMaxLockPeriod), deposit)
+	proof, err := types.NewProof(theoremID, proofID, prover, submitTime, submitTime.Add(lockTime), deposit)
 	if err != nil {
 		return nil, err
 	}

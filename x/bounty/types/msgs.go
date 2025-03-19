@@ -1,10 +1,7 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -44,24 +41,6 @@ func (msg MsgCreateProgram) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgCreateProgram) Type() string { return TypeMsgCreateProgram }
 
-//// ValidateBasic implements the sdk.Msg interface.
-//func (msg MsgCreateProgram) ValidateBasic() error {
-//	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-//	if err != nil {
-//		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
-//	}
-//	if len(msg.ProgramId) == 0 {
-//		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
-//	}
-//	if len(msg.Name) == 0 {
-//		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty name")
-//	}
-//	if len(msg.Detail) == 0 {
-//		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
-//	}
-//	return nil
-//}
-
 // NewMsgEditProgram edit a program.
 func NewMsgEditProgram(pid, name, detail string, operator sdk.AccAddress) *MsgEditProgram {
 	return &MsgEditProgram{
@@ -77,18 +56,6 @@ func (msg MsgEditProgram) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgEditProgram) Type() string { return TypeMsgEditProgram }
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgEditProgram) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-	if len(msg.ProgramId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
-	}
-	return nil
-}
 
 // NewMsgSubmitFinding submit a new finding.
 func NewMsgSubmitFinding(pid, fid, hash string, operator sdk.AccAddress, level SeverityLevel) *MsgSubmitFinding {
@@ -107,27 +74,6 @@ func (msg MsgSubmitFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgSubmitFinding) Type() string { return TypeMsgSubmitFinding }
 
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgSubmitFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-	if len(msg.ProgramId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
-	}
-	if len(msg.FindingId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
-	}
-	if len(msg.FindingHash) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingHash")
-	}
-	if !ValidFindingSeverityLevel(msg.SeverityLevel) {
-		return errorsmod.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
-	}
-	return nil
-}
-
 // NewMsgEditFinding submit a new finding.
 func NewMsgEditFinding(fid, hash, paymentHash string, operator sdk.AccAddress, level SeverityLevel) *MsgEditFinding {
 	return &MsgEditFinding{
@@ -145,21 +91,6 @@ func (msg MsgEditFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgEditFinding) Type() string { return TypeMsgEditFinding }
 
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgEditFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-	if len(msg.FindingId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
-	}
-	if !ValidFindingSeverityLevel(msg.SeverityLevel) {
-		return errorsmod.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
-	}
-	return nil
-}
-
 func NewMsgActivateProgram(pid string, accAddr sdk.AccAddress) *MsgActivateProgram {
 	return &MsgActivateProgram{
 		ProgramId:       pid,
@@ -172,18 +103,6 @@ func (msg MsgActivateProgram) Route() string { return RouterKey }
 
 // Type implements sdk.Msg interface.
 func (msg MsgActivateProgram) Type() string { return TypeMsgActivateProgram }
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgActivateProgram) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-	if len(msg.ProgramId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
-	}
-	return nil
-}
 
 func NewMsgCloseProgram(pid string, accAddr sdk.AccAddress) *MsgCloseProgram {
 	return &MsgCloseProgram{
@@ -198,18 +117,6 @@ func (msg MsgCloseProgram) Route() string { return RouterKey }
 // Type implements sdk.Msg interface.
 func (msg MsgCloseProgram) Type() string { return TypeMsgCloseProgram }
 
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgCloseProgram) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-	if len(msg.ProgramId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
-	}
-	return nil
-}
-
 func NewMsgActivateFinding(findingID string, hostAddr sdk.AccAddress) *MsgActivateFinding {
 	return &MsgActivateFinding{
 		FindingId:       findingID,
@@ -222,18 +129,6 @@ func (msg MsgActivateFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgActivateFinding) Type() string { return TypeMsgActivateFinding }
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgActivateFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-	if len(msg.FindingId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
-	}
-	return nil
-}
 
 func NewMsgConfirmFinding(findingID, fingerprint string, hostAddr sdk.AccAddress) *MsgConfirmFinding {
 	return &MsgConfirmFinding{
@@ -249,21 +144,6 @@ func (msg MsgConfirmFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgConfirmFinding) Type() string { return TypeMsgConfirmFinding }
 
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgConfirmFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-	if len(msg.FindingId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
-	}
-	if len(msg.Fingerprint) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty fingerprint")
-	}
-	return nil
-}
-
 func NewMsgConfirmFindingPaid(findingID string, hostAddr sdk.AccAddress) *MsgConfirmFindingPaid {
 	return &MsgConfirmFindingPaid{
 		FindingId:       findingID,
@@ -277,19 +157,6 @@ func (msg MsgConfirmFindingPaid) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgConfirmFindingPaid) Type() string { return TypeMsgConfirmFindingPaid }
 
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgConfirmFindingPaid) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-
-	if len(msg.FindingId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
-	}
-	return nil
-}
-
 func NewMsgCloseFinding(findingID string, hostAddr sdk.AccAddress) *MsgCloseFinding {
 	return &MsgCloseFinding{
 		FindingId:       findingID,
@@ -302,19 +169,6 @@ func (msg MsgCloseFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgCloseFinding) Type() string { return TypeMsgCloseFinding }
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgCloseFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-
-	if len(msg.FindingId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
-	}
-	return nil
-}
 
 // NewMsgPublishFinding publish finding.
 func NewMsgPublishFinding(fid, desc, poc string, operator sdk.AccAddress) *MsgPublishFinding {
@@ -331,25 +185,6 @@ func (msg MsgPublishFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgPublishFinding) Type() string { return TypeMsgPublishFinding }
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgPublishFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
-	}
-
-	if len(msg.FindingId) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
-	}
-	if len(msg.Description) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "description")
-	}
-	if len(msg.ProofOfConcept) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty proofOfConcept")
-	}
-	return nil
-}
 
 func NewMsgCreateTheorem(title, desc, code, proposer string, initialGrant sdk.Coins) *MsgCreateTheorem {
 	return &MsgCreateTheorem{

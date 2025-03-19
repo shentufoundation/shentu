@@ -7,15 +7,21 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccAddress, grantAmount sdk.Coins) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	// Check if theorem exists
 	theorem, err := k.Theorems.Get(ctx, theoremID)
 	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return status.Errorf(codes.NotFound, "theorem %d doesn't exist", theoremID)
+		}
 		return err
 	}
 	// Check theorem is still depositable
@@ -63,7 +69,6 @@ func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccA
 		return err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeTheoremGrant,

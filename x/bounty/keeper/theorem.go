@@ -5,6 +5,9 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -35,6 +38,9 @@ func (k Keeper) CreateTheorem(ctx context.Context, proposer sdk.AccAddress, titl
 func (k Keeper) DeleteTheorem(ctx context.Context, theoremID uint64) error {
 	theorem, err := k.Theorems.Get(ctx, theoremID)
 	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return status.Errorf(codes.NotFound, "theorem %d doesn't exist", theoremID)
+		}
 		return err
 	}
 
