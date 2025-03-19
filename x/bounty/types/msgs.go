@@ -44,16 +44,6 @@ func (msg MsgCreateProgram) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgCreateProgram) Type() string { return TypeMsgCreateProgram }
 
-func (msg MsgCreateProgram) GetSigners() []sdk.AccAddress {
-	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{cAddr}
-}
-
 //// ValidateBasic implements the sdk.Msg interface.
 //func (msg MsgCreateProgram) ValidateBasic() error {
 //	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -88,16 +78,6 @@ func (msg MsgEditProgram) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgEditProgram) Type() string { return TypeMsgEditProgram }
 
-func (msg MsgEditProgram) GetSigners() []sdk.AccAddress {
-	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{cAddr}
-}
-
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgEditProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -126,16 +106,6 @@ func (msg MsgSubmitFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgSubmitFinding) Type() string { return TypeMsgSubmitFinding }
-
-func (msg MsgSubmitFinding) GetSigners() []sdk.AccAddress {
-	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{cAddr}
-}
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgSubmitFinding) ValidateBasic() error {
@@ -175,16 +145,6 @@ func (msg MsgEditFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgEditFinding) Type() string { return TypeMsgEditFinding }
 
-func (msg MsgEditFinding) GetSigners() []sdk.AccAddress {
-	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{cAddr}
-}
-
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgEditFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -213,11 +173,6 @@ func (msg MsgActivateProgram) Route() string { return RouterKey }
 // Type implements sdk.Msg interface.
 func (msg MsgActivateProgram) Type() string { return TypeMsgActivateProgram }
 
-func (msg MsgActivateProgram) GetSigners() []sdk.AccAddress {
-	cAddr, _ := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	return []sdk.AccAddress{cAddr}
-}
-
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgActivateProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -242,11 +197,6 @@ func (msg MsgCloseProgram) Route() string { return RouterKey }
 
 // Type implements sdk.Msg interface.
 func (msg MsgCloseProgram) Type() string { return TypeMsgCloseProgram }
-
-func (msg MsgCloseProgram) GetSigners() []sdk.AccAddress {
-	cAddr, _ := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	return []sdk.AccAddress{cAddr}
-}
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgCloseProgram) ValidateBasic() error {
@@ -273,16 +223,6 @@ func (msg MsgActivateFinding) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgActivateFinding) Type() string { return TypeMsgActivateFinding }
 
-func (msg MsgActivateFinding) GetSigners() []sdk.AccAddress {
-	// host should sign the message
-	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{hostAddr}
-}
-
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgActivateFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -308,16 +248,6 @@ func (msg MsgConfirmFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgConfirmFinding) Type() string { return TypeMsgConfirmFinding }
-
-func (msg MsgConfirmFinding) GetSigners() []sdk.AccAddress {
-	// host should sign the message
-	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{hostAddr}
-}
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgConfirmFinding) ValidateBasic() error {
@@ -347,16 +277,6 @@ func (msg MsgConfirmFindingPaid) Route() string { return RouterKey }
 // Type implements the sdk.Msg interface.
 func (msg MsgConfirmFindingPaid) Type() string { return TypeMsgConfirmFindingPaid }
 
-func (msg MsgConfirmFindingPaid) GetSigners() []sdk.AccAddress {
-	// host should sign the message
-	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{hostAddr}
-}
-
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgConfirmFindingPaid) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
@@ -382,16 +302,6 @@ func (msg MsgCloseFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgCloseFinding) Type() string { return TypeMsgCloseFinding }
-
-func (msg MsgCloseFinding) GetSigners() []sdk.AccAddress {
-	// host should sign the message
-	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{hostAddr}
-}
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgCloseFinding) ValidateBasic() error {
@@ -421,15 +331,6 @@ func (msg MsgPublishFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgPublishFinding) Type() string { return TypeMsgPublishFinding }
-
-func (msg MsgPublishFinding) GetSigners() []sdk.AccAddress {
-	// releaser should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{cAddr}
-}
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgPublishFinding) ValidateBasic() error {
