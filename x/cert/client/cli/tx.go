@@ -94,7 +94,7 @@ func GetCmdIssueCertificate() *cobra.Command {
 	return cmd
 }
 
-// parseCertifyCompilation parses flags for compilation certificate.
+// parseCertifyCompilationFlags parses flags for compilation certificate.
 func parseCertifyCompilationFlags() (string, string, error) {
 	compiler := viper.GetString(FlagCompiler)
 	if compiler == "" {
