@@ -47,7 +47,7 @@ func (AppModuleBasic) Name() string {
 	return mint.AppModuleBasic{}.Name()
 }
 
-// RegisterCodec registers the staking module's types for the given codec.
+// RegisterLegacyAminoCodec registers the staking module's types for the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	minttypes.RegisterLegacyAminoCodec(cdc)
 }

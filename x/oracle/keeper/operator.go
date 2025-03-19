@@ -41,7 +41,7 @@ func (k Keeper) IsOperator(ctx context.Context, address sdk.AccAddress) (bool, e
 	return store.Has(types.OperatorStoreKey(address))
 }
 
-// DeleteOperators deletes an operator from store.
+// DeleteOperator deletes an operator from store.
 func (k Keeper) DeleteOperator(ctx context.Context, address sdk.AccAddress) error {
 	store := k.storeService.OpenKVStore(ctx)
 	return store.Delete(types.OperatorStoreKey(address))
