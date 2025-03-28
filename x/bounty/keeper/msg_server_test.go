@@ -8,6 +8,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"github.com/google/uuid"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -534,10 +535,9 @@ func (suite *KeeperTestSuite) TestErrorHandling() {
 		// This should fail because the program doesn't exist
 		_, err := suite.msgServer.ActivateProgram(ctx, activateMsg)
 		suite.Require().Error(err)
-	})
-
+	})	
 	// Test submitting a finding for a non-existent program
-	suite.Run("Submit Finding for Non-existent Program", func() {
+	suite.Run("Submit Finding for Non-existent Program", func() {					
 		ctx := sdk.WrapSDKContext(suite.ctx)
 
 		nonExistentProgramID := uuid.NewString()
@@ -661,4 +661,359 @@ func (suite *KeeperTestSuite) TestConcurrentOperations() {
 
 	// We should have found all our findings
 	suite.Require().Equal(concurrentCount, foundCount, "Not all findings were properly associated with the program")
+}
+
+// TestEditProgram tests the EditProgram message handler
+func (suite *KeeperTestSuite) TestEditProgram() {
+	// Create a test program first
+	pid := uuid.NewString()
+	suite.InitCreateProgram(pid)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgEditProgram
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgEditProgram{},
+			false,
+		},
+		{
+			"invalid program ID",
+			&types.MsgEditProgram{
+				ProgramId:       "non-existent-id",
+				OperatorAddress: suite.programAddr.String(),
+				Name:            "Updated Name",
+				Detail:          "Updated Detail",
+			},
+			false,
+		},
+		{
+			"unauthorized operator",
+			&types.MsgEditProgram{
+				ProgramId:       pid,
+				OperatorAddress: suite.normalAddr.String(), // Not program admin or bounty admin
+				Name:            "Updated Name",
+				Detail:          "Updated Detail",
+			},
+			false,
+		},
+		{
+			"valid request - program admin",
+			&types.MsgEditProgram{
+				ProgramId:       pid,
+				OperatorAddress: suite.programAddr.String(), // Program admin
+				Name:            "Updated Name",
+				Detail:          "Updated Detail",
+			},
+			true,
+		},
+		{
+			"valid request - bounty admin",
+			&types.MsgEditProgram{
+				ProgramId:       pid,
+				OperatorAddress: suite.bountyAdminAddr.String(), // Bounty admin
+				Name:            "Updated Name 2",
+				Detail:          "Updated Detail 2",
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.EditProgram(ctx, testCase.req)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+
+				// Verify changes were applied
+				program, err := suite.keeper.Programs.Get(suite.ctx, pid)
+				suite.Require().NoError(err)
+
+				if testCase.req.Name != "" {
+					suite.Require().Equal(testCase.req.Name, program.Name)
+				}
+
+				if testCase.req.Detail != "" {
+					suite.Require().Equal(testCase.req.Detail, program.Detail)
+				}
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestEditFinding tests the EditFinding message handler
+func (suite *KeeperTestSuite) TestEditFinding() {
+	// Create a program and submit a finding
+	pid, fid := uuid.NewString(), uuid.NewString()
+	suite.InitCreateProgram(pid)
+	suite.InitActivateProgram(pid)
+	suite.InitSubmitFinding(pid, fid)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgEditFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgEditFinding{},
+			false,
+		},
+		{
+			"invalid finding ID",
+			&types.MsgEditFinding{
+				FindingId:       "non-existent-id",
+				OperatorAddress: suite.whiteHatAddr.String(),
+				FindingHash:     "updated-hash",
+				SeverityLevel:   types.High,
+			},
+			false,
+		},
+		{
+			"unauthorized operator",
+			&types.MsgEditFinding{
+				FindingId:       fid,
+				OperatorAddress: suite.normalAddr.String(), // Not the submitter
+				FindingHash:     "updated-hash",
+				SeverityLevel:   types.High,
+			},
+			false,
+		},
+		{
+			"valid request",
+			&types.MsgEditFinding{
+				FindingId:       fid,
+				OperatorAddress: suite.whiteHatAddr.String(), // Original submitter
+				FindingHash:     "updated-hash",
+				SeverityLevel:   types.High,
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.EditFinding(ctx, testCase.req)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+
+				// Verify changes were applied
+				finding, err := suite.keeper.Findings.Get(suite.ctx, fid)
+				suite.Require().NoError(err)
+
+				if testCase.req.FindingHash != "" {
+					suite.Require().Equal(testCase.req.FindingHash, finding.FindingHash)
+				}
+
+				if testCase.req.SeverityLevel != types.Unspecified {
+					suite.Require().Equal(testCase.req.SeverityLevel, finding.SeverityLevel)
+				}
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestCloseProgram tests the CloseProgram message handler
+func (suite *KeeperTestSuite) TestCloseProgram() {
+	// Create and activate a program first
+	pid := uuid.NewString()
+	suite.InitCreateProgram(pid)
+	suite.InitActivateProgram(pid)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgCloseProgram
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgCloseProgram{},
+			false,
+		},
+		{
+			"invalid program ID",
+			&types.MsgCloseProgram{
+				ProgramId:       "non-existent-id",
+				OperatorAddress: suite.programAddr.String(),
+			},
+			false,
+		},
+		{
+			"unauthorized operator",
+			&types.MsgCloseProgram{
+				ProgramId:       pid,
+				OperatorAddress: suite.normalAddr.String(), // Not program admin or bounty admin
+			},
+			false,
+		},
+		{
+			"valid request - program admin",
+			&types.MsgCloseProgram{
+				ProgramId:       pid,
+				OperatorAddress: suite.programAddr.String(), // Program admin
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			// If the previous test was successful, we need to reactivate the program
+			if pid == testCase.req.ProgramId {
+				hasProgram, err := suite.keeper.Programs.Has(suite.ctx, pid)
+				suite.Require().NoError(err)
+
+				if hasProgram {
+					program, err := suite.keeper.Programs.Get(suite.ctx, pid)
+					suite.Require().NoError(err)
+
+					if program.Status == types.ProgramStatusClosed {
+						// Reactivate the program
+						program.Status = types.ProgramStatusActive
+						err = suite.keeper.Programs.Set(suite.ctx, pid, program)
+						suite.Require().NoError(err)
+					}
+				}
+			}
+
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.CloseProgram(ctx, testCase.req)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+
+				// Verify the program was closed
+				program, err := suite.keeper.Programs.Get(suite.ctx, pid)
+				suite.Require().NoError(err)
+				suite.Require().Equal(types.ProgramStatusClosed, program.Status)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestCreateTheorem tests the CreateTheorem message handler
+func (suite *KeeperTestSuite) TestCreateTheorem() {
+	testCases := []struct {
+		name    string
+		req     *types.MsgCreateTheorem
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgCreateTheorem{},
+			false,
+		},
+		{
+			"invalid address",
+			&types.MsgCreateTheorem{
+				Title:       "Test Theorem",
+				Description: "A test theorem description",
+				Proposer:    "invalid-address",
+			},
+			false,
+		},
+		{
+			"valid request",
+			&types.MsgCreateTheorem{
+				Title:       "Test Theorem",
+				Description: "A test theorem description",
+				Proposer:    suite.programAddr.String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			resp, err := suite.msgServer.CreateTheorem(ctx, testCase.req)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(resp.TheoremId)
+
+				// Verify the theorem was created
+				theorem, err := suite.keeper.Theorems.Get(suite.ctx, resp.TheoremId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(testCase.req.Title, theorem.Title)
+				suite.Require().Equal(testCase.req.Description, theorem.Description)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestWithdrawReward tests the WithdrawReward message handler
+func (suite *KeeperTestSuite) TestWithdrawReward() {
+	// Create a test reward for the white hat address
+	reward := types.Reward{
+		Address: suite.whiteHatAddr.String(),
+		Reward:  sdk.NewDecCoins(sdk.NewDecCoin("uctk", math.NewInt(1000000))),
+	}
+	err := suite.keeper.Rewards.Set(suite.ctx, suite.whiteHatAddr, reward)
+	suite.Require().NoError(err)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgWithdrawReward
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgWithdrawReward{},
+			false,
+		},
+		{
+			"invalid address",
+			&types.MsgWithdrawReward{
+				Address: "invalid-address",
+			},
+			false,
+		},
+		{
+			"non-existent reward",
+			&types.MsgWithdrawReward{
+				Address: suite.normalAddr.String(), // No reward exists for this address
+			},
+			false,
+		},
+		{
+			"valid request",
+			&types.MsgWithdrawReward{
+				Address: suite.whiteHatAddr.String(), // Has reward
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.WithdrawReward(ctx, testCase.req)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+
+				// Verify the reward was withdrawn (should be removed)
+				hasReward, err := suite.keeper.Rewards.Has(suite.ctx, suite.whiteHatAddr)
+				suite.Require().NoError(err)
+				suite.Require().False(hasReward, "Reward should be removed after withdrawal")
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
 }

@@ -6,6 +6,30 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+func NewProgram(pid, name, detail string, admin sdk.AccAddress,
+	status ProgramStatus, createTime time.Time) (Program, error) {
+
+	return Program{
+		ProgramId:    pid,
+		Name:         name,
+		Detail:       detail,
+		AdminAddress: admin.String(),
+		Status:       status,
+		CreateTime:   createTime,
+	}, nil
+}
+
+// ValidProgramStatus returns true if the program status is valid and false
+// otherwise.
+func ValidProgramStatus(status ProgramStatus) bool {
+	if status == ProgramStatusInactive ||
+		status == ProgramStatusActive ||
+		status == ProgramStatusClosed {
+		return true
+	}
+	return false
+}
+
 func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, submitTime, endTime time.Time) (Theorem, error) {
 	return Theorem{
 		Id:          id,

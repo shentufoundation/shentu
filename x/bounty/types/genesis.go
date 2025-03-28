@@ -39,9 +39,9 @@ func ValidateGenesis(data *GenesisState) error {
 				data.Programs[programIndex].String(), program.String())
 		}
 
-		if err := program.ValidateBasic(); err != nil {
-			return err
-		}
+		//if err := program.ValidateBasic(); err != nil {
+		//	return err
+		//}
 		programs[program.ProgramId] = i
 	}
 

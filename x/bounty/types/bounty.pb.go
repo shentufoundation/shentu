@@ -407,7 +407,7 @@ type Theorem struct {
 	// submit_time is the time of theorem submission.
 	SubmitTime *time.Time `protobuf:"bytes,7,opt,name=submit_time,json=submitTime,proto3,stdtime" json:"submit_time,omitempty"`
 	EndTime    *time.Time `protobuf:"bytes,8,opt,name=end_time,json=endTime,proto3,stdtime" json:"end_time,omitempty"`
-	// total_deposit is the total grant on the theorem.
+	// total_grant is the total grant on the theorem.
 	TotalGrant []types1.Coin `protobuf:"bytes,9,rep,name=total_grant,json=totalGrant,proto3" json:"total_grant"`
 	// proposer is the address of the theorem submitter
 	Proposer string `protobuf:"bytes,10,opt,name=proposer,proto3" json:"proposer,omitempty"`
@@ -529,7 +529,8 @@ type Proof struct {
 	// end_time is the time of proof timeout.
 	EndTime *time.Time `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3,stdtime" json:"end_time,omitempty"`
 	// prover is the address of the proof submitter
-	Prover  string        `protobuf:"bytes,7,opt,name=prover,proto3" json:"prover,omitempty"`
+	Prover string `protobuf:"bytes,7,opt,name=prover,proto3" json:"prover,omitempty"`
+	// deposit is the amount deposited by the prover
 	Deposit []types1.Coin `protobuf:"bytes,8,rep,name=Deposit,proto3" json:"Deposit"`
 }
 
@@ -746,9 +747,9 @@ func (m *Grant) GetAmount() []types1.Coin {
 	return nil
 }
 
-// Deposit defines an amount granted by a grantor to an active theorem.
+// Deposit defines an amount deposited by a depositor for a proof.
 type Deposit struct {
-	// theorem_id defines the unique id of the theorem.
+	// proof_id defines the unique id of the proof.
 	ProofId string `protobuf:"bytes,1,opt,name=proof_id,json=proofId,proto3" json:"proof_id,omitempty"`
 	// depositor defines the deposit addresses.
 	Depositor string `protobuf:"bytes,2,opt,name=depositor,proto3" json:"depositor,omitempty"`

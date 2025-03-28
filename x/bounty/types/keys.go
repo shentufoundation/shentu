@@ -42,8 +42,3 @@ var (
 	// Parameter key
 	ParamsKey = collections.NewPrefix(61)
 )
-
-// // GetProgramFindingListKey creates the key for a program's finding list
-// func GetProgramFindingListKey(id string) []byte {
-// 	return append(ProgramFindingListKey, []byte(id)...)
-// }
