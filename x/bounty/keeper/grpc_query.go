@@ -50,7 +50,7 @@ func (q queryServer) Program(c context.Context, req *types.QueryProgramRequest) 
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	if len(req.ProgramId) <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "program-id can not less than 0")
+		return nil, status.Error(codes.InvalidArgument, "program-id can not be empty")
 	}
 
 	program, err := q.k.Programs.Get(c, req.ProgramId)
@@ -103,7 +103,7 @@ func (q queryServer) Finding(c context.Context, req *types.QueryFindingRequest) 
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	if len(req.FindingId) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "finding-id can not be 0")
+		return nil, status.Error(codes.InvalidArgument, "finding-id can not be empty")
 	}
 
 	finding, err := q.k.Findings.Get(c, req.FindingId)

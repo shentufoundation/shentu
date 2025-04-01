@@ -99,10 +99,6 @@ func InitGenesis(ctx sdk.Context, ak types.AccountKeeper, k keeper.Keeper, data 
 		if err = k.ProofsByTheorem.Set(ctx, collections.Join(proof.TheoremId, proof.Id), []byte{}); err != nil {
 			panic(err)
 		}
-
-		if err = k.TheoremProof.Set(ctx, proof.TheoremId, proof.Id); err != nil {
-			panic(err)
-		}
 	}
 }
 
@@ -149,10 +145,13 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		panic(err)
 	}
 
-	k.Grants.Walk(ctx, nil, func(_ collections.Pair[uint64, sdk.AccAddress], value types.Grant) (stop bool, err error) {
+	err = k.Grants.Walk(ctx, nil, func(_ collections.Pair[uint64, sdk.AccAddress], value types.Grant) (stop bool, err error) {
 		grants = append(grants, &value)
 		return false, nil
 	})
+	if err != nil {
+		return nil
+	}
 	if err != nil {
 		panic(err)
 	}

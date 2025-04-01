@@ -117,21 +117,19 @@ message Theorem {
   // code is a summary of the theorem
   string code = 4;
 
-  string proof_id = 5;
-
   // status defines the theorem status.
-  TheoremStatus status = 6;
+  TheoremStatus status = 5;
 
   // submit_time is the time of theorem submission.
-  google.protobuf.Timestamp submit_time = 7 [(gogoproto.stdtime) = true];
+  google.protobuf.Timestamp submit_time = 6 [(gogoproto.stdtime) = true];
 
-  google.protobuf.Timestamp end_time = 8 [(gogoproto.stdtime) = true];
+  google.protobuf.Timestamp end_time = 7 [(gogoproto.stdtime) = true];
 
   // total_grant is the total grant on the theorem.
-  repeated cosmos.base.v1beta1.Coin total_grant = 9 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated cosmos.base.v1beta1.Coin total_grant = 8 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
   // proposer is the address of the theorem submitter
-  string proposer = 10 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string proposer = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message Proof {

@@ -8,6 +8,10 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (k Keeper) DeleteProof(ctx context.Context, proofID string) error {
@@ -29,15 +33,27 @@ func (k Keeper) DeleteProof(ctx context.Context, proofID string) error {
 		return err
 	}
 
-	err = k.TheoremProof.Remove(ctx, proof.TheoremId)
-	if err != nil {
-		return err
-	}
-
 	err = k.ProofsByTheorem.Remove(ctx, collections.Join(proof.TheoremId, proof.Id))
 	if err != nil {
 		return err
 	}
+
+	addrBytes, err := k.authKeeper.AddressCodec().StringToBytes(proof.Prover)
+	if err != nil {
+		return err
+	}
+	err = k.Deposits.Remove(ctx, collections.Join(proof.Id, sdk.AccAddress(addrBytes)))
+	if err != nil {
+		return err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeDeleteProof,
+			sdk.NewAttribute(types.AttributeKeyProofID, proofID),
+		),
+	)
 
 	return nil
 }

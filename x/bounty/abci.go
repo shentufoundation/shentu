@@ -1,7 +1,6 @@
 package bounty
 
 import (
-	"fmt"
 	"time"
 
 	"cosmossdk.io/collections"
@@ -29,12 +28,6 @@ func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
 			return false, err
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeDeleteProof,
-				sdk.NewAttribute(types.AttributeKeyProofID, value.Id),
-			),
-		)
 		logger.Info(
 			"proof did not submit detail on time; expired",
 			"proof_id", value.Id,
@@ -55,16 +48,18 @@ func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
 			return false, err
 		}
 
-		exist, err := k.TheoremProof.Has(ctx, theorem.Id)
+		// Check if theorem has any related proofs
+		hasActiveProof, _, err := k.HasActiveProofs(ctx, theorem.Id)
 		if err != nil {
 			return false, err
 		}
-		if exist {
+
+		// If there's a valid proof, keep the theorem
+		if hasActiveProof {
 			return false, nil
 		}
 
-		err = k.DeleteTheorem(ctx, theorem.Id)
-		if err != nil {
+		if err = k.DeleteTheorem(ctx, theorem.Id); err != nil {
 			return false, err
 		}
 
@@ -72,14 +67,6 @@ func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
 		if err != nil {
 			return false, err
 		}
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeDeleteTheorem,
-				sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
-				sdk.NewAttribute(types.AttributeKeyTheoremResult, types.AttributeValueTheoremDropped),
-			),
-		)
 
 		logger.Info(
 			"theorem did not meet correct proof on time; deleted",

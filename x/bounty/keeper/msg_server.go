@@ -639,15 +639,13 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 		return nil, err
 	}
 
-	proposer, err := k.validateAddress(msg.GetProposer())
+	proposer, err := k.validateAddress(msg.Proposer)
 	if err != nil {
 		return nil, err
 	}
 
-	initialGrant := msg.GetInitialGrant()
-
 	// validate grant funds
-	params, err := k.ValidateFunds(ctx, initialGrant, "grant")
+	params, err := k.ValidateFunds(ctx, msg.InitialGrant, "grant")
 	if err != nil {
 		return nil, err
 	}
@@ -669,14 +667,14 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 	if err = k.ActiveTheoremsQueue.Set(ctx, collections.Join(endTime, theoremID), theoremID); err != nil {
 		return nil, err
 	}
-	if err = k.Keeper.AddGrant(ctx, theorem.Id, proposer, msg.GetInitialGrant()); err != nil {
+	if err = k.Keeper.AddGrant(ctx, theorem.Id, proposer, msg.InitialGrant); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeCreateTheorem,
-			sdk.NewAttribute(types.AttributeKeyTheoremProofPeriodStart, fmt.Sprintf("%d", theorem.Id)),
-			sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProposer()),
+			sdk.NewAttribute(types.AttributeKeyProofID, fmt.Sprintf("%d", theorem.Id)),
+			sdk.NewAttribute(types.AttributeKeyProposer, msg.Proposer),
 		),
 	)
 
@@ -688,7 +686,7 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 func (k msgServer) Grant(goCtx context.Context, msg *types.MsgGrant) (*types.MsgGrantResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	grantor, err := k.validateAddress(msg.GetGrantor())
+	grantor, err := k.validateAddress(msg.Grantor)
 	if err != nil {
 		return nil, err
 	}
@@ -720,7 +718,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proofHash must be a valid hex string")
 	}
 
-	proposer, err := k.validateAddress(msg.GetProver())
+	proposer, err := k.validateAddress(msg.Prover)
 	if err != nil {
 		return nil, err
 	}
@@ -747,6 +745,15 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 		return nil, types.ErrTheoremStatusInvalid
 	}
 
+	// check if there are any proofs in hash lock or detail period for this theorem
+	hasActiveProof, activeProofId, err := k.Keeper.HasActiveProofs(ctx, msg.TheoremId)
+	if err != nil {
+		return nil, err
+	}
+	if hasActiveProof {
+		return nil, errors.Wrapf(sdkerrors.ErrInvalidRequest, "proof %s is in progress", activeProofId)
+	}
+
 	// validate deposit funds
 	params, err := k.ValidateFunds(ctx, msg.Deposit, "deposit")
 	if err != nil {
@@ -763,9 +770,6 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	if err = k.Proofs.Set(ctx, proof.Id, proof); err != nil {
 		return nil, err
 	}
-	if err = k.TheoremProof.Set(ctx, msg.TheoremId, msg.ProofHash); err != nil {
-		return nil, err
-	}
 	if err = k.ActiveProofsQueue.Set(ctx, collections.Join(endTime, msg.ProofHash), proof); err != nil {
 		return nil, err
 	}
@@ -779,7 +783,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeSubmitProofHash,
 			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
-			sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
+			sdk.NewAttribute(types.AttributeKeyProposer, msg.Prover),
 		),
 	)
 
@@ -812,7 +816,7 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 	}
 
 	// Verify the hash matches
-	hash := k.GetProofHash(proof.TheoremId, msg.GetProver(), msg.Detail)
+	hash := k.GetProofHash(proof.TheoremId, msg.Prover, msg.Detail)
 	if proof.Id != hash {
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proof hash inconsistent")
 	}
@@ -836,7 +840,7 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 		sdk.NewEvent(
 			types.EventTypeSubmitProofDetail,
 			sdk.NewAttribute(types.AttributeKeyProofID, msg.ProofId),
-			sdk.NewAttribute(types.AttributeKeyTheoremProposer, msg.GetProver()),
+			sdk.NewAttribute(types.AttributeKeyProposer, msg.Prover),
 		),
 	)
 
@@ -875,11 +879,6 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 
 	// Handle proof verification based on status
 	if err = k.handleProofVerification(ctx, msg.Status, *proof, checkerAddr, proverAddr); err != nil {
-		return nil, err
-	}
-
-	// Remove theorem proof mapping
-	if err = k.TheoremProof.Remove(ctx, proof.TheoremId); err != nil {
 		return nil, err
 	}
 
@@ -997,60 +996,79 @@ func (k msgServer) handleProofVerification(
 	case types.ProofStatus_PROOF_STATUS_PASSED:
 		return k.handlePassedProof(ctx, proof, checkerAddr, proverAddr)
 	case types.ProofStatus_PROOF_STATUS_FAILED:
-		return k.handleFailedProof(ctx, proof, proverAddr)
+		return k.handleFailedProof(ctx, proof)
 	default:
 		return types.ErrProofStatusInvalid
 	}
 }
 
 // handlePassedProof processes a proof that passed verification
-// Updates proof and theorem status, and distributes rewards
 func (k msgServer) handlePassedProof(
 	ctx sdk.Context,
 	proof types.Proof,
 	checkerAddr, proverAddr sdk.AccAddress,
 ) error {
-	// Update proof status
+	// update proof status
 	if err := k.Proofs.Set(ctx, proof.Id, proof); err != nil {
 		return err
 	}
 
-	// Update theorem status
+	// update theorem status
 	theorem, err := k.Theorems.Get(ctx, proof.TheoremId)
 	if err != nil {
 		return err
 	}
 
 	theorem.Status = types.TheoremStatus_THEOREM_STATUS_PASSED
-	if err := k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
+	if err = k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
 		return err
 	}
 
-	// Remove from active theorems queue
-	if err := k.ActiveTheoremsQueue.Remove(ctx, collections.Join(*theorem.EndTime, theorem.Id)); err != nil {
+	// remove from active theorems queue
+	if err = k.ActiveTheoremsQueue.Remove(ctx, collections.Join(*theorem.EndTime, theorem.Id)); err != nil {
 		return err
 	}
 
-	// Distribute grants
-	return k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr)
+	// refund deposit
+	if err = k.RefundAndDeleteDeposit(ctx, proof.Id, proverAddr); err != nil {
+		return err
+	}
+
+	if err = k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr); err != nil {
+		return err
+	}
+
+	// emit event for proof passing
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeProofPassed,
+			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
+		),
+	)
+
+	return nil
 }
 
 // handleFailedProof processes a proof that failed verification
-// Deletes the proof and cleans up related mappings
 func (k msgServer) handleFailedProof(
 	ctx sdk.Context,
 	proof types.Proof,
-	proverAddr sdk.AccAddress,
 ) error {
 	if err := k.DeleteProof(ctx, proof.Id); err != nil {
 		return err
 	}
 
-	if err := k.TheoremProof.Remove(ctx, proof.TheoremId); err != nil {
-		return err
-	}
+	// emit event for proof failing
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeProofFailed,
+			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
+		),
+	)
 
-	return k.Deposits.Remove(ctx, collections.Join(proof.Id, proverAddr))
+	return nil
 }
 
 // validateMsgFields validates that required fields are not empty

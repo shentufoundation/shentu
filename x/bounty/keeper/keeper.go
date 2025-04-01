@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -42,7 +43,6 @@ type Keeper struct {
 	Rewards             collections.Map[sdk.AccAddress, types.Reward]                            // Rewards key: address | value: Reward
 	Proofs              collections.Map[string, types.Proof]                                     // Proofs key: ProofID | value: Proof
 	ProofsByTheorem     collections.Map[collections.Pair[uint64, string], []byte]                // ProofsByTheorem key: ProofID+TheoremID | value: none used (index key for proofs by theorem index)
-	TheoremProof        collections.Map[uint64, string]                                          // TheoremProofList key: TheoremID | value: ProofID
 	ActiveTheoremsQueue collections.Map[collections.Pair[time.Time, uint64], uint64]             // ActiveTheoremsQueue key: EndTime+TheoremID | value: TheoremID
 	ActiveProofsQueue   collections.Map[collections.Pair[time.Time, string], types.Proof]        // ActiveProofsQueue key: EndTime+ProofID | value: Proof
 }
@@ -83,7 +83,6 @@ func NewKeeper(
 		Deposits:            collections.NewMap(sb, types.DepositKeyPrefix, "deposits", collections.PairKeyCodec(collections.StringKey, sdk.LengthPrefixedAddressKey(sdk.AccAddressKey)), codec.CollValue[types.Deposit](cdc)),
 		Proofs:              collections.NewMap(sb, types.ProofKeyPrefix, "proofs", collections.StringKey, codec.CollValue[types.Proof](cdc)),
 		ProofsByTheorem:     collections.NewMap(sb, types.ProofByTheoremPrefix, "proofs_by_theorem", collections.PairKeyCodec(collections.Uint64Key, collections.StringKey), collections.BytesValue),
-		TheoremProof:        collections.NewMap(sb, types.TheoremProofPrefix, "theorem_proof", collections.Uint64Key, collections.StringValue),
 		ActiveTheoremsQueue: collections.NewMap(sb, types.ActiveTheoremQueueKey, "active_theorems_queue", collections.PairKeyCodec(sdk.TimeKey, collections.Uint64Key), collections.Uint64Value),
 		ActiveProofsQueue:   collections.NewMap(sb, types.ActiveProofQueueKey, "active_proofs_queue", collections.PairKeyCodec(sdk.TimeKey, collections.StringKey), codec.CollValue[types.Proof](cdc)),
 	}
@@ -96,4 +95,27 @@ func NewKeeper(
 	k.Schema = schema
 
 	return k
+}
+
+// HasActiveProofs checks if a theorem has any proofs in hash lock or detail period
+func (k Keeper) HasActiveProofs(ctx context.Context, theoremId uint64) (bool, string, error) {
+	var activeProofId string
+	hasActiveProof := false
+
+	rng := collections.NewPrefixedPairRange[uint64, string](theoremId)
+	err := k.ProofsByTheorem.Walk(ctx, rng, func(key collections.Pair[uint64, string], _ []byte) (bool, error) {
+		proof, err := k.Proofs.Get(ctx, key.K2())
+		if err != nil {
+			return false, err
+		}
+		if proof.Status == types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD ||
+			proof.Status == types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD {
+			hasActiveProof = true
+			activeProofId = proof.Id
+			return true, nil
+		}
+		return false, nil
+	})
+
+	return hasActiveProof, activeProofId, err
 }

@@ -63,7 +63,7 @@ func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccA
 
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeTheoremGrant,
+			types.EventTypeGrantTheorem,
 			sdk.NewAttribute(types.AttributeKeyTheoremGrantor, grantor.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, grantAmount.String()),
 			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theoremID)),
@@ -145,6 +145,15 @@ func (k Keeper) DistributionGrants(ctx context.Context, theoremID uint64, checke
 		return err
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeDistributeReward,
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theoremID)),
+			sdk.NewAttribute(types.AttributeKeyChecker, cReward.String()),
+			sdk.NewAttribute(types.AttributeKeyProposer, pReward.String()),
+		),
+	)
 	return nil
 }
 
@@ -195,7 +204,7 @@ func (k Keeper) AddDeposit(ctx context.Context, proofID string, depositorAddr sd
 
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeProofDeposit,
+			types.EventTypeDepositProof,
 			sdk.NewAttribute(types.AttributeKeyProofDepositor, depositorAddr.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.String()),
 			sdk.NewAttribute(types.AttributeKeyProofID, proofID),
@@ -212,6 +221,46 @@ func (k Keeper) SetDeposit(ctx context.Context, deposit types.Deposit) error {
 		return err
 	}
 	return k.Deposits.Set(ctx, collections.Join(deposit.ProofId, sdk.AccAddress(depositor)), deposit)
+}
+
+// RefundAndDeleteDeposit refunds and deletes a specific deposit
+func (k Keeper) RefundAndDeleteDeposit(ctx context.Context, proofID string, depositorAddr sdk.AccAddress) error {
+	deposit, err := k.Deposits.Get(ctx, collections.Join(proofID, depositorAddr))
+	if err != nil {
+		return err
+	}
+
+	// refund the deposit amount to the depositor
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, depositorAddr, deposit.Amount)
+	if err != nil {
+		return err
+	}
+
+	// remove the deposit from storage
+	return k.Deposits.Remove(ctx, collections.Join(proofID, depositorAddr))
+}
+
+// IterateDeposits iterates over all the deposits for a proof and performs a callback function
+func (k Keeper) IterateDeposits(ctx context.Context, proofID string, cb func(key collections.Pair[string, sdk.AccAddress], value types.Deposit) (bool, error)) error {
+	rng := collections.NewPrefixedPairRange[string, sdk.AccAddress](proofID)
+	err := k.Deposits.Walk(ctx, rng, cb)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RefundAndDeleteDeposits refunds and deletes all the deposits for a proof
+func (k Keeper) RefundAndDeleteDeposits(ctx context.Context, proofID string) error {
+	return k.IterateDeposits(ctx, proofID, func(key collections.Pair[string, sdk.AccAddress], deposit types.Deposit) (bool, error) {
+		depositor := key.K2()
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, depositor, deposit.Amount)
+		if err != nil {
+			return false, err
+		}
+		err = k.Deposits.Remove(ctx, key)
+		return false, err
+	})
 }
 
 // ============================== Funds Validation ==============================

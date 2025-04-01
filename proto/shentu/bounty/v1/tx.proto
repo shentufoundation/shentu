@@ -232,6 +232,7 @@ message MsgPublishFinding {
   option (amino.name) = "bounty/PublishFinding";
 
   option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
 
   string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
   string title = 2;
@@ -248,6 +249,9 @@ message MsgPublishFindingResponse {}
 message MsgCreateTheorem {
   option (cosmos.msg.v1.signer) = "proposer";
   option (amino.name) = "bounty/MsgCreateTheorem";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
 
   string title = 1;
   string description = 2;
@@ -266,6 +270,9 @@ message MsgGrant {
   option (cosmos.msg.v1.signer) = "grantor";
   option (amino.name) = "bounty/MsgGrant";
 
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
   // theorem_id defines the unique id of the theorem.
   uint64 theorem_id = 1 [(gogoproto.jsontag) = "theorem_id", (amino.dont_omitempty) = true];
   string grantor = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -279,6 +286,9 @@ message MsgGrantResponse {}
 message MsgSubmitProofHash {
   option (cosmos.msg.v1.signer) = "prover";
   option (amino.name) = "bounty/MsgSubmitProofHash";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
 
   uint64 theorem_id = 1 [(gogoproto.jsontag) = "theorem_id", (amino.dont_omitempty) = true];
   string prover = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -294,6 +304,9 @@ message MsgSubmitProofDetail {
   option (cosmos.msg.v1.signer) = "prover";
   option (amino.name) = "bounty/MsgSubmitProofDetail";
 
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
   string proof_id = 1 [(gogoproto.jsontag) = "proof_id", (amino.dont_omitempty) = true];
   string prover = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string detail = 3;
@@ -306,6 +319,9 @@ message MsgSubmitProofDetailResponse {}
 message MsgSubmitProofVerification {
   option (cosmos.msg.v1.signer) = "checker";
   option (amino.name) = "bounty/MsgSubmitProofVerification";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
 
   string proof_id = 1;
   ProofStatus status = 2;

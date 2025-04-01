@@ -535,9 +535,9 @@ func (suite *KeeperTestSuite) TestErrorHandling() {
 		// This should fail because the program doesn't exist
 		_, err := suite.msgServer.ActivateProgram(ctx, activateMsg)
 		suite.Require().Error(err)
-	})	
+	})
 	// Test submitting a finding for a non-existent program
-	suite.Run("Submit Finding for Non-existent Program", func() {					
+	suite.Run("Submit Finding for Non-existent Program", func() {
 		ctx := sdk.WrapSDKContext(suite.ctx)
 
 		nonExistentProgramID := uuid.NewString()
