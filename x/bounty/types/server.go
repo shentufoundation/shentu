@@ -7,7 +7,7 @@ import (
 )
 
 func NewProgram(pid, name, detail string, admin sdk.AccAddress,
-	status ProgramStatus, createTime time.Time) (Program, error) {
+	status ProgramStatus, createTime time.Time) Program {
 
 	return Program{
 		ProgramId:    pid,
@@ -16,21 +16,24 @@ func NewProgram(pid, name, detail string, admin sdk.AccAddress,
 		AdminAddress: admin.String(),
 		Status:       status,
 		CreateTime:   createTime,
-	}, nil
-}
-
-// ValidProgramStatus returns true if the program status is valid and false
-// otherwise.
-func ValidProgramStatus(status ProgramStatus) bool {
-	if status == ProgramStatusInactive ||
-		status == ProgramStatusActive ||
-		status == ProgramStatusClosed {
-		return true
 	}
-	return false
 }
 
-func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, submitTime, endTime time.Time) (Theorem, error) {
+func NewFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, createTime time.Time, level SeverityLevel) Finding {
+	return Finding{
+		ProgramId:        pid,
+		FindingId:        fid,
+		Title:            title,
+		FindingHash:      hash,
+		SubmitterAddress: operator.String(),
+		SeverityLevel:    level,
+		Status:           FindingStatusSubmitted,
+		Detail:           detail,
+		CreateTime:       createTime,
+	}
+}
+
+func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, submitTime, endTime time.Time) Theorem {
 	return Theorem{
 		Id:          id,
 		Title:       title,
@@ -40,10 +43,10 @@ func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, su
 		SubmitTime:  &submitTime,
 		EndTime:     &endTime,
 		Proposer:    proposer.String(),
-	}, nil
+	}
 }
 
-func NewProof(theoremId uint64, proofHash, prover string, submitTime, endTime time.Time, deposit sdk.Coins) (Proof, error) {
+func NewProof(theoremId uint64, proofHash, prover string, submitTime, endTime time.Time, deposit sdk.Coins) Proof {
 	return Proof{
 		TheoremId:  theoremId,
 		Id:         proofHash,
@@ -52,7 +55,7 @@ func NewProof(theoremId uint64, proofHash, prover string, submitTime, endTime ti
 		EndTime:    &endTime,
 		Prover:     prover,
 		Deposit:    deposit,
-	}, nil
+	}
 }
 
 func NewGrant(theoremID uint64, grantor sdk.AccAddress, amount sdk.Coins) Grant {

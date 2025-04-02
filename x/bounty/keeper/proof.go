@@ -18,7 +18,7 @@ func (k Keeper) DeleteProof(ctx context.Context, proofID string) error {
 	proof, err := k.Proofs.Get(ctx, proofID)
 	if err != nil {
 		if errors.IsOf(err, collections.ErrNotFound) {
-			return status.Errorf(codes.NotFound, "proof %d doesn't exist", proofID)
+			return status.Errorf(codes.NotFound, "proof %s doesn't exist", proofID)
 		}
 		return err
 	}

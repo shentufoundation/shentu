@@ -55,10 +55,7 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 	}
 
 	createTime := ctx.BlockHeader().Time
-	program, err := types.NewProgram(msg.ProgramId, msg.Name, msg.Detail, operatorAddr, types.ProgramStatusInactive, createTime)
-	if err != nil {
-		return nil, err
-	}
+	program := types.NewProgram(msg.ProgramId, msg.Name, msg.Detail, operatorAddr, types.ProgramStatusInactive, createTime)
 
 	if err = k.Programs.Set(ctx, program.ProgramId, program); err != nil {
 		return nil, err
@@ -266,10 +263,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	}
 
 	createTime := ctx.BlockHeader().Time
-	finding, err := types.NewFinding(msg.ProgramId, msg.FindingId, "", "", msg.FindingHash, operatorAddr, createTime, msg.SeverityLevel)
-	if err != nil {
-		return nil, err
-	}
+	finding := types.NewFinding(msg.ProgramId, msg.FindingId, "", "", msg.FindingHash, operatorAddr, createTime, msg.SeverityLevel)
 
 	if err = k.ProgramFindings.Set(ctx, collections.Join(msg.ProgramId, msg.FindingId)); err != nil {
 		return nil, err
@@ -657,10 +651,8 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 		return nil, err
 	}
 
-	theorem, err := types.NewTheorem(theoremID, proposer, msg.Title, msg.Description, msg.Code, submitTime, endTime)
-	if err != nil {
-		return nil, err
-	}
+	theorem := types.NewTheorem(theoremID, proposer, msg.Title, msg.Description, msg.Code, submitTime, endTime)
+
 	if err = k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
 		return nil, err
 	}
@@ -762,10 +754,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 
 	submitTime := ctx.BlockHeader().Time
 	endTime := submitTime.Add(*params.ProofMaxLockPeriod)
-	proof, err := types.NewProof(msg.TheoremId, msg.ProofHash, msg.Prover, submitTime, endTime, msg.Deposit)
-	if err != nil {
-		return nil, err
-	}
+	proof := types.NewProof(msg.TheoremId, msg.ProofHash, msg.Prover, submitTime, endTime, msg.Deposit)
 
 	if err = k.Proofs.Set(ctx, proof.Id, proof); err != nil {
 		return nil, err
@@ -805,7 +794,7 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 	proof, err := k.Proofs.Get(ctx, msg.ProofId)
 	if err != nil {
 		if errors.IsOf(err, collections.ErrNotFound) {
-			return nil, status.Errorf(codes.NotFound, "proof %d doesn't exist", msg.ProofId)
+			return nil, status.Errorf(codes.NotFound, "proof %s doesn't exist", msg.ProofId)
 		}
 		return nil, err
 	}

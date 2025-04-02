@@ -54,3 +54,41 @@ func TestExportGenesis(t *testing.T) {
 	exported3 := bounty.ExportGenesis(ctx2, k2)
 	require.True(t, reflect.DeepEqual(exported1, exported3))
 }
+
+func TestValidateGenesis(t *testing.T) {
+	testCases := []struct {
+		name     string
+		genState *types.GenesisState
+		valid    bool
+	}{
+		{
+			name:     "nil genesis state",
+			genState: nil,
+			valid:    false,
+		},
+		{
+			name:     "valid minimal genesis state",
+			genState: types.DefaultGenesisState(),
+			valid:    true,
+		},
+		{
+			name: "invalid params",
+			genState: &types.GenesisState{
+				StartingTheoremId: 1,
+				Params:            nil,
+			},
+			valid: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.ValidateGenesis(tc.genState)
+			if tc.valid {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
+	}
+}

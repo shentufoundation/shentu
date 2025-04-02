@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
@@ -57,6 +58,26 @@ func (suite *KeeperTestSuite) SetupTest() {
 	// suite.address[2] is certifier addr
 	suite.bountyAdminAddr = suite.address[3]
 	suite.normalAddr = suite.address[4]
+
+	// Set module parameters
+	bondDenom, err := suite.app.StakingKeeper.BondDenom(suite.ctx)
+	suite.Require().NoError(err)
+
+	minGrant := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(50)))
+	minDeposit := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(30)))
+	theoremMaxProofPeriod := 14 * 24 * time.Hour
+	proofMaxLockPeriod := 10 * time.Minute
+	checkerRate := math.LegacyMustNewDecFromStr("0.2") // 0.2
+
+	params := types.Params{
+		MinGrant:              minGrant,
+		MinDeposit:            minDeposit,
+		TheoremMaxProofPeriod: &theoremMaxProofPeriod,
+		ProofMaxLockPeriod:    &proofMaxLockPeriod,
+		CheckerRate:           checkerRate,
+	}
+	err = suite.keeper.Params.Set(suite.ctx, params)
+	suite.Require().NoError(err)
 }
 
 func TestKeeperTestSuite(t *testing.T) {

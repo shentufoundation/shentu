@@ -10,96 +10,103 @@ import (
 )
 
 // InitGenesis stores genesis parameters.
-func InitGenesis(ctx sdk.Context, ak types.AccountKeeper, k keeper.Keeper, data *types.GenesisState) {
+func InitGenesis(ctx sdk.Context, ak types.AccountKeeper, k keeper.Keeper, data *types.GenesisState) error {
+	// validate genesis state
+	if err := types.ValidateGenesis(data); err != nil {
+		return err
+	}
+
+	// initialize programs
 	for _, program := range data.Programs {
-		err := k.Programs.Set(ctx, program.ProgramId, *program)
-		if err != nil {
-			panic(err)
+		if err := k.Programs.Set(ctx, program.ProgramId, *program); err != nil {
+			return err
 		}
 	}
 
+	// initialize findings
 	for _, finding := range data.Findings {
-		err := k.Findings.Set(ctx, finding.FindingId, *finding)
-		if err != nil {
-			panic(err)
+		if err := k.Findings.Set(ctx, finding.FindingId, *finding); err != nil {
+			return err
 		}
-		if err = k.ProgramFindings.Set(ctx, collections.Join(finding.ProgramId, finding.FindingId)); err != nil {
-			panic(err)
+		if err := k.ProgramFindings.Set(ctx, collections.Join(finding.ProgramId, finding.FindingId)); err != nil {
+			return err
 		}
 	}
 
+	// initialize theorem ID
 	if err := k.TheoremID.Set(ctx, data.StartingTheoremId); err != nil {
-		panic(err)
+		return err
 	}
 
+	// initialize theorems
 	for _, theorem := range data.Theorems {
 		switch theorem.Status {
 		case types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD:
-			err := k.ActiveTheoremsQueue.Set(ctx, collections.Join(*theorem.EndTime, theorem.Id), theorem.Id)
-			if err != nil {
-				panic(err)
+			if err := k.ActiveTheoremsQueue.Set(ctx, collections.Join(*theorem.EndTime, theorem.Id), theorem.Id); err != nil {
+				return err
 			}
 		}
-		err := k.Theorems.Set(ctx, theorem.Id, *theorem)
-		if err != nil {
-			panic(err)
+		if err := k.Theorems.Set(ctx, theorem.Id, *theorem); err != nil {
+			return err
 		}
 	}
 
+	// initialize grants
 	for _, grant := range data.Grants {
 		addr, err := ak.AddressCodec().StringToBytes(grant.Grantor)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		err = k.Grants.Set(ctx, collections.Join(grant.TheoremId, sdk.AccAddress(addr)), *grant)
-		if err != nil {
-			panic(err)
+		if err := k.Grants.Set(ctx, collections.Join(grant.TheoremId, sdk.AccAddress(addr)), *grant); err != nil {
+			return err
 		}
 	}
 
+	// initialize deposits
 	for _, deposit := range data.Deposits {
 		addr, err := ak.AddressCodec().StringToBytes(deposit.Depositor)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		err = k.Deposits.Set(ctx, collections.Join(deposit.ProofId, sdk.AccAddress(addr)), *deposit)
-		if err != nil {
-			panic(err)
+		if err := k.Deposits.Set(ctx, collections.Join(deposit.ProofId, sdk.AccAddress(addr)), *deposit); err != nil {
+			return err
 		}
 	}
 
+	// initialize rewards
 	for _, reward := range data.Rewards {
 		addr, err := ak.AddressCodec().StringToBytes(reward.Address)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		err = k.Rewards.Set(ctx, addr, *reward)
-		if err != nil {
-			panic(err)
+		if err := k.Rewards.Set(ctx, addr, *reward); err != nil {
+			return err
 		}
 	}
 
+	// initialize params
 	if err := k.Params.Set(ctx, *data.Params); err != nil {
-		panic(err)
+		return err
 	}
 
+	// initialize proofs
 	for _, proof := range data.Proofs {
 		switch proof.Status {
 		case types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD:
-			err := k.ActiveProofsQueue.Set(ctx, collections.Join(*proof.SubmitTime, proof.Id), *proof)
-			if err != nil {
-				panic(err)
+			if err := k.ActiveProofsQueue.Set(ctx, collections.Join(*proof.SubmitTime, proof.Id), *proof); err != nil {
+				return err
 			}
 		}
-		err := k.Proofs.Set(ctx, proof.Id, *proof)
-		if err != nil {
-			panic(err)
+		if err := k.Proofs.Set(ctx, proof.Id, *proof); err != nil {
+			return err
 		}
 
-		if err = k.ProofsByTheorem.Set(ctx, collections.Join(proof.TheoremId, proof.Id), []byte{}); err != nil {
-			panic(err)
+		if err := k.ProofsByTheorem.Set(ctx, collections.Join(proof.TheoremId, proof.Id), []byte{}); err != nil {
+			return err
 		}
 	}
+
+	return nil
 }
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {

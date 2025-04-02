@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -95,27 +94,4 @@ func NewKeeper(
 	k.Schema = schema
 
 	return k
-}
-
-// HasActiveProofs checks if a theorem has any proofs in hash lock or detail period
-func (k Keeper) HasActiveProofs(ctx context.Context, theoremId uint64) (bool, string, error) {
-	var activeProofId string
-	hasActiveProof := false
-
-	rng := collections.NewPrefixedPairRange[uint64, string](theoremId)
-	err := k.ProofsByTheorem.Walk(ctx, rng, func(key collections.Pair[uint64, string], _ []byte) (bool, error) {
-		proof, err := k.Proofs.Get(ctx, key.K2())
-		if err != nil {
-			return false, err
-		}
-		if proof.Status == types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD ||
-			proof.Status == types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD {
-			hasActiveProof = true
-			activeProofId = proof.Id
-			return true, nil
-		}
-		return false, nil
-	})
-
-	return hasActiveProof, activeProofId, err
 }
