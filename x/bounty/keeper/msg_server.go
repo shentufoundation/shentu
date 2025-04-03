@@ -665,7 +665,7 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeCreateTheorem,
-			sdk.NewAttribute(types.AttributeKeyProofID, fmt.Sprintf("%d", theorem.Id)),
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
 			sdk.NewAttribute(types.AttributeKeyProposer, msg.Proposer),
 		),
 	)
