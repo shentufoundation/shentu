@@ -74,6 +74,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	groupmodule "github.com/cosmos/cosmos-sdk/x/group/module"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	sdkminttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
@@ -126,8 +128,6 @@ import (
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	"github.com/shentufoundation/shentu/v2/x/gov"
 	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	"github.com/shentufoundation/shentu/v2/x/mint"
-	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle"
 	oraclekeeper "github.com/shentufoundation/shentu/v2/x/oracle/keeper"
 	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -404,7 +404,6 @@ func NewShentuApp(
 		app.StakingKeeper,
 		app.AccountKeeper,
 		app.BankKeeper,
-		app.DistrKeeper,
 		authtypes.FeeCollectorName,
 		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
