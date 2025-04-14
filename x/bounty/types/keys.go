@@ -14,6 +14,15 @@ const (
 	QuerierRoute = ModuleName
 )
 
+// Fund types
+const (
+	// FundTypeGrant is used for grant operations
+	FundTypeGrant = "grant"
+
+	// FundTypeDeposit is used for deposit operations
+	FundTypeDeposit = "deposit"
+)
+
 var (
 	// Program related keys
 	ProgramKeyPrefix      = collections.NewPrefix(1)

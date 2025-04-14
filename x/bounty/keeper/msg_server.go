@@ -639,7 +639,7 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 	}
 
 	// validate grant funds
-	params, err := k.ValidateFunds(ctx, msg.InitialGrant, "grant")
+	params, err := k.ValidateFunds(ctx, msg.InitialGrant, types.FundTypeGrant)
 	if err != nil {
 		return nil, err
 	}
@@ -747,7 +747,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	}
 
 	// validate deposit funds
-	params, err := k.ValidateFunds(ctx, msg.Deposit, "deposit")
+	params, err := k.ValidateFunds(ctx, msg.Deposit, types.FundTypeDeposit)
 	if err != nil {
 		return nil, err
 	}
