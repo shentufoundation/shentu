@@ -684,7 +684,7 @@ func (k msgServer) Grant(goCtx context.Context, msg *types.MsgGrant) (*types.Msg
 	}
 
 	// validate grant funds
-	_, err = k.ValidateFunds(ctx, msg.Amount, "grant")
+	_, err = k.ValidateFunds(ctx, msg.Amount, types.FundTypeGrant)
 	if err != nil {
 		return nil, err
 	}
