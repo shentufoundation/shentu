@@ -5,6 +5,6 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestHash() {
-	hash := suite.keeper.GetProofHash(1, "shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m", "test")
+	hash := suite.keeper.GetProofHash(1, "shentu14ayuhu60zyc7a5chxy65s5g2cfamvufwm7vd52", "test")
 	fmt.Println(hash)
 }

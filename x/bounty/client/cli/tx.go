@@ -644,7 +644,7 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 
 func NewWithdrawRewardCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "gs",
+		Use:   "withdraw-rewards",
 		Short: "withdraw rewards for an address",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
