@@ -16,13 +16,6 @@ jobs:
     strategy:
       matrix:
         arch: [amd64]
-        targetos: [darwin, linux]
-        include:
-          - targetos: darwin
-            arch: arm64
-#        include:
-#          - targetos: windows
-#            arch: amd64
     name: shentud ${{ matrix.arch }} for ${{ matrix.targetos }}
     steps:
       - uses: actions/checkout@v3
