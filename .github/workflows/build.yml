@@ -51,11 +51,3 @@ jobs:
         run: |
           cd app/shentud/cmd
           go build -o shentud -ldflags "-s -w" .
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: shentud-${{ matrix.targetos }}-${{ matrix.arch }}
-          path: app/shentud/cmd/shentud
-          if-no-files-found: error
-          retention-days: 7
