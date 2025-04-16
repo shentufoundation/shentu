@@ -1,8 +1,7 @@
 module github.com/shentufoundation/shentu/v2
 
 go 1.22.7
-
-toolchain go1.22.8
+toolchain go1.24.1
 
 require (
 	cosmossdk.io/api v0.7.6
@@ -39,7 +38,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 	github.com/test-go/testify v1.1.4
-	golang.org/x/sync v0.8.0
+	golang.org/x/sync v0.13.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/gofumpt v0.4.0
