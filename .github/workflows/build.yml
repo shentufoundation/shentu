@@ -15,24 +15,47 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        targetos: [linux]
         arch: [amd64]
-    name: shentud ${{ matrix.arch }} for ${{ matrix.targetos }}
+      fail-fast: false
+
+    name: Build shentud (${{ matrix.targetos }}/${{ matrix.arch }})
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v5.3.0
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
         with:
-          go-version: '^1.21'
+          go-version: '1.21'
+          cache: true
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Build binary
         env:
           GOOS: ${{ matrix.targetos }}
           GOARCH: ${{ matrix.arch }}
-
-      - name: Compile shentud binary
+          CGO_ENABLED: 0
         run: |
-          go mod download
           cd app/shentud/cmd
-          go build .
+          go build -o shentud -ldflags "-s -w" .
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: shentud ${{ matrix.targetos }} ${{ matrix.arch }}
-          path: app/shentud/cmd/shentu
+          name: shentud-${{ matrix.targetos }}-${{ matrix.arch }}
+          path: app/shentud/cmd/shentud
+          if-no-files-found: error
+          retention-days: 7
