@@ -13,7 +13,7 @@ import (
 
 func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.BinaryCodec) error {
 	store := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
-	findingStore := prefix.NewStore(store, types.FindingKey)
+	findingStore := prefix.NewStore(store, types.FindingKeyPrefix)
 
 	iter := findingStore.Iterator(nil, nil)
 	defer iter.Close()
@@ -41,7 +41,7 @@ func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.
 		if err != nil {
 			panic(err)
 		}
-		store.Set(types.GetFindingKey(finding.FindingId), bz)
+		store.Set(iter.Key(), bz)
 	}
 
 	return nil

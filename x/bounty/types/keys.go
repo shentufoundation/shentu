@@ -1,5 +1,9 @@
 package types
 
+import (
+	"cosmossdk.io/collections"
+)
+
 const (
 	ModuleName = "bounty"
 
@@ -10,24 +14,40 @@ const (
 	QuerierRoute = ModuleName
 )
 
-var (
-	ProgramKey = []byte{0x01}
-	FindingKey = []byte{0x02}
+// Fund types
+const (
+	// FundTypeGrant is used for grant operations
+	FundTypeGrant = "grant"
 
-	ProgramIDFindingListKey = []byte{0x10}
+	// FundTypeDeposit is used for deposit operations
+	FundTypeDeposit = "deposit"
 )
 
-// GetProgramKey creates the key for a program
-// VALUE: staking/Validator
-func GetProgramKey(id string) []byte {
-	return append(ProgramKey, []byte(id)...)
-}
+var (
+	// Program related keys
+	ProgramKeyPrefix      = collections.NewPrefix(1)
+	FindingKeyPrefix      = collections.NewPrefix(2)
+	ProgramFindingListKey = collections.NewPrefix(10)
 
-// GetFindingKey creates the key for a program
-func GetFindingKey(id string) []byte {
-	return append(FindingKey, []byte(id)...)
-}
+	// Theorem related keys
+	TheoremIDKey          = collections.NewPrefix(21)
+	TheoremKeyPrefix      = collections.NewPrefix(22)
+	ActiveTheoremQueueKey = collections.NewPrefix(23)
 
-func GetProgramIDFindingListKey(id string) []byte {
-	return append(ProgramIDFindingListKey, []byte(id)...)
-}
+	// Proof related keys
+	ProofKeyPrefix      = collections.NewPrefix(31)
+	ActiveProofQueueKey = collections.NewPrefix(32)
+
+	// Grant and deposit related keys
+	GrantKeyPrefix   = collections.NewPrefix(41)
+	DepositKeyPrefix = collections.NewPrefix(42)
+	RewardKeyPrefix  = collections.NewPrefix(43)
+
+	// Relationship keys
+	TheoremProofPrefix   = collections.NewPrefix(51)
+	ProofByTheoremPrefix = collections.NewPrefix(52)
+	GrantByTheoremPrefix = collections.NewPrefix(53)
+
+	// Parameter key
+	ParamsKey = collections.NewPrefix(61)
+)
