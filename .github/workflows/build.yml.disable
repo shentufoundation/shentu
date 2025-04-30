@@ -1,0 +1,53 @@
+name: Compile Shentu Daemon
+
+# Controls when the action will run.
+#  This workflow runr on pushes to master & every Pull Requests. (Or when manually triggered)
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+# This workflow makes x86_64 binaries for mac, windows, and linux.
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        targetos: [linux]
+        arch: [amd64]
+      fail-fast: false
+
+    name: Build shentud (${{ matrix.targetos }}/${{ matrix.arch }})
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.targetos }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+        run: |
+          cd app/shentud/cmd
+          go build -o shentud -ldflags "-s -w" .
