@@ -136,7 +136,7 @@ func (k Keeper) updateReward(ctx context.Context, addr sdk.AccAddress, reward sd
 	}
 
 	if errors.IsOf(err, collections.ErrNotFound) {
-		existingReward = types.Reward{Reward: reward}
+		existingReward = types.Reward{Address: addr.String(), Reward: reward}
 	} else {
 		existingReward.Reward = existingReward.Reward.Add(reward...)
 	}
