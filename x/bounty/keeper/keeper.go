@@ -41,7 +41,7 @@ type Keeper struct {
 	Deposits            collections.Map[collections.Pair[string, sdk.AccAddress], types.Deposit] // Deposits key: ProofID+Depositor | value: Deposit
 	Rewards             collections.Map[sdk.AccAddress, types.Reward]                            // Rewards key: address | value: Reward
 	Proofs              collections.Map[string, types.Proof]                                     // Proofs key: ProofID | value: Proof
-	ProofsByTheorem     collections.Map[collections.Pair[uint64, string], []byte]                // ProofsByTheorem key: ProofID+TheoremID | value: none used (index key for proofs by theorem index)
+	ProofsByTheorem     collections.Map[collections.Pair[uint64, string], []byte]                // ProofsByTheorem key: TheoremID+ProofID | value: none used (index key for proofs by theorem index)
 	ActiveTheoremsQueue collections.Map[collections.Pair[time.Time, uint64], uint64]             // ActiveTheoremsQueue key: EndTime+TheoremID | value: TheoremID
 	ActiveProofsQueue   collections.Map[collections.Pair[time.Time, string], types.Proof]        // ActiveProofsQueue key: EndTime+ProofID | value: Proof
 }

@@ -27,9 +27,9 @@ func NewParams(minGrant, minDeposit []sdk.Coin, theoremMaxProofPeriod, proofMaxL
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	// Default minimum grant: 100 stake
+	// Default minimum grant: 1000000 uctk
 	minGrant := sdk.NewCoins(sdk.NewCoin("uctk", sdkmath.NewInt(1000000)))
-	// Default minimum deposit: 10 stake
+	// Default minimum deposit: 1000000 uctk
 	minDeposit := sdk.NewCoins(sdk.NewCoin("uctk", sdkmath.NewInt(1000000)))
 	// Default theorem max proof period: 2 weeks
 	theoremMaxProofPeriod := 14 * 24 * time.Hour
