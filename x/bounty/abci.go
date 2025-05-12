@@ -72,7 +72,7 @@ func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
 			"theorem did not meet correct proof on time; deleted",
 			"theorem", theorem.Id,
 			"title", theorem.Title,
-			"total_deposit", sdk.NewCoins(theorem.TotalGrant...).String(),
+			"total_grant", sdk.NewCoins(theorem.TotalGrant...).String(),
 		)
 
 		return false, nil

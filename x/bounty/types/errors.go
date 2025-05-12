@@ -54,14 +54,14 @@ var (
 
 // [3xx] Theorem
 var (
-	ErrNoTheoremMsgs        = errors.Register(ModuleName, 301, "no valid content")
-	ErrTheoremProposal      = errors.Register(ModuleName, 302, "inactive theorem")
-	ErrTheoremStatusInvalid = errors.Register(ModuleName, 303, "theorem status not hack locked")
+	ErrNoTheoremMsgs             = errors.Register(ModuleName, 301, "no valid content")
+	ErrTheoremProposal           = errors.Register(ModuleName, 302, "inactive theorem")
+	ErrTheoremProofStatusInvalid = errors.Register(ModuleName, 303, "theorem is not in proof period")
 )
 
 // [4xx] Proof
 var (
-	ErrProofStatusInvalid      = errors.Register(ModuleName, 401, "proof status not hack locked")
+	ErrProofStatusInvalid      = errors.Register(ModuleName, 401, "proof status not hash locked")
 	ErrProofOperatorNotAllowed = errors.Register(ModuleName, 402, "proof access denied")
 	ErrProofAlreadyExists      = errors.Register(ModuleName, 403, "proof already exists")
 	ErrProofHashInvalid        = errors.Register(ModuleName, 404, "invalid proof hash")

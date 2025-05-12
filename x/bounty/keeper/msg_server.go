@@ -734,7 +734,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 
 	// check theorem is still proof able
 	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
-		return nil, types.ErrTheoremStatusInvalid
+		return nil, types.ErrTheoremProofStatusInvalid
 	}
 
 	// check if there are any proofs in hash lock or detail period for this theorem
