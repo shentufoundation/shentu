@@ -157,9 +157,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		return false, nil
 	})
 	if err != nil {
-		return nil
-	}
-	if err != nil {
 		panic(err)
 	}
 
