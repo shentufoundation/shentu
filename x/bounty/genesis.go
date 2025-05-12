@@ -93,7 +93,8 @@ func InitGenesis(ctx sdk.Context, ak types.AccountKeeper, k keeper.Keeper, data 
 	for _, proof := range data.Proofs {
 		switch proof.Status {
 		case types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD:
-			if err := k.ActiveProofsQueue.Set(ctx, collections.Join(*proof.SubmitTime, proof.Id), *proof); err != nil {
+			endTime := proof.SubmitTime.Add(*data.Params.ProofMaxLockPeriod)
+			if err := k.ActiveProofsQueue.Set(ctx, collections.Join(endTime, proof.Id), *proof); err != nil {
 				return err
 			}
 		}
