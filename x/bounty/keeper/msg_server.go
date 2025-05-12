@@ -801,7 +801,11 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 
 	// Check proof status - must be in hash lock period
 	if proof.Status != types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD {
-		return nil, types.ErrProofStatusInvalid
+		return nil, errors.Wrapf(
+			types.ErrProofStatusInvalid,
+			"expected: %s, actual: %s",
+			types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD.String(), proof.Status.String(),
+		)
 	}
 
 	// Verify the hash matches
@@ -959,7 +963,11 @@ func (k msgServer) validateProofStatus(ctx sdk.Context, proofID string, expected
 		return nil, err
 	}
 	if proof.Status != expectedStatus {
-		return nil, types.ErrProofStatusInvalid
+		return nil, errors.Wrapf(
+			types.ErrProofStatusInvalid,
+			"expected: %s, actual: %s",
+			expectedStatus.String(), proof.Status.String(),
+		)
 	}
 	return &proof, nil
 }
