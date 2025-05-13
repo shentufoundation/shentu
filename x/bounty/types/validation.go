@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/hex"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -197,8 +199,12 @@ func ValidateProof(proof *Proof) error {
 		return errorsmod.Wrap(ErrProofStatusInvalid, "proof cannot be nil")
 	}
 
-	if len(proof.Id) == 0 {
-		return errorsmod.Wrap(ErrProofStatusInvalid, "proof id cannot be empty")
+	// validate proof.Id is a valid hex string
+	if len(proof.Id) != 64 {
+		return errorsmod.Wrap(ErrProofHashInvalid, "proof id must be a 64-character SHA-256 hash")
+	}
+	if _, err := hex.DecodeString(proof.Id); err != nil {
+		return errorsmod.Wrap(ErrProofHashInvalid, "proof id must be a valid hex string")
 	}
 
 	if proof.TheoremId == 0 {
@@ -213,11 +219,6 @@ func ValidateProof(proof *Proof) error {
 	// If the proof is in hash lock period, make sure the SubmitTime is set
 	if proof.Status == ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD && proof.SubmitTime == nil {
 		return errorsmod.Wrap(ErrProofStatusInvalid, "proof in hash lock period must have a submit time")
-	}
-
-	// If the proof has a hash, validate it
-	if len(proof.Detail) > 0 && len(proof.Detail) < 64 {
-		return errorsmod.Wrap(ErrProofHashInvalid, "proof hash must be at least 64 characters")
 	}
 
 	return nil
