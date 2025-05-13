@@ -21,6 +21,12 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgActivateFinding{}, "bounty/ActivateFinding", nil)
 	cdc.RegisterConcrete(MsgCloseFinding{}, "bounty/CloseFinding", nil)
 	cdc.RegisterConcrete(MsgPublishFinding{}, "bounty/PublishFinding", nil)
+	cdc.RegisterConcrete(MsgCreateTheorem{}, "bounty/CreateTheorem", nil)
+	cdc.RegisterConcrete(MsgSubmitProofHash{}, "bounty/SubmitProofHash", nil)
+	cdc.RegisterConcrete(MsgSubmitProofDetail{}, "bounty/SubmitProofDetail", nil)
+	cdc.RegisterConcrete(MsgSubmitProofVerification{}, "bounty/SubmitProofVerification", nil)
+	cdc.RegisterConcrete(MsgGrant{}, "bounty/Grant", nil)
+	cdc.RegisterConcrete(MsgWithdrawReward{}, "bounty/WithdrawReward", nil)
 }
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
@@ -36,6 +42,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgActivateFinding{},
 		&MsgCloseFinding{},
 		&MsgPublishFinding{},
+		&MsgCreateTheorem{},
+		&MsgSubmitProofHash{},
+		&MsgSubmitProofDetail{},
+		&MsgSubmitProofVerification{},
+		&MsgGrant{},
+		&MsgWithdrawReward{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

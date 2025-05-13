@@ -51,3 +51,25 @@ var (
 	ErrFindingOperatorNotAllowed   = errors.Register(ModuleName, errFindingOperatorNotAllowed, "finding access denied")
 	ErrFindingID                   = errors.Register(ModuleName, errFindingID, "invalid finding id")
 )
+
+// [3xx] Theorem
+var (
+	ErrNoTheoremMsgs             = errors.Register(ModuleName, 301, "no valid content")
+	ErrTheoremProposal           = errors.Register(ModuleName, 302, "inactive theorem")
+	ErrTheoremProofStatusInvalid = errors.Register(ModuleName, 303, "theorem is not in proof period")
+)
+
+// [4xx] Proof
+var (
+	ErrProofStatusInvalid      = errors.Register(ModuleName, 401, "proof status not hash locked")
+	ErrProofOperatorNotAllowed = errors.Register(ModuleName, 402, "proof access denied")
+	ErrProofAlreadyExists      = errors.Register(ModuleName, 403, "proof already exists")
+	ErrProofHashInvalid        = errors.Register(ModuleName, 404, "invalid proof hash")
+)
+
+// [5xx] Deposit
+var (
+	ErrMinGrantTooSmall    = errors.Register(ModuleName, 501, "minimum grant is too small")
+	ErrMinDepositTooSmall  = errors.Register(ModuleName, 502, "minimum deposit is too small")
+	ErrInvalidDepositDenom = errors.Register(ModuleName, 23, "invalid deposit denom")
+)
