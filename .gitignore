@@ -6,6 +6,7 @@ cscope.*
 
 # Build
 build
+app/shentud/shentud
 vendor
 __pycache__
 *.pyc
