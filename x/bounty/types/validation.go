@@ -217,8 +217,16 @@ func ValidateProof(proof *Proof) error {
 	}
 
 	// If the proof is in hash lock period, make sure the SubmitTime is set
-	if proof.Status == ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD && proof.SubmitTime == nil {
-		return errorsmod.Wrap(ErrProofStatusInvalid, "proof in hash lock period must have a submit time")
+	if proof.Status == ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD {
+		if proof.SubmitTime == nil {
+			return errorsmod.Wrap(ErrProofStatusInvalid, "proof in hash lock period must have a submit time")
+		}
+		if proof.EndTime == nil {
+			return errorsmod.Wrap(ErrProofStatusInvalid, "proof in hash lock period must have an end time")
+		}
+		if !proof.EndTime.After(*proof.SubmitTime) {
+			return errorsmod.Wrap(ErrProofStatusInvalid, "proof end time must be after submit time")
+		}
 	}
 
 	return nil
