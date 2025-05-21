@@ -248,7 +248,7 @@ message MsgPublishFindingResponse {}
 // MsgCreateTheorem defines a message to create a new theorem.
 message MsgCreateTheorem {
   option (cosmos.msg.v1.signer) = "proposer";
-  option (amino.name) = "bounty/MsgCreateTheorem";
+  option (amino.name) = "bounty/CreateTheorem";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -268,7 +268,7 @@ message MsgCreateTheoremResponse {
 // MsgGrant defines a message to grant funds to a theorem.
 message MsgGrant {
   option (cosmos.msg.v1.signer) = "grantor";
-  option (amino.name) = "bounty/MsgGrant";
+  option (amino.name) = "bounty/Grant";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -285,7 +285,7 @@ message MsgGrantResponse {}
 // MsgSubmitProofHash defines a message to submit a proof hash.
 message MsgSubmitProofHash {
   option (cosmos.msg.v1.signer) = "prover";
-  option (amino.name) = "bounty/MsgSubmitProofHash";
+  option (amino.name) = "bounty/SubmitProofHash";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -302,7 +302,7 @@ message MsgSubmitProofHashResponse {}
 // MsgSubmitProofDetail defines a message to submit proof details.
 message MsgSubmitProofDetail {
   option (cosmos.msg.v1.signer) = "prover";
-  option (amino.name) = "bounty/MsgSubmitProofDetail";
+  option (amino.name) = "bounty/SubmitProofDetail";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -318,7 +318,7 @@ message MsgSubmitProofDetailResponse {}
 // MsgSubmitProofVerification defines a message to submit proof verification.
 message MsgSubmitProofVerification {
   option (cosmos.msg.v1.signer) = "checker";
-  option (amino.name) = "bounty/MsgSubmitProofVerification";
+  option (amino.name) = "bounty/SubmitProofVerification";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -334,7 +334,7 @@ message MsgSubmitProofVerificationResponse {}
 // MsgWithdrawReward defines a message to withdraw rewards.
 message MsgWithdrawReward {
   option (cosmos.msg.v1.signer) = "address";
-  option (amino.name) = "bounty/MsgWithdrawReward";
+  option (amino.name) = "bounty/WithdrawReward";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
