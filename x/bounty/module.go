@@ -139,7 +139,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.accountKeeper, am.keeper, &genesisState)
+	if err := InitGenesis(ctx, am.accountKeeper, am.keeper, &genesisState); err != nil {
+		panic(fmt.Sprintf("failed to initialize %s genesis state: %v", types.ModuleName, err))
+	}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the bounty

@@ -49,7 +49,7 @@ func (q queryServer) Program(c context.Context, req *types.QueryProgramRequest) 
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	if len(req.ProgramId) <= 0 {
+	if len(req.ProgramId) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "program-id can not be empty")
 	}
 

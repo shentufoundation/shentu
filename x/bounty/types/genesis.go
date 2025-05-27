@@ -6,11 +6,11 @@ import (
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(
-	startingTheoremId uint64,
+	startingTheoremID uint64,
 	params Params,
 ) *GenesisState {
 	return &GenesisState{
-		StartingTheoremId: startingTheoremId,
+		StartingTheoremId: startingTheoremID,
 		Params:            &params,
 	}
 }

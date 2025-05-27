@@ -343,7 +343,7 @@ $ %s query bounty theorem 1
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			theoremId, err := strconv.ParseUint(args[0], 10, 64)
+			theoremID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("theorem-id %s is not a valid uint, please input a valid theorem-id", args[0])
 			}
@@ -351,7 +351,7 @@ $ %s query bounty theorem 1
 			// Query the program
 			res, err := queryClient.Theorem(
 				cmd.Context(),
-				&types.QueryTheoremRequest{TheoremId: theoremId},
+				&types.QueryTheoremRequest{TheoremId: theoremID},
 			)
 			if err != nil {
 				return err
@@ -590,7 +590,7 @@ $ %s query bounty grants 1
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			theoremId, err := strconv.ParseUint(args[0], 10, 64)
+			theoremID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("theorem-id %s is not a valid uint, please input a valid theorem-id", args[0])
 			}
@@ -599,7 +599,7 @@ $ %s query bounty grants 1
 			res, err := queryClient.Grants(
 				cmd.Context(),
 				&types.QueryGrantsRequest{
-					TheoremId: theoremId,
+					TheoremId: theoremID,
 				},
 			)
 			if err != nil {

@@ -40,8 +40,7 @@ func InitGenesis(ctx sdk.Context, ak types.AccountKeeper, k keeper.Keeper, data 
 
 	// initialize theorems
 	for _, theorem := range data.Theorems {
-		switch theorem.Status {
-		case types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD:
+		if theorem.Status == types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
 			if err := k.ActiveTheoremsQueue.Set(ctx, collections.Join(*theorem.EndTime, theorem.Id), theorem.Id); err != nil {
 				return err
 			}
@@ -91,8 +90,7 @@ func InitGenesis(ctx sdk.Context, ak types.AccountKeeper, k keeper.Keeper, data 
 
 	// initialize proofs
 	for _, proof := range data.Proofs {
-		switch proof.Status {
-		case types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD:
+		if proof.Status == types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD {
 			endTime := proof.SubmitTime.Add(*data.Params.ProofMaxLockPeriod)
 			if err := k.ActiveProofsQueue.Set(ctx, collections.Join(endTime, proof.Id), *proof); err != nil {
 				return err
@@ -182,7 +180,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		panic(err)
 	}
 
-	startingTheoremId, err := k.TheoremID.Peek(ctx)
+	startingTheoremID, err := k.TheoremID.Peek(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -190,7 +188,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
 		Programs:          programs,
 		Findings:          findings,
-		StartingTheoremId: startingTheoremId,
+		StartingTheoremId: startingTheoremID,
 		Theorems:          theorems,
 		Proofs:            proofs,
 		Grants:            grants,

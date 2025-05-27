@@ -38,9 +38,9 @@ func (k Keeper) GetFindingFingerprintHash(finding *types.Finding) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func (k Keeper) GetProofHash(theoremId uint64, prover, detail string) string {
+func (k Keeper) GetProofHash(theoremID uint64, prover, detail string) string {
 	proofHash := &types.ProofHash{
-		TheoremId: theoremId,
+		TheoremId: theoremID,
 		Prover:    prover,
 		Detail:    detail,
 	}
@@ -50,11 +50,11 @@ func (k Keeper) GetProofHash(theoremId uint64, prover, detail string) string {
 }
 
 // HasActiveProofs checks if a theorem has any proofs in hash lock or detail period
-func (k Keeper) HasActiveProofs(ctx context.Context, theoremId uint64) (bool, string, error) {
-	var activeProofId string
+func (k Keeper) HasActiveProofs(ctx context.Context, theoremID uint64) (bool, string, error) {
+	var activeProofID string
 	hasActiveProof := false
 
-	rng := collections.NewPrefixedPairRange[uint64, string](theoremId)
+	rng := collections.NewPrefixedPairRange[uint64, string](theoremID)
 	err := k.ProofsByTheorem.Walk(ctx, rng, func(key collections.Pair[uint64, string], _ []byte) (bool, error) {
 		proof, err := k.Proofs.Get(ctx, key.K2())
 		if err != nil {
@@ -63,13 +63,13 @@ func (k Keeper) HasActiveProofs(ctx context.Context, theoremId uint64) (bool, st
 		if proof.Status == types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD ||
 			proof.Status == types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD {
 			hasActiveProof = true
-			activeProofId = proof.Id
+			activeProofID = proof.Id
 			return true, nil
 		}
 		return false, nil
 	})
 
-	return hasActiveProof, activeProofId, err
+	return hasActiveProof, activeProofID, err
 }
 
 // GetProgramFindings retrieves all findings associated with a program

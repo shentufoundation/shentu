@@ -491,7 +491,7 @@ func NewGrantTheoremCmd() *cobra.Command {
 				return err
 			}
 
-			theoremId, err := strconv.ParseUint(args[0], 10, 64)
+			theoremID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("theorem-id %s is not a valid uint, please input a valid theorem-id", args[0])
 			}
@@ -501,7 +501,7 @@ func NewGrantTheoremCmd() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgGrant(theoremId, grantor.String(), coins)
+			msg := types.NewMsgGrant(theoremID, grantor.String(), coins)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

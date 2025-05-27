@@ -738,12 +738,12 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	}
 
 	// check if there are any proofs in hash lock or detail period for this theorem
-	hasActiveProof, activeProofId, err := k.Keeper.HasActiveProofs(ctx, msg.TheoremId)
+	hasActiveProof, activeProofID, err := k.Keeper.HasActiveProofs(ctx, msg.TheoremId)
 	if err != nil {
 		return nil, err
 	}
 	if hasActiveProof {
-		return nil, errors.Wrapf(sdkerrors.ErrInvalidRequest, "proof %s is in progress", activeProofId)
+		return nil, errors.Wrapf(sdkerrors.ErrInvalidRequest, "proof %s is in progress", activeProofID)
 	}
 
 	// validate deposit funds

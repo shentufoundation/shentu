@@ -46,9 +46,9 @@ func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, su
 	}
 }
 
-func NewProof(theoremId uint64, proofHash, prover string, submitTime, endTime time.Time, deposit sdk.Coins) Proof {
+func NewProof(theoremID uint64, proofHash, prover string, submitTime, endTime time.Time, deposit sdk.Coins) Proof {
 	return Proof{
-		TheoremId:  theoremId,
+		TheoremId:  theoremID,
 		Id:         proofHash,
 		Status:     ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD,
 		SubmitTime: &submitTime,
