@@ -108,7 +108,7 @@ func queryProgram(grpcEndpoint, programID string) (bountytypes.Program, error) {
 	if err != nil {
 		return bountytypes.Program{}, err
 	}
-	return res.Program, nil
+	return *res.Program, nil
 }
 
 func queryFinding(grpcEndpoint, findingID string) (bountytypes.Finding, error) {
@@ -123,7 +123,7 @@ func queryFinding(grpcEndpoint, findingID string) (bountytypes.Finding, error) {
 	if err != nil {
 		return bountytypes.Finding{}, err
 	}
-	return res.Finding, nil
+	return *res.Finding, nil
 }
 
 func queryFindingFingerprint(grpcEndpoint, findingID string) (string, error) {
