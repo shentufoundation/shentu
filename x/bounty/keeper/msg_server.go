@@ -299,7 +299,7 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 		return nil, err
 	}
 
-	findingPtr, err := k.validateFindingStatus(ctx, msg.FindingId, types.FindingStatusSubmitted, types.FindingStatusActive)
+	findingPtr, err := k.validateFindingStatus(ctx, msg.FindingId, types.FindingStatusSubmitted, types.FindingStatusActive, types.FindingStatusConfirmed)
 	if err != nil {
 		return nil, err
 	}

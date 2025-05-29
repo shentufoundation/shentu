@@ -224,7 +224,6 @@ func NewSubmitFindingCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagProgramID)
 	_ = cmd.MarkFlagRequired(FlagFindingID)
-	_ = cmd.MarkFlagRequired(FlagTitle)
 	_ = cmd.MarkFlagRequired(FlagDescription)
 	_ = cmd.MarkFlagRequired(FlagFindingProofOfContent)
 
