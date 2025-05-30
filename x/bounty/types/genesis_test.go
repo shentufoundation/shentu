@@ -33,12 +33,12 @@ func TestValidateGenesis(t *testing.T) {
 			"genesis(2)  -> fail",
 			args{
 				dataGS: GenesisState{
-					Programs: []Program{
+					Programs: []*Program{
 						{
 							ProgramId: "100",
 						},
 					},
-					Findings: []Finding{},
+					Findings: []*Finding{},
 				},
 			},
 			errArgs{
@@ -49,12 +49,12 @@ func TestValidateGenesis(t *testing.T) {
 		{"genesis(3)  -> findingId error",
 			args{
 				dataGS: GenesisState{
-					Programs: []Program{
+					Programs: []*Program{
 						{
 							ProgramId: "1",
 						},
 					},
-					Findings: []Finding{
+					Findings: []*Finding{
 						{
 							FindingId: "100",
 						},
@@ -68,12 +68,12 @@ func TestValidateGenesis(t *testing.T) {
 		{"genesis(4)  -> invalid programId error",
 			args{
 				dataGS: GenesisState{
-					Programs: []Program{
+					Programs: []*Program{
 						{
 							ProgramId: "1",
 						},
 					},
-					Findings: []Finding{
+					Findings: []*Finding{
 						{
 							ProgramId: "10",
 							FindingId: "1",

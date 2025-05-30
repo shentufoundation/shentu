@@ -74,6 +74,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	groupmodule "github.com/cosmos/cosmos-sdk/x/group/module"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	sdkminttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
@@ -126,8 +128,6 @@ import (
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	"github.com/shentufoundation/shentu/v2/x/gov"
 	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	"github.com/shentufoundation/shentu/v2/x/mint"
-	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle"
 	oraclekeeper "github.com/shentufoundation/shentu/v2/x/oracle/keeper"
 	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -157,7 +157,7 @@ var (
 		oracletypes.ModuleName:         {authtypes.Burner},
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		bountytypes.ModuleName:         {authtypes.Burner},
+		bountytypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
 		wasmtypes.ModuleName:           {authtypes.Burner},
 	}
 )
@@ -393,8 +393,10 @@ func NewShentuApp(
 	app.BountyKeeper = bountykeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[bountytypes.StoreKey]),
+		app.AccountKeeper,
 		app.CertKeeper,
-		app.GetSubspace(bountytypes.ModuleName),
+		app.BankKeeper,
+		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
 	app.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
@@ -402,7 +404,6 @@ func NewShentuApp(
 		app.StakingKeeper,
 		app.AccountKeeper,
 		app.BankKeeper,
-		app.DistrKeeper,
 		authtypes.FeeCollectorName,
 		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
@@ -552,7 +553,7 @@ func NewShentuApp(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		icaModule,
-		bounty.NewAppModule(app.BountyKeeper),
+		bounty.NewAppModule(app.AccountKeeper, app.BountyKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	)
 
@@ -697,7 +698,7 @@ func NewShentuApp(
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
-		bounty.NewAppModule(app.BountyKeeper),
+		bounty.NewAppModule(app.AccountKeeper, app.BountyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

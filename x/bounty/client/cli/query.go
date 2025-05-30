@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -31,6 +32,13 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryFindings(),
 		GetCmdQueryFindingFingerprint(),
 		GetCmdQueryProgramFingerprint(),
+		GetCmdQueryTheorem(),
+		GetCmdQueryProof(),
+		GetCmdQueryTheorems(),
+		GetCmdQueryRewards(),
+		GetCmdQueryParams(),
+		GetCmdQueryProofs(),
+		GetCmdQueryGrants(),
 	)
 
 	return bountyQueryCmd
@@ -66,7 +74,7 @@ $ %s query bounty program 1
 				return err
 			}
 
-			return clientCtx.PrintProto(&res.Program)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -154,7 +162,7 @@ $ %s query bounty finding 1
 				return err
 			}
 
-			return clientCtx.PrintProto(&res.Finding)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -302,6 +310,298 @@ $ %s query bounty program 1
 				&types.QueryProgramFingerprintRequest{
 					ProgramId: args[0],
 				})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryTheorem implements the query theorem command.
+func GetCmdQueryTheorem() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "theorem [theorem-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query details of a theorem",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a theorem. You can find the theorem-id by running "%s query theorem".
+Example:
+$ %s query bounty theorem 1
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			theoremID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("theorem-id %s is not a valid uint, please input a valid theorem-id", args[0])
+			}
+
+			// Query the program
+			res, err := queryClient.Theorem(
+				cmd.Context(),
+				&types.QueryTheoremRequest{TheoremId: theoremID},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryProof implements the query proof command.
+func GetCmdQueryProof() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "proof [proof-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query details of a proof",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a proof. You can find the proof-id by running "%s query proof".
+Example:
+$ %s query bounty proof "hash"
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// Query the program
+			res, err := queryClient.Proof(
+				cmd.Context(),
+				&types.QueryProofRequest{ProofId: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryTheorems implements the query all theorems command.
+func GetCmdQueryTheorems() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "theorems",
+		Short: "Query all theorems",
+		Long:  "Query all theorems with optional pagination",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Theorems(cmd.Context(), &types.QueryTheoremsRequest{
+				Pagination: pageReq,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddPaginationFlagsToCmd(cmd, "theorems")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdQueryRewards implements the query rewards command.
+func GetCmdQueryRewards() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "rewards [address]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query rewards for an address",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query rewards for a given address.
+
+Example:
+$ %s query bounty rewards [address]
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// Query the rewards
+			res, err := queryClient.Reward(
+				cmd.Context(),
+				&types.QueryRewardsRequest{Address: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryParams implements the query params command.
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Args:  cobra.NoArgs,
+		Short: "Query the current bounty module parameters",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the current bounty module parameters.
+
+Example:
+$ %s query bounty params
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// Query the params
+			res, err := queryClient.Params(
+				cmd.Context(),
+				&types.QueryParamsRequest{},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryProofs implements the query proofs command.
+func GetCmdQueryProofs() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "proofs [theorem-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query all proofs for a theorem",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query all proofs for a theorem by theorem ID.
+
+Example:
+$ %s query bounty proofs 1
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			theoremID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("theorem-id %s not a valid uint", args[0])
+			}
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Proofs(
+				cmd.Context(),
+				&types.QueryProofsRequest{
+					TheoremId:  theoremID,
+					Pagination: pageReq,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "proofs")
+	return cmd
+}
+
+// GetCmdQueryGrants implements the query grants command.
+func GetCmdQueryGrants() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "grants [theorem-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query grants for a theorem",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query grants for a theorem by theorem ID.
+
+Example:
+$ %s query bounty grants 1
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			theoremID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("theorem-id %s is not a valid uint, please input a valid theorem-id", args[0])
+			}
+
+			// Query the grants
+			res, err := queryClient.Grants(
+				cmd.Context(),
+				&types.QueryGrantsRequest{
+					TheoremId: theoremID,
+				},
+			)
 			if err != nil {
 				return err
 			}

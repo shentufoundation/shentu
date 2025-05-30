@@ -1,10 +1,11 @@
 package bounty
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -20,10 +21,17 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
+const ConsensusVersion = 4
+
 var (
-	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+	_ module.HasGenesis          = AppModule{}
+	_ module.HasServices         = AppModule{}
+	_ module.HasInvariants       = AppModule{}
+
+	_ appmodule.AppModule     = AppModule{}
+	_ appmodule.HasEndBlocker = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the bounty module.
@@ -78,7 +86,8 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 type AppModule struct {
 	AppModuleBasic
 
-	keeper keeper.Keeper
+	keeper        keeper.Keeper
+	accountKeeper types.AccountKeeper
 }
 
 func (am AppModule) IsOnePerModuleType() {}
@@ -89,10 +98,11 @@ func (am AppModule) IsAppModule() {}
 // we will call keeper.AssertInvariants during InitGenesis (it may take a significant time)
 // - which doesn't impact the chain security unless 66+% of validators have a wrongly
 // modified genesis file.
-func NewAppModule(keeper keeper.Keeper) AppModule {
+func NewAppModule(ak types.AccountKeeper, keeper keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
+		accountKeeper:  ak,
 	}
 }
 
@@ -107,7 +117,7 @@ func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServer(am.keeper))
 
 	m := keeper.NewMigrator(am.keeper)
 	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
@@ -118,15 +128,20 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to migrate x/bounty from version 2 to 3: %v", err))
 	}
+	err = cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3to4)
+	if err != nil {
+		panic(fmt.Sprintf("failed to migrate x/bounty from version 3 to 4: %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the bounty module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
-	return []abci.ValidatorUpdate{}
+	if err := InitGenesis(ctx, am.accountKeeper, am.keeper, &genesisState); err != nil {
+		panic(fmt.Sprintf("failed to initialize %s genesis state: %v", types.ModuleName, err))
+	}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the bounty
@@ -137,7 +152,14 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 3 }
+func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
+
+// EndBlock returns the end blocker for the bounty module. It returns no validator
+// updates.
+func (am AppModule) EndBlock(ctx context.Context) error {
+	c := sdk.UnwrapSDKContext(ctx)
+	return EndBlocker(c, &am.keeper)
+}
 
 //____________________________________________________________________________
 

@@ -4,6 +4,9 @@ package shentu.bounty.v1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
+import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
 import "shentu/bounty/v1/bounty.proto";
@@ -41,6 +44,41 @@ service Query {
   rpc ProgramFingerprint(QueryProgramFingerprintRequest) returns (QueryProgramFingerprintResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/programs/{program_id}/fingerprint";
   }
+
+  // Theorems queries all theorems based on given status.
+  rpc Theorems(QueryTheoremsRequest) returns (QueryTheoremsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/theorems";
+  }
+
+  // Theorem queries theorem details based on theoremID.
+  rpc Theorem(QueryTheoremRequest) returns (QueryTheoremResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/theorems/{theorem_id}";
+  }
+
+  // Proofs queries all proofs based on theorem id.
+  rpc Proofs(QueryProofsRequest) returns (QueryProofsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/proofs";
+  }
+
+  // Proof queries proof details based on proofID.
+  rpc Proof(QueryProofRequest) returns (QueryProofResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/proofs/{proof_id}";
+  }
+
+  // Reward queries reward details based on address.
+  rpc Reward(QueryRewardsRequest) returns (QueryRewardsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/rewards/{address}";
+  }
+
+  // Params queries the bounty module parameters.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/params";
+  }
+
+  // Grants queries theorem details based on theoremID.
+  rpc Grants(QueryGrantsRequest) returns (QueryGrantsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/grants/{theorem_id}";
+  }
 }
 
 // QueryHostsRequest is the request type for the Query/Hosts RPC method.
@@ -66,7 +104,7 @@ message QueryProgramsRequest {
 
 // QueryProgramsResponse is the response type for the Query/Programs RPC method.
 message QueryProgramsResponse {
-  repeated Program programs = 1 [(gogoproto.nullable) = false];
+  repeated Program programs = 1;
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -80,7 +118,7 @@ message QueryProgramRequest {
 
 // QueryProgramResponse is the response type for the Query/Program RPC method.
 message QueryProgramResponse {
-  Program program = 1 [(gogoproto.nullable) = false];
+  Program program = 1;
 }
 
 // QueryFindingRequests is the request type for the Query/Findings RPC method.
@@ -97,7 +135,7 @@ message QueryFindingsRequest {
 
 // QueryFindingsResponse is the response type for the Query/Findings RPC method.
 message QueryFindingsResponse {
-  repeated Finding findings = 1 [(gogoproto.nullable) = false];
+  repeated Finding findings = 1;
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -111,7 +149,7 @@ message QueryFindingRequest {
 
 // QueryFindingResponse is the response type for the Query/Finding RPC method.
 message QueryFindingResponse {
-  Finding finding = 1 [(gogoproto.nullable) = false];
+  Finding finding = 1;
 }
 
 // QueryFindingFingerPrint is the request type for the Query/Finding RPC method.
@@ -134,4 +172,100 @@ message QueryProgramFingerprintRequest {
 // QueryProgramFingerprintResponse is the response type for the Query/Finding RPC method.
 message QueryProgramFingerprintResponse {
   string fingerprint = 1;
+}
+
+// QueryTheoremsRequest is the request type for the Query/Theorems RPC method.
+message QueryTheoremsRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryTheoremsResponse is the response type for the Query/Theorems RPC method.
+message QueryTheoremsResponse {
+  repeated Theorem theorems = 1;
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryTheoremRequest is the request type for the Query/Theorem RPC method.
+message QueryTheoremRequest {
+  // theorem_id defines the unique id of the theorem.
+  uint64 theorem_id = 1;
+}
+
+// QueryTheoremResponse is the response type for the Query/Theorem RPC method.
+message QueryTheoremResponse {
+  Theorem theorem = 1;
+}
+
+// QueryProofsRequest is the request type for the Query/Proofs RPC method.
+message QueryProofsRequest {
+  // theorem_id defines the unique id of the theorem.
+  uint64 theorem_id = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryProofsResponse is the response type for the Query/Proofs RPC method.
+message QueryProofsResponse {
+  repeated Proof proofs = 1;
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryProofRequest is the request type for the Query/Proof RPC method.
+message QueryProofRequest {
+  // proof_id defines the unique id of the proof.
+  string proof_id = 1;
+}
+
+// QueryProofResponse is the response type for the Query/Proof RPC method.
+message QueryProofResponse {
+  Proof proof = 1;
+}
+
+// QueryRewardsRequest is the request type for the Query/Rewards RPC method.
+message QueryRewardsRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // address defines the address to query for.
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// QueryRewardsResponse is the response type for the Query/Rewards RPC method.
+message QueryRewardsResponse {
+  repeated cosmos.base.v1beta1.DecCoin rewards = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
+  ];
+}
+
+// QueryParamsRequest defines the request type for querying x/bounty parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/bounty parameters.
+message QueryParamsResponse {
+  Params params = 1;
+}
+
+// QueryGrantsRequest is the request type for the Query/Grants RPC method.
+message QueryGrantsRequest {
+  // theorem_id defines the unique id of the theorem.
+  uint64 theorem_id = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryGrantsResponse defines the response type for querying x/bounty grants.
+message QueryGrantsResponse {
+  repeated Grant grants = 1;
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
