@@ -15,11 +15,11 @@ func NewMigrator(keeper Keeper) Migrator {
 }
 
 // Migrate1to2 migrates from version 1 to 2.
-func (m Migrator) Migrate1to2(ctx sdk.Context) error {
+func (m Migrator) Migrate1to2(_ sdk.Context) error {
 	return nil
 }
 
 // Migrate2to3 migrates from version 2 to 3.
-func (m Migrator) Migrate2to3(ctx sdk.Context) error {
+func (m Migrator) Migrate2to3(_ sdk.Context) error {
 	return nil
 }

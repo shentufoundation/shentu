@@ -16,7 +16,7 @@ func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
 	logger := ctx.Logger().With("module", "x/"+types.ModuleName)
 
 	rngProof := collections.NewPrefixUntilPairRange[time.Time, string](ctx.BlockTime())
-	err := k.ActiveProofsQueue.Walk(ctx, rngProof, func(key collections.Pair[time.Time, string], value types.Proof) (stop bool, err error) {
+	err := k.ActiveProofsQueue.Walk(ctx, rngProof, func(_ collections.Pair[time.Time, string], value types.Proof) (stop bool, err error) {
 		// Only delete proofs in hash_lock phase
 		if value.Status != types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD {
 			return false, nil
@@ -41,7 +41,7 @@ func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
 	// delete dead theorems from store and returns theirs grant.
 	// A theorem is dead when it's active and didn't get correct proof on time to get into pass phase.
 	rngTheorem := collections.NewPrefixUntilPairRange[time.Time, uint64](ctx.BlockTime())
-	err = k.ActiveTheoremsQueue.Walk(ctx, rngTheorem, func(key collections.Pair[time.Time, uint64], value uint64) (stop bool, err error) {
+	err = k.ActiveTheoremsQueue.Walk(ctx, rngTheorem, func(key collections.Pair[time.Time, uint64], _ uint64) (stop bool, err error) {
 		theorem, err := k.Theorems.Get(ctx, key.K2())
 		if err != nil {
 			return false, err

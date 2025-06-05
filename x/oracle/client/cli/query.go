@@ -79,7 +79,7 @@ func GetCmdOperators() *cobra.Command {
 		Use:   "operators",
 		Short: "Get operators information",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -105,7 +105,7 @@ func GetCmdWithdraws() *cobra.Command {
 		Use:   "withdraws",
 		Short: "Get all withdrawals",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -260,7 +260,7 @@ $ %s query oracle params
 			),
 		),
 		Args: cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err

@@ -81,7 +81,7 @@ $ %[1]s query shield providers
 				version.AppName,
 			),
 		),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -107,7 +107,7 @@ func GetCmdStatus() *cobra.Command {
 		Use:   "status",
 		Short: "get shield status",
 		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err

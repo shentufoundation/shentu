@@ -57,7 +57,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 }
 
 // ValidateGenesis performs genesis state validation for the cert module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
 	return types.ValidateGenesis(bz)
 }
 
@@ -142,16 +142,16 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // AppModuleSimulation functions
 
-func (am AppModule) GenerateGenesisState(input *module.SimulationState) {
+func (am AppModule) GenerateGenesisState(_ *module.SimulationState) {
 }
 
 // WeightedOperations returns cert operations for use in simulations.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	// return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.moduleKeeper)
 	return nil
 }
 
-func (am AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
 }
 
 // ProposalMsgs returns functions that generate gov proposals for the module

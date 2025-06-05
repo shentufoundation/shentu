@@ -10,7 +10,7 @@ import (
 	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 )
 
-func RandomReasonableFees(r *rand.Rand, ctx sdk.Context, spendableCoins sdk.Coins) (sdk.Coins, error) {
+func RandomReasonableFees(r *rand.Rand, _ sdk.Context, spendableCoins sdk.Coins) (sdk.Coins, error) {
 	if spendableCoins.Empty() {
 		return nil, nil
 	}

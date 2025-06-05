@@ -23,7 +23,7 @@ linters:
     - misspell
     - nakedret
     - nolintlint
-    #- revive
+    - revive
     - staticcheck
     - stylecheck
     - typecheck

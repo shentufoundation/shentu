@@ -28,7 +28,7 @@ func (q queryServer) Programs(c context.Context, req *types.QueryProgramsRequest
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	programs, pageRes, err := query.CollectionFilteredPaginate(c, q.k.Programs, req.Pagination, func(key string, p types.Program) (include bool, err error) {
+	programs, pageRes, err := query.CollectionFilteredPaginate(c, q.k.Programs, req.Pagination, func(_ string, _ types.Program) (include bool, err error) {
 		return true, nil
 	}, func(_ string, value types.Program) (*types.Program, error) {
 		return &value, nil
@@ -73,7 +73,7 @@ func (q queryServer) Findings(c context.Context, req *types.QueryFindingsRequest
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	findings, pageRes, err := query.CollectionFilteredPaginate(c, q.k.Findings, req.Pagination, func(key string, f types.Finding) (include bool, err error) {
+	findings, pageRes, err := query.CollectionFilteredPaginate(c, q.k.Findings, req.Pagination, func(_ string, f types.Finding) (include bool, err error) {
 		switch {
 		case len(req.ProgramId) != 0 && len(req.SubmitterAddress) != 0:
 			return f.ProgramId == req.ProgramId && f.SubmitterAddress == req.SubmitterAddress, nil
@@ -162,7 +162,7 @@ func (q queryServer) Theorems(c context.Context, req *types.QueryTheoremsRequest
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	filteredTheorems, pageRes, err := query.CollectionFilteredPaginate(c, q.k.Theorems, req.Pagination, func(key uint64, t types.Theorem) (include bool, err error) {
+	filteredTheorems, pageRes, err := query.CollectionFilteredPaginate(c, q.k.Theorems, req.Pagination, func(_ uint64, _ types.Theorem) (include bool, err error) {
 		return true, nil
 	}, func(_ uint64, value types.Theorem) (*types.Theorem, error) {
 		return &value, nil
@@ -295,7 +295,7 @@ func (q queryServer) Grants(c context.Context, req *types.QueryGrantsRequest) (*
 	)
 
 	grants, pageRes, err = query.CollectionPaginate(c, q.k.Grants,
-		req.Pagination, func(key collections.Pair[uint64, sdk.AccAddress], value types.Grant) (*types.Grant, error) {
+		req.Pagination, func(_ collections.Pair[uint64, sdk.AccAddress], value types.Grant) (*types.Grant, error) {
 			return &value, nil
 		}, query.WithCollectionPaginationPairPrefix[uint64, sdk.AccAddress](req.TheoremId),
 	)

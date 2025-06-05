@@ -241,7 +241,7 @@ func (k Keeper) DeleteClosingTaskIDs(ctx context.Context) error {
 	}
 	k.IteratorTaskIDsByEndTime(
 		ctx, types.ClosingTaskStoreKeyTimedPrefix, sdkCtx.BlockTime(),
-		func(key, value []byte) bool {
+		func(key, _ []byte) bool {
 			err := store.Delete(key)
 			if err != nil {
 				return false
@@ -295,7 +295,7 @@ func (k Keeper) GetInvalidTaskIDs(ctx context.Context) (resIDs []types.TaskID) {
 	resIDs = append(resIDs, ids...)
 	k.IteratorTaskIDsByEndTime(
 		ctx, types.ClosingTaskStoreKeyTimedPrefix, sdkCtx.BlockTime(),
-		func(key, value []byte) bool {
+		func(_, value []byte) bool {
 			var taskIDsProto types.TaskIDs
 			k.cdc.MustUnmarshalLengthPrefixed(value, &taskIDsProto)
 			resIDs = append(resIDs, taskIDsProto.TaskIds...)
@@ -526,7 +526,7 @@ func (k Keeper) UpdateAndGetAllTasks(ctx context.Context) (tasks []types.Task, t
 }
 
 // IsValidResponse returns error if a response is not valid.
-func (k Keeper) IsValidResponse(ctx context.Context, task types.TaskI, response types.Response) error {
+func (k Keeper) IsValidResponse(_ context.Context, task types.TaskI, response types.Response) error {
 	// due to fast-path, response should be allowed to add if it's a TaskStatusNil task
 	if task.GetStatus() != types.TaskStatusPending &&
 		task.GetStatus() != types.TaskStatusNil {
