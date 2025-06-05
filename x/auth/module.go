@@ -92,9 +92,15 @@ func (am AppModule) IsOnePerModuleType() {}
 func (am AppModule) IsAppModule() {}
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper,
-	ak authkeeper.AccountKeeper, bk types.BankKeeper, ck types.CertKeeper,
-	randGenAccountsFn authtypes.RandomGenesisAccountsFn, ss exported.Subspace) AppModule {
+func NewAppModule(
+	cdc codec.Codec,
+	keeper keeper.Keeper,
+	ak authkeeper.AccountKeeper,
+	bk types.BankKeeper,
+	ck types.CertKeeper,
+	randGenAccountsFn authtypes.RandomGenesisAccountsFn,
+	ss exported.Subspace,
+) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{cdc: cdc},
 		cosmosAppModule: cosmosauth.NewAppModule(cdc, ak, randGenAccountsFn, ss),
@@ -156,10 +162,9 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 // RegisterStoreDecoder registers a decoder for auth module's types.
 func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	am.cosmosAppModule.RegisterStoreDecoder(sdr)
-
 }
 
 // WeightedOperations returns auth operations for use in simulations.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }

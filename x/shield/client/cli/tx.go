@@ -33,7 +33,7 @@ func GetCmdWithdrawRewards() *cobra.Command {
 		Use:   "withdraw-rewards",
 		Short: "withdraw CTK rewards",
 		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err

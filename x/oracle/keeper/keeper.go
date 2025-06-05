@@ -20,8 +20,16 @@ type Keeper struct {
 	paramSpace    paramtypes.Subspace
 }
 
-func NewKeeper(cdc codec.BinaryCodec, storeService store.KVStoreService, authKeeper types.AccountKeeper, distriKeeper types.DistrKeeper,
-	stakingKeeper types.StakingKeeper, bankKeeper types.BankKeeper, certKeeper types.CertKeeper, paramSpace paramtypes.Subspace) Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeService store.KVStoreService,
+	authKeeper types.AccountKeeper,
+	distriKeeper types.DistrKeeper,
+	stakingKeeper types.StakingKeeper,
+	bankKeeper types.BankKeeper,
+	certKeeper types.CertKeeper,
+	paramSpace paramtypes.Subspace,
+) Keeper {
 	return Keeper{
 		cdc:           cdc,
 		storeService:  storeService,

@@ -22,7 +22,7 @@ func AddGenesisShieldAdminCmd(defaultNodeHome string) *cobra.Command {
 		Short: "Add a genesis shield admin to genesis.json",
 		Long:  `Add a genesis shield admin to genesis.json. The provided shield admin must specify the account address. `,
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx := client.GetClientContextFromCmd(cmd)
 			depCdc := ctx.Codec
 			cdc := depCdc

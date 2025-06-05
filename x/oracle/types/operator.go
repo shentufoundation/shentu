@@ -7,8 +7,13 @@ import (
 )
 
 // NewOperator returns an Operator object.
-func NewOperator(address sdk.AccAddress, proposer sdk.AccAddress, collateral sdk.Coins,
-	accumulatedRewards sdk.Coins, name string) Operator {
+func NewOperator(
+	address sdk.AccAddress,
+	proposer sdk.AccAddress,
+	collateral sdk.Coins,
+	accumulatedRewards sdk.Coins,
+	name string,
+) Operator {
 	return Operator{
 		Address:            address.String(),
 		Proposer:           proposer.String(),

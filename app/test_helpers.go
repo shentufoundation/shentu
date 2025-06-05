@@ -76,6 +76,7 @@ func NewShentuAppWithCustomOptions(t *testing.T, isCheckTx bool, options SetupOp
 
 // Setup initializes a new ShentuApp with custom options.
 func Setup(t *testing.T, isCheckTx bool) *ShentuApp {
+	t.Helper()
 	options := SetupOptions{
 		Logger:  log.NewTestLogger(t).With("instance", "first"),
 		DB:      dbm.NewMemDB(),

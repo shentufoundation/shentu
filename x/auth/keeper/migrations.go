@@ -30,7 +30,7 @@ func NewMigrator(am authkeeper.AccountKeeper, keeper Keeper, queryServer grpc.Se
 }
 
 // Migrate1to2 migrates from version 1 to 2.
-func (m Migrator) Migrate1to2(ctx sdk.Context) error {
+func (m Migrator) Migrate1to2(_ sdk.Context) error {
 	//var iterErr error
 	//
 	//m.keeper.ak.IterateAccounts(ctx, func(account sdktypes.AccountI) (stop bool) {

@@ -15,7 +15,7 @@ func NewMigrator(keeper Keeper) Migrator {
 }
 
 // Migrate1to2 migrates from version 1 to 2.
-func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	//return v2.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
+func (m Migrator) Migrate1to2(_ sdk.Context) error {
+	// return v2.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
 	return nil
 }

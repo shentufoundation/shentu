@@ -19,8 +19,13 @@ type Keeper struct {
 }
 
 // NewKeeper creates a shield keeper.
-func NewKeeper(cdc codec.BinaryCodec, storeService store.KVStoreService, ak types.AccountKeeper, bk types.BankKeeper,
-	paramSpace paramtypes.Subspace) Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeService store.KVStoreService,
+	ak types.AccountKeeper,
+	bk types.BankKeeper,
+	paramSpace paramtypes.Subspace,
+) Keeper {
 	return Keeper{
 		storeService: storeService,
 		cdc:          cdc,

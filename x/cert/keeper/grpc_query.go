@@ -140,7 +140,7 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 	return &types.QueryCertificatesResponse{Total: total, Certificates: results}, nil
 }
 
-func (q Querier) AddrConversion(c context.Context, req *types.ConversionToShentuAddrRequest) (*types.ConversionToShentuAddrResponse, error) {
+func (q Querier) AddrConversion(_ context.Context, req *types.ConversionToShentuAddrRequest) (*types.ConversionToShentuAddrResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

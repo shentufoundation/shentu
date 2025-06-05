@@ -86,9 +86,7 @@ func TasksInvariant(k Keeper) sdk.Invariant {
 func FundInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		broken := false
-		var (
-			sumCollateral, sumReward, sumPendingBounty, sumWithdraw sdk.Coins
-		)
+		var sumCollateral, sumReward, sumPendingBounty, sumWithdraw sdk.Coins
 		k.IterateAllOperators(ctx, func(op types.Operator) bool {
 			sumCollateral = sumCollateral.Add(op.Collateral...)
 			sumReward = sumReward.Add(op.AccumulatedRewards...)

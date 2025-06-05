@@ -21,7 +21,7 @@ type HandlerOptions struct {
 	ante.HandlerOptions
 
 	IBCKeeper             *keeper.Keeper
-	WasmConfig            *wasmTypes.WasmConfig
+	WasmConfig            *wasmTypes.NodeConfig
 	WasmKeeper            *wasmkeeper.Keeper
 	TXCounterStoreService corestoretypes.KVStoreService
 }

@@ -159,7 +159,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		panic(err)
 	}
 
-	err = k.Rewards.Walk(ctx, nil, func(key sdk.AccAddress, value types.Reward) (stop bool, err error) {
+	err = k.Rewards.Walk(ctx, nil, func(_ sdk.AccAddress, value types.Reward) (stop bool, err error) {
 		rewards = append(rewards, &value)
 		return false, nil
 	})

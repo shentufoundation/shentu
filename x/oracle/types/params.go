@@ -40,8 +40,15 @@ func ParamKeyTable() params.KeyTable {
 }
 
 // NewTaskParams returns a TaskParams object.
-func NewTaskParams(expirationDuration time.Duration, aggregationWindow int64, aggregationResult,
-	thresholdScore, epsilon1, epsilon2 math.Int, shortcutQuorum math.LegacyDec) TaskParams {
+func NewTaskParams(
+	expirationDuration time.Duration,
+	aggregationWindow int64,
+	aggregationResult math.Int,
+	thresholdScore math.Int,
+	epsilon1 math.Int,
+	epsilon2 math.Int,
+	shortcutQuorum math.LegacyDec,
+) TaskParams {
 	return TaskParams{
 		ExpirationDuration: expirationDuration,
 		AggregationWindow:  aggregationWindow,

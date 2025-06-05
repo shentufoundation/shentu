@@ -23,7 +23,7 @@ func DefaultGenesisState() *GenesisState {
 }
 
 // ValidateGenesis validates shield genesis data.
-func ValidateGenesis(data GenesisState) error {
+func ValidateGenesis(_ GenesisState) error {
 	return nil
 }
 

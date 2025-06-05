@@ -18,7 +18,7 @@ import (
 const OpWeightMsgUnlock = "op_weight_msg_create_operator" // #nosec G101
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k types.AccountKeeper, bk types.BankKeeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simtypes.AppParams, _ codec.JSONCodec, k types.AccountKeeper, bk types.BankKeeper) simulation.WeightedOperations {
 	var weightMsgUnlock int
 	appParams.GetOrGenerate(OpWeightMsgUnlock, &weightMsgUnlock, nil,
 		func(_ *rand.Rand) {
@@ -35,8 +35,7 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k typ
 }
 
 func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
-		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		for _, acc := range accs {
 			account := k.GetAccount(ctx, acc.Address)
 			mvacc, ok := account.(*types.ManualVestingAccount)

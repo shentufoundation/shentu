@@ -42,7 +42,7 @@ func ValidateGenesis(data *GenesisState) error {
 	for i, program := range data.Programs {
 		programIndex, ok := programs[program.ProgramId]
 		if ok {
-			//repeat programId
+			// repeat programId
 			return errorsmod.Wrapf(ErrProgramID, "already program[%s], this program[%s]",
 				data.Programs[programIndex].String(), program.String())
 		}
@@ -55,7 +55,7 @@ func ValidateGenesis(data *GenesisState) error {
 
 	findings := make(map[string]bool)
 	for _, finding := range data.Findings {
-		//Check if it is a valid programID
+		// Check if it is a valid programID
 		_, ok := programs[finding.ProgramId]
 		if !ok {
 			return errorsmod.Wrapf(ErrProgramID, "program %s for finding %s does not exist",

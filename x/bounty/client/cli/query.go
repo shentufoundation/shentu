@@ -96,8 +96,7 @@ $ %s query bounty programs --page=1 --limit=100
 				version.AppName,
 			),
 		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -186,7 +185,7 @@ $ %s query bounty findings --page=1 --limit=100
 				version.AppName, version.AppName, version.AppName,
 			),
 		),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			// validate that the program-id
 			pid, err := cmd.Flags().GetString(FlagProgramID)
 			if err != nil {
@@ -233,7 +232,6 @@ $ %s query bounty findings --page=1 --limit=100
 			}
 
 			return clientCtx.PrintProto(res)
-
 		},
 	}
 
@@ -409,7 +407,7 @@ func GetCmdQueryTheorems() *cobra.Command {
 		Use:   "theorems",
 		Short: "Query all theorems",
 		Long:  "Query all theorems with optional pagination",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -492,7 +490,7 @@ $ %s query bounty params
 				version.AppName,
 			),
 		),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err

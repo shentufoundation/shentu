@@ -77,7 +77,7 @@ func GetCmdCertifiers() *cobra.Command {
 		Use:   "certifiers",
 		Short: "Get certifiers information",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -133,7 +133,7 @@ func GetCmdCertificates() *cobra.Command {
 		Use:   "certificates [<flags>]",
 		Short: "Get certificates information",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err

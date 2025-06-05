@@ -68,12 +68,12 @@ func NewMsgIssueCertificate(
 	if !ok {
 		panic(fmt.Errorf("%T does not implement proto.Message", content))
 	}
-	any, err := codectypes.NewAnyWithValue(msg)
+	contentAny, err := codectypes.NewAnyWithValue(msg)
 	if err != nil {
 		panic(err)
 	}
 	return &MsgIssueCertificate{
-		Content:      any,
+		Content:      contentAny,
 		Compiler:     compiler,
 		BytecodeHash: bytecodeHash,
 		Description:  description,

@@ -106,13 +106,13 @@ func NewCertificate(
 	if !ok {
 		return Certificate{}, fmt.Errorf("%T does not implement proto.Message", content)
 	}
-	any, err := codecTypes.NewAnyWithValue(msg)
+	contentAny, err := codecTypes.NewAnyWithValue(msg)
 	if err != nil {
 		return Certificate{}, err
 	}
 	compilationContent := NewCompilationCertificateContent(compiler, bytecodeHash)
 	return Certificate{
-		Content:            any,
+		Content:            contentAny,
 		CompilationContent: &compilationContent,
 		Description:        description,
 		Certifier:          certifier.String(),

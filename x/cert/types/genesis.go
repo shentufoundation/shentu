@@ -10,7 +10,7 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(constantFee sdk.Coin, startingCertificateID uint64) GenesisState {
+func NewGenesisState(_ sdk.Coin, startingCertificateID uint64) GenesisState {
 	return GenesisState{NextCertificateId: startingCertificateID}
 }
 
@@ -20,7 +20,7 @@ func DefaultGenesisState() *GenesisState {
 }
 
 // ValidateGenesis - validate crisis genesis data
-func ValidateGenesis(bz json.RawMessage) error {
+func ValidateGenesis(_ json.RawMessage) error {
 	return nil
 }
 

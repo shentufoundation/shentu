@@ -49,7 +49,7 @@ func NewManualVestingAccount(baseAcc *authtypes.BaseAccount, origVesting, vested
 }
 
 // Returns the total number of vested coins. If no coins are vested, nil is returned.
-func (mva ManualVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins {
+func (mva ManualVestingAccount) GetVestedCoins(_ time.Time) sdk.Coins {
 	if !mva.VestedCoins.IsZero() {
 		return mva.VestedCoins
 	}
