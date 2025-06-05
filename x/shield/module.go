@@ -28,8 +28,7 @@ var (
 )
 
 // AppModuleBasic specifies the app module basics object.
-type AppModuleBasic struct {
-}
+type AppModuleBasic struct{}
 
 // NewAppModuleBasic creates a new AppModuleBasic object in shield module.
 func NewAppModuleBasic() AppModuleBasic {

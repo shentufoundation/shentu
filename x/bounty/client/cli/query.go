@@ -97,7 +97,6 @@ $ %s query bounty programs --page=1 --limit=100
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -233,7 +232,6 @@ $ %s query bounty findings --page=1 --limit=100
 			}
 
 			return clientCtx.PrintProto(res)
-
 		},
 	}
 

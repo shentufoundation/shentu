@@ -594,6 +594,7 @@ func NewSubmitProofDetailCmd() *cobra.Command {
 
 	return cmd
 }
+
 func NewSubmitProofVerificationCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "proof-verification",

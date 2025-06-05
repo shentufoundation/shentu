@@ -210,8 +210,15 @@ func (m MsgWithdrawReward) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgCreateTask returns a new message for creating a task.
-func NewMsgCreateTask(contract, function string, bounty sdk.Coins, description string,
-	creator sdk.AccAddress, wait int64, validDuration time.Duration) *MsgCreateTask {
+func NewMsgCreateTask(
+	contract string,
+	function string,
+	bounty sdk.Coins,
+	description string,
+	creator sdk.AccAddress,
+	wait int64,
+	validDuration time.Duration,
+) *MsgCreateTask {
 	return &MsgCreateTask{
 		Contract:      contract,
 		Function:      function,
@@ -295,8 +302,13 @@ func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgCreateTxTask returns a new MsgCreateTxTask instance.
-func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte,
-	bounty sdk.Coins, validTime time.Time) *MsgCreateTxTask {
+func NewMsgCreateTxTask(
+	creator sdk.AccAddress,
+	chainID string,
+	txBytes []byte,
+	bounty sdk.Coins,
+	validTime time.Time,
+) *MsgCreateTxTask {
 	return &MsgCreateTxTask{
 		Creator:   creator.String(),
 		ChainId:   chainID,

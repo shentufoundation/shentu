@@ -13,7 +13,6 @@ import (
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, k *keeper.Keeper) error {
-
 	logger := ctx.Logger().With("module", "x/"+types.ModuleName)
 
 	rngProof := collections.NewPrefixUntilPairRange[time.Time, string](ctx.BlockTime())

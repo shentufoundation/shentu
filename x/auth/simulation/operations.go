@@ -35,8 +35,7 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k typ
 }
 
 func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
-		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		for _, acc := range accs {
 			account := k.GetAccount(ctx, acc.Address)
 			mvacc, ok := account.(*types.ManualVestingAccount)

@@ -32,8 +32,7 @@ var (
 )
 
 // AppModuleBasic specifies the app module basics object.
-type AppModuleBasic struct {
-}
+type AppModuleBasic struct{}
 
 // NewAppModuleBasic creates a new AppModuleBasic object in oracle module.
 func NewAppModuleBasic() AppModuleBasic {
@@ -167,16 +166,16 @@ func (am AppModule) EndBlock(ctx context.Context) error {
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	//simulation.RandomizedGenState(simState)
+	// simulation.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for oracle module.
 func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	//sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+	// sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns oracle operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return nil
-	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAccountKeeper(), am.bankKeeper)
+	// return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAccountKeeper(), am.bankKeeper)
 }

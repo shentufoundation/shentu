@@ -15,9 +15,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
-var (
-	amplifier = math.NewInt(1000000)
-)
+var amplifier = math.NewInt(1000000)
 
 // SetTask sets a task in KVStore.
 func (k Keeper) SetTask(ctx context.Context, task types.TaskI) error {
@@ -425,7 +423,7 @@ func (k Keeper) TryShortcut(ctx context.Context, task types.TaskI) {
 	if err != nil || totalCollateral.Empty() || totalCollateral[0].Amount.IsZero() {
 		return
 	}
-	var respondedCollateral = math.ZeroInt()
+	respondedCollateral := math.ZeroInt()
 	for _, response := range task.GetResponses() {
 		operatorAddr := sdk.MustAccAddressFromBech32(response.Operator)
 		amount, err := k.GetCollateralAmount(ctx, operatorAddr)
@@ -547,9 +545,9 @@ func (k Keeper) IsValidResponse(ctx context.Context, task types.TaskI, response 
 
 func (k Keeper) HandleNoneTxTaskForResponse(ctx context.Context, txHash []byte) error {
 	if _, err := k.GetTask(ctx, txHash); err != nil {
-		//if the corresponding TxTask doesn't exit,
-		//create one as a placeholder (statue being set as TaskStatusNil),
-		//waiting for the MsgCreateTxTask coming to fill in necessary fields
+		// if the corresponding TxTask doesn't exit,
+		// create one as a placeholder (statue being set as TaskStatusNil),
+		// waiting for the MsgCreateTxTask coming to fill in necessary fields
 		txTask, err := k.BuildTxTaskWithExpire(ctx, txHash, "", nil, time.Time{}, types.TaskStatusNil)
 		if err != nil {
 			return err

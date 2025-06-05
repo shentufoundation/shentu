@@ -36,8 +36,10 @@ const (
 	errTooLateValidTime
 )
 
-const errInconsistentOperators uint32 = 301
-const errFailedToCastTask uint32 = 401
+const (
+	errInconsistentOperators uint32 = 301
+	errFailedToCastTask      uint32 = 401
+)
 
 var (
 	ErrNoOperatorFound         = errors.Register(ModuleName, errNoOperatorFound, "no operator was found")

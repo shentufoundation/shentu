@@ -18,7 +18,7 @@ var _ v1beta1.Content = &CertifierUpdateProposal{}
 
 func init() {
 	v1beta1.RegisterProposalType(ProposalTypeCertifierUpdate)
-	//govtypes.RegisterProposalTypeCodec(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal")
+	// govtypes.RegisterProposalTypeCodec(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal")
 }
 
 // NewCertifierUpdateProposal creates a new certifier update proposal.

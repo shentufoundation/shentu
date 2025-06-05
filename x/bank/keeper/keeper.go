@@ -18,8 +18,14 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new Keeper.
-func NewKeeper(cdc codec.BinaryCodec, storeService store.KVStoreService, ak types.AccountKeeper,
-	blockedAddrs map[string]bool, authority string, logger log.Logger) Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeService store.KVStoreService,
+	ak types.AccountKeeper,
+	blockedAddrs map[string]bool,
+	authority string,
+	logger log.Logger,
+) Keeper {
 	bk := bankKeeper.NewBaseKeeper(cdc, storeService, ak, blockedAddrs, authority, logger)
 	return Keeper{
 		BaseKeeper: bk,

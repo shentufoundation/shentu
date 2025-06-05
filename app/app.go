@@ -233,7 +233,6 @@ func NewShentuApp(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *ShentuApp {
-
 	encodingConfig := MakeEncodingConfig()
 	appCodec := encodingConfig.Codec
 	legacyAmino := encodingConfig.Amino
@@ -251,7 +250,7 @@ func NewShentuApp(
 
 	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
 	// initialize application with its store keys
-	var app = &ShentuApp{
+	app := &ShentuApp{
 		BaseApp:           bApp,
 		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,

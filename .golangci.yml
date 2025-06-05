@@ -9,33 +9,28 @@ run:
 linters:
   disable-all: true
   enable:
-    - bodyclose
-    - deadcode
-    - depguard
     - dogsled
     - errcheck
+    - exportloopref
+    #- gci
     - goconst
     - gocritic
-    - gofmt
-    - goimports
-    - golint
+    - gofumpt
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - maligned
     - misspell
     - nakedret
-    - prealloc
-    - scopelint
+    - nolintlint
+    #- revive
     - staticcheck
     - stylecheck
     - typecheck
+    - thelper
     - unconvert
-    - unused
     - unparam
-    # - wsl
-    # - nolintlint
+    - unused  
 
 issues:
   exclude-rules:

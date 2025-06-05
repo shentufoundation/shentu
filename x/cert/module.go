@@ -28,8 +28,7 @@ var (
 )
 
 // AppModuleBasic specifies the app module basics object.
-type AppModuleBasic struct {
-}
+type AppModuleBasic struct{}
 
 // NewAppModuleBasic create a new AppModuleBasic object in cert module
 func NewAppModuleBasic() AppModuleBasic {
@@ -148,7 +147,7 @@ func (am AppModule) GenerateGenesisState(input *module.SimulationState) {
 
 // WeightedOperations returns cert operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.moduleKeeper)
+	// return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.moduleKeeper)
 	return nil
 }
 
@@ -157,6 +156,6 @@ func (am AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry)
 
 // ProposalMsgs returns functions that generate gov proposals for the module
 func (am AppModule) ProposalMsgs(_ module.SimulationState) []simtypes.WeightedProposalMsg {
-	//return simulation.ProposalContents(am.moduleKeeper)
+	// return simulation.ProposalContents(am.moduleKeeper)
 	return nil
 }

@@ -5,8 +5,15 @@ import (
 )
 
 // NewGenesisState constructs a GenesisState object.
-func NewGenesisState(operators []Operator, totalCollateral sdk.Coins, poolParams LockedPoolParams, taskParams TaskParams,
-	withdraws []Withdraw, tasks []Task, txTasks []TxTask) GenesisState {
+func NewGenesisState(
+	operators []Operator,
+	totalCollateral sdk.Coins,
+	poolParams LockedPoolParams,
+	taskParams TaskParams,
+	withdraws []Withdraw,
+	tasks []Task,
+	txTasks []TxTask,
+) GenesisState {
 	return GenesisState{
 		Operators:       operators,
 		TotalCollateral: totalCollateral,
