@@ -69,7 +69,7 @@ jobs:
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
-            **/**.go
+            **/*.go
             go.mod
             go.sum
       - name: Build Docker Image
