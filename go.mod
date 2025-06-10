@@ -33,7 +33,7 @@ require (
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.7.1
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 	github.com/test-go/testify v1.1.4
@@ -121,7 +121,7 @@ require (
 	github.com/cosmos/tools/lib/runsimaws v1.0.0 // indirect
 	github.com/cosmos/tools/lib/runsimgh v1.0.0 // indirect
 	github.com/cosmos/tools/lib/runsimslack v1.0.0 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/creachadair/atomicfile v0.3.1 // indirect
 	github.com/creachadair/tomledit v0.0.24 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
@@ -316,7 +316,7 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/sourcegraph/go-diff v0.7.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/ssgreg/nlreturn/v2 v2.2.1 // indirect
 	github.com/stbenjam/no-sprintf-host-port v0.1.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
