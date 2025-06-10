@@ -25,7 +25,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
-	github.com/cosmos/ibc-go/v8 v8.5.1
+	github.com/cosmos/ibc-go/v8 v8.7.0
 	github.com/cosmos/tools/cmd/runsim v1.0.0
 	github.com/golangci/golangci-lint v1.52.0
 	github.com/google/uuid v1.6.0
