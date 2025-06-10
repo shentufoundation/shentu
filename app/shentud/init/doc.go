@@ -16,7 +16,7 @@ const (
 
 // GenDoc generates document for the current command-line interface to a designated folder.
 func GenDoc(cmd *cobra.Command, outputDir string) {
-	err := os.MkdirAll(outputDir, 0750)
+	err := os.MkdirAll(outputDir, 0o750)
 	if err != nil {
 		panic(err)
 	}

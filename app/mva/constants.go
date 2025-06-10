@@ -1,4 +1,6 @@
 package mva
 
-const UpgradeName = "mva"
-const UpgradeHeight = 6530000
+const (
+	UpgradeName   = "mva"
+	UpgradeHeight = 6530000
+)

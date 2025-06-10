@@ -17,6 +17,6 @@ func NewMigrator(keeper Keeper, queryServer grpc.Server) Migrator {
 	return Migrator{keeper: keeper, queryServer: queryServer}
 }
 
-func (m Migrator) Migrate4to5(ctx sdk.Context) error {
+func (m Migrator) Migrate4to5(_ sdk.Context) error {
 	return nil
 }

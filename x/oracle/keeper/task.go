@@ -15,9 +15,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
-var (
-	amplifier = math.NewInt(1000000)
-)
+var amplifier = math.NewInt(1000000)
 
 // SetTask sets a task in KVStore.
 func (k Keeper) SetTask(ctx context.Context, task types.TaskI) error {
@@ -243,7 +241,7 @@ func (k Keeper) DeleteClosingTaskIDs(ctx context.Context) error {
 	}
 	k.IteratorTaskIDsByEndTime(
 		ctx, types.ClosingTaskStoreKeyTimedPrefix, sdkCtx.BlockTime(),
-		func(key, value []byte) bool {
+		func(key, _ []byte) bool {
 			err := store.Delete(key)
 			if err != nil {
 				return false
@@ -297,7 +295,7 @@ func (k Keeper) GetInvalidTaskIDs(ctx context.Context) (resIDs []types.TaskID) {
 	resIDs = append(resIDs, ids...)
 	k.IteratorTaskIDsByEndTime(
 		ctx, types.ClosingTaskStoreKeyTimedPrefix, sdkCtx.BlockTime(),
-		func(key, value []byte) bool {
+		func(_, value []byte) bool {
 			var taskIDsProto types.TaskIDs
 			k.cdc.MustUnmarshalLengthPrefixed(value, &taskIDsProto)
 			resIDs = append(resIDs, taskIDsProto.TaskIds...)
@@ -425,7 +423,7 @@ func (k Keeper) TryShortcut(ctx context.Context, task types.TaskI) {
 	if err != nil || totalCollateral.Empty() || totalCollateral[0].Amount.IsZero() {
 		return
 	}
-	var respondedCollateral = math.ZeroInt()
+	respondedCollateral := math.ZeroInt()
 	for _, response := range task.GetResponses() {
 		operatorAddr := sdk.MustAccAddressFromBech32(response.Operator)
 		amount, err := k.GetCollateralAmount(ctx, operatorAddr)
@@ -528,7 +526,7 @@ func (k Keeper) UpdateAndGetAllTasks(ctx context.Context) (tasks []types.Task, t
 }
 
 // IsValidResponse returns error if a response is not valid.
-func (k Keeper) IsValidResponse(ctx context.Context, task types.TaskI, response types.Response) error {
+func (k Keeper) IsValidResponse(_ context.Context, task types.TaskI, response types.Response) error {
 	// due to fast-path, response should be allowed to add if it's a TaskStatusNil task
 	if task.GetStatus() != types.TaskStatusPending &&
 		task.GetStatus() != types.TaskStatusNil {
@@ -547,9 +545,9 @@ func (k Keeper) IsValidResponse(ctx context.Context, task types.TaskI, response 
 
 func (k Keeper) HandleNoneTxTaskForResponse(ctx context.Context, txHash []byte) error {
 	if _, err := k.GetTask(ctx, txHash); err != nil {
-		//if the corresponding TxTask doesn't exit,
-		//create one as a placeholder (statue being set as TaskStatusNil),
-		//waiting for the MsgCreateTxTask coming to fill in necessary fields
+		// if the corresponding TxTask doesn't exit,
+		// create one as a placeholder (statue being set as TaskStatusNil),
+		// waiting for the MsgCreateTxTask coming to fill in necessary fields
 		txTask, err := k.BuildTxTaskWithExpire(ctx, txHash, "", nil, time.Time{}, types.TaskStatusNil)
 		if err != nil {
 			return err

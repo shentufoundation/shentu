@@ -48,7 +48,6 @@ func WeightedOperations(
 
 // SimulateMsgLockedSend tests and runs a single msg send where both
 // accounts already exist.
-// nolint: funlen
 func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,

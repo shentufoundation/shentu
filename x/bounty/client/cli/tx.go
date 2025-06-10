@@ -51,7 +51,7 @@ func NewCreateProgramCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-program",
 		Short: "create new program",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -94,7 +94,7 @@ func NewEditProgramCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "edit-program",
 		Short: "edit a program",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -175,7 +175,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "submit-finding",
 		Short: "submit finding for a program",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -234,7 +234,7 @@ func NewEditFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "edit-finding",
 		Short: "edit finding for a program",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -431,7 +431,7 @@ func NewCreateTheoremCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-theorem",
 		Short: "create new theorem",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -515,7 +515,7 @@ func NewSubmitProofHashCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "proof-hash",
 		Short: "submit proof hash for theorem",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -562,7 +562,7 @@ func NewSubmitProofDetailCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "proof-detail",
 		Short: "submit proof detail for a proof",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -594,11 +594,12 @@ func NewSubmitProofDetailCmd() *cobra.Command {
 
 	return cmd
 }
+
 func NewSubmitProofVerificationCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "proof-verification",
 		Short: "submit proof verification for a proof",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -645,7 +646,7 @@ func NewWithdrawRewardCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw-rewards",
 		Short: "withdraw rewards for an address",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err

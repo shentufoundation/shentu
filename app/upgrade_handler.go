@@ -19,7 +19,7 @@ const (
 func (app ShentuApp) setUpgradeHandler(_ codec.BinaryCodec) {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
-		func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		func(ctx context.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)

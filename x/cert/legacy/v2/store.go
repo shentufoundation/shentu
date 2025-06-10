@@ -63,11 +63,11 @@ func transistCertContent(certificate *types.Certificate) {
 }
 
 func setContentAny(certificate *types.Certificate, content types.Content) {
-	any, err := codectypes.NewAnyWithValue(content)
+	contentAny, err := codectypes.NewAnyWithValue(content)
 	if err != nil {
 		panic(err)
 	}
-	certificate.Content = any
+	certificate.Content = contentAny
 }
 
 func migrateCertifier(store storetypes.KVStore, cdc codec.BinaryCodec) error {
