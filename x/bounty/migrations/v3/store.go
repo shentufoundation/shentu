@@ -21,10 +21,10 @@ func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.
 	findingStore := prefix.NewStore(kvStore, types.FindingKeyPrefix)
 
 	// delete old ProgramFindingsStore
-	iter := ProgramFindingsStore.Iterator(nil, nil)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		ProgramFindingsStore.Delete(iter.Key())
+	programIter := ProgramFindingsStore.Iterator(nil, nil)
+	defer programIter.Close()
+	for ; programIter.Valid(); programIter.Next() {
+		ProgramFindingsStore.Delete(programIter.Key())
 	}
 
 	// migrate new ProgramFindingsStore
@@ -33,7 +33,7 @@ func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.
 	for ; findingIter.Valid(); findingIter.Next() {
 		var finding types.Finding
 
-		err := cdc.Unmarshal(iter.Value(), &finding)
+		err := cdc.Unmarshal(findingIter.Value(), &finding)
 		if err != nil {
 			return err
 		}
