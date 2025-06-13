@@ -30,5 +30,9 @@ func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 
 // Migrate3to4 migrates from version 3 to 4.
 func (m Migrator) Migrate3to4(ctx sdk.Context) error {
-	return v3.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc)
+	err := v3.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc)
+	if err != nil {
+		return err
+	}
+	return v3.SetDefaultParams(ctx, m.keeper.storeService, m.keeper.cdc)
 }
