@@ -43,5 +43,12 @@ func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.
 		}
 	}
 
+	params := collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc))
+	defaultParams := types.DefaultParams()
+	err := params.Set(ctx, defaultParams)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
