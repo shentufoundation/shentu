@@ -43,6 +43,11 @@ func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.
 		}
 	}
 
+	return nil
+}
+
+func SetDefaultParams(ctx sdk.Context, storeService store.KVStoreService, cdc codec.BinaryCodec) error {
+	sb := collections.NewSchemaBuilder(storeService)
 	params := collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc))
 	defaultParams := types.DefaultParams()
 	err := params.Set(ctx, defaultParams)
@@ -50,5 +55,10 @@ func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.
 		return err
 	}
 
+	theoremID := collections.NewSequence(sb, types.TheoremIDKey, "theorem_id")
+	err = theoremID.Set(ctx, types.DefaultStartingTheoremID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
