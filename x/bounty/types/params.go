@@ -35,8 +35,8 @@ func DefaultParams() Params {
 	theoremMaxProofPeriod := 14 * 24 * time.Hour
 	// Default proof max lock period: 15 minutes
 	proofMaxLockPeriod := 15 * time.Minute
-	// Default checker rate: 20%
-	checkerRate := sdkmath.LegacyMustNewDecFromStr("0.2")
+	// Default checker rate: 0%
+	checkerRate := sdkmath.LegacyMustNewDecFromStr("0.0")
 
 	return NewParams(minGrant, minDeposit, theoremMaxProofPeriod, proofMaxLockPeriod, checkerRate)
 }
