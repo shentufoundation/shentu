@@ -31,8 +31,8 @@ func DefaultParams() Params {
 	minGrant := sdk.NewCoins(sdk.NewCoin("uctk", sdkmath.NewInt(1000000)))
 	// Default minimum deposit: 1000000 uctk
 	minDeposit := sdk.NewCoins(sdk.NewCoin("uctk", sdkmath.NewInt(1000000)))
-	// Default theorem max proof period: 2 weeks
-	theoremMaxProofPeriod := 14 * 24 * time.Hour
+	// Default theorem max proof period: 120 days
+	theoremMaxProofPeriod := 120 * 24 * time.Hour
 	// Default proof max lock period: 15 minutes
 	proofMaxLockPeriod := 15 * time.Minute
 	// Default checker rate: 0%
