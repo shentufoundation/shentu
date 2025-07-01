@@ -50,5 +50,12 @@ func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.
 		return err
 	}
 
+	theoremID := collections.NewSequence(sb, types.TheoremIDKey, "theorem_id")
+	startingTheoremID := types.DefaultStartingTheoremID
+	err = theoremID.Set(ctx, startingTheoremID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
