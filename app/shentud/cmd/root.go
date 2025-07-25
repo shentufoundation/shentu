@@ -62,7 +62,7 @@ func NewRootCmd() *cobra.Command {
 		dbm.NewMemDB(),
 		nil,
 		true,
-		simtestutil.NewAppOptionsWithFlagHome(tempDir()),
+		simtestutil.AppOptionsMap{},
 	)
 
 	encodingConfig := tempApp.EncodingConfig()
