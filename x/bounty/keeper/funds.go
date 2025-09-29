@@ -6,12 +6,20 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
+
+// citationReward represents the reward calculation for a cited theorem
+type citationReward struct {
+	theorem  *types.Theorem
+	proposer sdk.AccAddress
+	reward   sdk.DecCoin
+}
 
 // ============================== Grant Operations ==============================
 
@@ -87,38 +95,121 @@ func (k Keeper) IterateGrants(ctx context.Context, theoremID uint64, cb func(key
 	return k.Grants.Walk(ctx, rng, cb)
 }
 
-// DistributionGrants distributes rewards to checker and prover
-func (k Keeper) DistributionGrants(ctx context.Context, theoremID uint64, checker, prover sdk.AccAddress) error {
-	// Get parameters and theorem
+// DistributionGrants distributes rewards to checker, reference theorem proposers, and prover
+func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, checker, prover sdk.AccAddress) error {
+	// ========== Phase 1: Collect and Calculate ==========
+
+	// Get parameters
 	param, err := k.Params.Get(ctx)
 	if err != nil {
 		return err
 	}
 
-	theorem, err := k.Theorems.Get(ctx, theoremID)
-	if err != nil {
-		return err
+	// Validate current theorem complexity is non-negative
+	currentComplexity := theorem.GetTermComplexity()
+	if currentComplexity < 0 {
+		return fmt.Errorf("theorem %d complexity must be non-negative: %d", theorem.Id, currentComplexity)
 	}
 
-	// Calculate rewards
-	totalGrant := sdk.NewDecCoinsFromCoins(theorem.TotalGrant...)
-	checkerRewards := totalGrant.MulDec(param.CheckerRate)
-	proverRewards := totalGrant.Sub(checkerRewards)
+	// Collect reference theorems and calculate total complexity
+	citationRewards := make([]citationReward, 0, len(theorem.ReferenceTheoremIds))
+	for _, refTheoremID := range theorem.ReferenceTheoremIds {
+		refTheorem, err := k.Theorems.Get(ctx, refTheoremID)
+		if err != nil {
+			return fmt.Errorf("failed to get reference theorem %d: %w", refTheoremID, err)
+		}
 
-	// Update rewards for checker and prover
+		proposer, err := k.authKeeper.AddressCodec().StringToBytes(refTheorem.Proposer)
+		if err != nil {
+			return fmt.Errorf("failed to parse proposer address for theorem %d: %w", refTheoremID, err)
+		}
+
+		// Validate complexity is non-negative
+		if refTheorem.GetTermComplexity() < 0 {
+			return fmt.Errorf("reference theorem %d complexity must be non-negative: %d", refTheoremID, refTheorem.TermComplexity)
+		}
+
+		citationRewards = append(citationRewards, citationReward{
+			theorem:  &refTheorem,
+			proposer: sdk.AccAddress(proposer),
+		})
+	}
+
+	// Calculate all rewards
+	totalGrant := sdk.NewDecCoinsFromCoins(theorem.TotalGrant...)
+	complexityFeeAmount := sdkmath.LegacyNewDecFromInt(param.ComplexityFee.Amount)
+
+	// 1. Checker rewards: current theorem's complexity * complexity_fee
+	checkerRewardAmount := complexityFeeAmount.MulInt64(currentComplexity)
+	checkerRewards := sdk.NewDecCoins(sdk.NewDecCoinFromDec(param.ComplexityFee.Denom, checkerRewardAmount))
+
+	// 2. Citation rewards: using inverse proportional function
+	// reward = (TermComplexity / (CitationCount + 1)) * ComplexityFee
+	// The more citations, the less reward per citation
+	totalCitationRewards := sdk.NewDecCoins()
+	for i := range citationRewards {
+		// Calculate: TermComplexity / divisor
+		complexityDec := sdkmath.LegacyNewDec(citationRewards[i].theorem.TermComplexity)
+		citationCountDec := sdkmath.LegacyNewDec(citationRewards[i].theorem.CitationCount + 1)
+		normalizedComplexity := complexityDec.Quo(citationCountDec)
+
+		// Multiply by complexity fee
+		refRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
+		citationRewards[i].reward = sdk.NewDecCoinFromDec(param.ComplexityFee.Denom, refRewardAmount)
+		totalCitationRewards = totalCitationRewards.Add(citationRewards[i].reward)
+	}
+
+	// 3. Prover rewards: remaining after checker and citations
+	// Ensure prover rewards are not negative (which means distribution doesn't exceed grant)
+	proverRewards := totalGrant.Sub(checkerRewards).Sub(totalCitationRewards)
+	if proverRewards.IsAnyNegative() {
+		return fmt.Errorf("insufficient grant for prover rewards: total=%s, checker=%s, citations=%s, prover=%s",
+			totalGrant, checkerRewards, totalCitationRewards, proverRewards)
+	}
+
+	// ========== Phase 2: Update All Rewards ==========
+	// Update checker rewards
 	if err := k.updateReward(ctx, checker, checkerRewards); err != nil {
 		return fmt.Errorf("failed to update checker reward: %w", err)
 	}
 
+	// Update citation rewards for all reference theorem proposers and increment citation counts
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	for i := range citationRewards {
+		// Update citation reward
+		if err := k.updateCitationReward(ctx, citationRewards[i].proposer, citationRewards[i].reward); err != nil {
+			return fmt.Errorf("failed to update citation reward for %s: %w", citationRewards[i].proposer.String(), err)
+		}
+
+		// Increment citation count for the referenced theorem
+		citationRewards[i].theorem.CitationCount++
+		if err := k.Theorems.Set(ctx, citationRewards[i].theorem.Id, *citationRewards[i].theorem); err != nil {
+			return fmt.Errorf("failed to update citation count for theorem %d: %w", citationRewards[i].theorem.Id, err)
+		}
+
+		// Emit citation reward event for each reference
+		sdkCtx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeCitationReward,
+				sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
+				sdk.NewAttribute(types.AttributeKeyReferencedTheorem, fmt.Sprintf("%d", citationRewards[i].theorem.Id)),
+				sdk.NewAttribute(types.AttributeKeyProposer, citationRewards[i].proposer.String()),
+				sdk.NewAttribute(types.AttributeKeyReward, citationRewards[i].reward.String()),
+				sdk.NewAttribute(types.AttributeKeyCitationCount, fmt.Sprintf("%d", citationRewards[i].theorem.CitationCount)),
+			),
+		)
+	}
+
+	// Update prover rewards
 	if err := k.updateReward(ctx, prover, proverRewards); err != nil {
 		return fmt.Errorf("failed to update prover reward: %w", err)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	// Emit distribution event
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDistributeReward,
-			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theoremID)),
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
 			sdk.NewAttribute(types.AttributeKeyChecker, checkerRewards.String()),
 			sdk.NewAttribute(types.AttributeKeyProposer, proverRewards.String()),
 		),
@@ -142,6 +233,23 @@ func (k Keeper) updateReward(ctx context.Context, addr sdk.AccAddress, reward sd
 	}
 
 	return k.Rewards.Set(ctx, addr, existingReward)
+}
+
+// updateCitationReward updates the citation reward for a given address
+func (k Keeper) updateCitationReward(ctx context.Context, addr sdk.AccAddress, reward sdk.DecCoin) error {
+	existingReward, err := k.CitationRewards.Get(ctx, addr)
+
+	if err != nil && !errors.IsOf(err, collections.ErrNotFound) {
+		return err
+	}
+
+	if errors.IsOf(err, collections.ErrNotFound) {
+		existingReward = types.Reward{Address: addr.String(), Reward: sdk.NewDecCoins(reward)}
+	} else {
+		existingReward.Reward = existingReward.Reward.Add(reward)
+	}
+
+	return k.CitationRewards.Set(ctx, addr, existingReward)
 }
 
 // SetGrant sets a grant in the store

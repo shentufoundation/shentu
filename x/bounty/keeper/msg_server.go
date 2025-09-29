@@ -864,6 +864,8 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 		return nil, err
 	}
 
+	// TODO check theorem status
+
 	// Get prover address
 	proverAddr, err := k.validateAddress(proof.Prover)
 	if err != nil {
@@ -871,7 +873,7 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	}
 
 	// Handle proof verification based on status
-	if err = k.handleProofVerification(ctx, msg.Status, *proof, checkerAddr, proverAddr); err != nil {
+	if err = k.handleProofVerification(ctx, msg.Status, *proof, checkerAddr, proverAddr, msg.TermComplexity, msg.ReferenceTheoremIds); err != nil {
 		return nil, err
 	}
 
@@ -887,7 +889,7 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	return &types.MsgSubmitProofVerificationResponse{}, nil
 }
 
-// WithdrawReward withdraws a reward from a bounty program
+// WithdrawReward withdraws rewards (both regular and citation) from a bounty program
 func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -896,17 +898,41 @@ func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawR
 		return nil, err
 	}
 
-	reward, err := k.Rewards.Get(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
+	// Collect all rewards (regular + citation)
+	totalRewards := sdk.DecCoins{}
 
-	finalRewards, _ := reward.Reward.TruncateDecimal()
-	if !finalRewards.IsZero() {
+	// Get regular rewards
+	reward, err := k.Rewards.Get(ctx, addr)
+	if err == nil {
+		totalRewards = totalRewards.Add(reward.Reward...)
 		if err = k.Rewards.Remove(ctx, addr); err != nil {
 			return nil, err
 		}
+	} else if !errors.IsOf(err, collections.ErrNotFound) {
+		return nil, err
+	}
 
+	// Get citation rewards
+	citationReward, err := k.CitationRewards.Get(ctx, addr)
+	if err == nil {
+		totalRewards = totalRewards.Add(citationReward.Reward...)
+		if err = k.CitationRewards.Remove(ctx, addr); err != nil {
+			return nil, err
+		}
+	} else if !errors.IsOf(err, collections.ErrNotFound) {
+		return nil, err
+	}
+
+	// Check if there are any rewards to withdraw
+	if totalRewards.IsZero() {
+		return nil, fmt.Errorf("no rewards available for withdrawal")
+	}
+
+	// Convert to regular coins (truncate decimals)
+	finalRewards, _ := totalRewards.TruncateDecimal()
+
+	// Send rewards to the user
+	if !finalRewards.IsZero() {
 		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, finalRewards); err != nil {
 			return nil, err
 		}
@@ -986,12 +1012,22 @@ func (k msgServer) handleProofVerification(
 	status types.ProofStatus,
 	proof types.Proof,
 	checkerAddr, proverAddr sdk.AccAddress,
+	termComplexity int64,
+	referenceTheorems []uint64,
 ) error {
-	proof.Status = status
+	// Validate term complexity is non-negative
+	if termComplexity < 0 {
+		return fmt.Errorf("term complexity must be non-negative: %d", termComplexity)
+	}
+	// Validate term complexity does not exceed maximum to prevent overflow
+	if termComplexity > types.MaxTermComplexity {
+		return fmt.Errorf("term complexity exceeds maximum allowed: %d > %d", termComplexity, types.MaxTermComplexity)
+	}
 
+	proof.Status = status
 	switch status {
 	case types.ProofStatus_PROOF_STATUS_PASSED:
-		return k.handlePassedProof(ctx, proof, checkerAddr, proverAddr)
+		return k.handlePassedProof(ctx, proof, checkerAddr, proverAddr, termComplexity, referenceTheorems)
 	case types.ProofStatus_PROOF_STATUS_FAILED:
 		return k.handleFailedProof(ctx, proof)
 	default:
@@ -1004,19 +1040,23 @@ func (k msgServer) handlePassedProof(
 	ctx sdk.Context,
 	proof types.Proof,
 	checkerAddr, proverAddr sdk.AccAddress,
+	termComplexity int64,
+	referenceTheorems []uint64,
 ) error {
 	// update proof status
 	if err := k.Proofs.Set(ctx, proof.Id, proof); err != nil {
 		return err
 	}
 
-	// update theorem status
+	// update theorem
 	theorem, err := k.Theorems.Get(ctx, proof.TheoremId)
 	if err != nil {
 		return err
 	}
 
 	theorem.Status = types.TheoremStatus_THEOREM_STATUS_PASSED
+	theorem.TermComplexity = termComplexity
+	theorem.ReferenceTheoremIds = referenceTheorems
 	if err = k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
 		return err
 	}
@@ -1031,7 +1071,7 @@ func (k msgServer) handlePassedProof(
 		return err
 	}
 
-	if err = k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr); err != nil {
+	if err = k.DistributionGrants(ctx, theorem, checkerAddr, proverAddr); err != nil {
 		return err
 	}
 

@@ -331,6 +331,8 @@ message MsgSubmitProofVerification {
   string proof_id = 1;
   ProofStatus status = 2;
   string checker = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  int64 term_complexity = 4;
+  repeated uint64 reference_theorem_ids = 5;
 }
 
 // MsgSubmitProofVerificationResponse defines the Msg/SubmitProofVerification response type.

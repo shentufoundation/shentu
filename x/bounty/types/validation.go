@@ -116,6 +116,19 @@ func ValidateTheorem(theorem *Theorem) error {
 		return errorsmod.Wrapf(err, "invalid proposer address %s", theorem.Proposer)
 	}
 
+	// Validate term complexity is non-negative and within allowed range
+	if theorem.TermComplexity < 0 {
+		return errorsmod.Wrapf(ErrNoTheoremMsgs, "term complexity must be non-negative, got: %d", theorem.TermComplexity)
+	}
+	if theorem.TermComplexity > MaxTermComplexity {
+		return errorsmod.Wrapf(ErrNoTheoremMsgs, "term complexity exceeds maximum allowed: %d > %d", theorem.TermComplexity, MaxTermComplexity)
+	}
+
+	// Validate citation count is non-negative
+	if theorem.CitationCount < 0 {
+		return errorsmod.Wrapf(ErrNoTheoremMsgs, "citation count must be non-negative, got: %d", theorem.CitationCount)
+	}
+
 	// If the theorem is active, make sure the end time is set
 	if theorem.Status == TheoremStatus_THEOREM_STATUS_PROOF_PERIOD && theorem.EndTime == nil {
 		return errorsmod.Wrap(ErrNoTheoremMsgs, "active theorem must have an end time")

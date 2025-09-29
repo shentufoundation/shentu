@@ -21,7 +21,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-const ConsensusVersion = 4
+const ConsensusVersion = 5
 
 var (
 	_ module.AppModuleBasic      = AppModuleBasic{}
@@ -135,6 +135,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	err = cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3to4)
 	if err != nil {
 		panic(fmt.Sprintf("failed to migrate x/bounty from version 3 to 4: %v", err))
+	}
+	err = cfg.RegisterMigration(types.ModuleName, 4, m.Migrate4to5)
+	if err != nil {
+		panic(fmt.Sprintf("failed to migrate x/bounty from version 4 to 6: %v", err))
 	}
 }
 
