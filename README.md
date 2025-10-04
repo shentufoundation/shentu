@@ -1,8 +1,8 @@
 # Shentu Chain
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/shentufoundation/shentu)](https://pkg.go.dev/github.com/shentufoundation/shentu)
-<a href="https://circleci.com/gh/shentufoundation/shentu/tree/master">
-<img src="https://circleci.com/gh/shentufoundation/shentu/tree/master.svg?style=svg&circle-token=b948d67100954a74a11c21fbb8cb6202b83e5f3a">
+<a href="https://github.com/shentufoundation/shentu/actions">
+<img src="https://github.com/shentufoundation/shentu/actions/workflows/test.yml/badge.svg">
 </a>
 <a href="https://codecov.io/gh/shentufoundation/shentu">
 <img src="https://codecov.io/gh/shentufoundation/shentu/branch/master/graph/badge.svg">
