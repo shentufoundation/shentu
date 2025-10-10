@@ -13,9 +13,9 @@ const (
 	// DefaultStartingTheoremID is 1
 	DefaultStartingTheoremID uint64 = 1
 
-	// MaxTermComplexity is the maximum allowed term complexity to prevent overflow
+	// MaxComplexity is the maximum allowed complexity to prevent overflow
 	// and ensure reasonable reward calculations. Set to 1 million as a safe upper bound.
-	MaxTermComplexity int64 = 1000000
+	MaxComplexity int64 = 1000000
 )
 
 // NewParams creates a new Params instance

@@ -14,8 +14,8 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-// citationReward represents the reward calculation for a cited theorem
-type citationReward struct {
+// importedReward represents the reward calculation for an imported theorem
+type importedReward struct {
 	theorem  *types.Theorem
 	proposer sdk.AccAddress
 	reward   sdk.DecCoin
@@ -104,11 +104,11 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 	if err != nil {
 		return err
 	}
-	currentComplexity := theorem.GetTermComplexity()
+	currentComplexity := theorem.GetComplexity()
 
 	// Collect reference theorems and calculate total complexity
-	citationRewards := make([]citationReward, 0, len(theorem.ReferenceTheoremIds))
-	for _, refTheoremID := range theorem.ReferenceTheoremIds {
+	importedRewards := make([]importedReward, 0, len(theorem.Imports))
+	for _, refTheoremID := range theorem.Imports {
 		refTheorem, err := k.Theorems.Get(ctx, refTheoremID)
 		if err != nil {
 			return fmt.Errorf("failed to get reference theorem %d: %w", refTheoremID, err)
@@ -119,7 +119,7 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 			return fmt.Errorf("failed to parse proposer address for theorem %d: %w", refTheoremID, err)
 		}
 
-		citationRewards = append(citationRewards, citationReward{
+		importedRewards = append(importedRewards, importedReward{
 			theorem:  &refTheorem,
 			proposer: sdk.AccAddress(proposer),
 		})
@@ -133,22 +133,22 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 	checkerRewardAmount := complexityFeeAmount.MulInt64(currentComplexity)
 	checkerRewards := sdk.NewDecCoins(sdk.NewDecCoinFromDec(param.ComplexityFee.Denom, checkerRewardAmount))
 
-	// 2. Citation rewards: using inverse proportional function
-	// reward = (TermComplexity / (CitationCount + 1)) * ComplexityFee
-	// The more citations, the less reward per citation
-	totalCitationRewards := sdk.NewDecCoins()
-	for i := range citationRewards {
-		// Calculate: TermComplexity / (CitationCount + 1)
-		complexityDec := sdkmath.LegacyNewDec(citationRewards[i].theorem.TermComplexity)
-		normalizedComplexity := complexityDec.QuoInt64(citationRewards[i].theorem.CitationCount + 1)
+	// 2. Imported rewards: using inverse proportional function
+	// reward = (Complexity / (ImportedCount + 1)) * ComplexityFee
+	// The more imports, the less reward per import
+	totalImportedRewards := sdk.NewDecCoins()
+	for i := range importedRewards {
+		// Calculate: Complexity / (ImportedCount + 1)
+		complexityDec := sdkmath.LegacyNewDec(importedRewards[i].theorem.Complexity)
+		normalizedComplexity := complexityDec.QuoInt64(importedRewards[i].theorem.ImportedCount + 1)
 
 		// Multiply by complexity fee
 		refRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
-		citationRewards[i].reward = sdk.NewDecCoinFromDec(param.ComplexityFee.Denom, refRewardAmount)
-		totalCitationRewards = totalCitationRewards.Add(citationRewards[i].reward)
+		importedRewards[i].reward = sdk.NewDecCoinFromDec(param.ComplexityFee.Denom, refRewardAmount)
+		totalImportedRewards = totalImportedRewards.Add(importedRewards[i].reward)
 	}
 
-	// 3. Prover rewards: remaining after checker and citations
+	// 3. Prover rewards: remaining after checker and imported rewards
 	// First subtract checker rewards from total grant
 	remaining, hasNegative := totalGrant.SafeSub(checkerRewards)
 	if hasNegative {
@@ -156,11 +156,11 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 			"total=%s, checker=%s", totalGrant, checkerRewards)
 	}
 
-	// Then subtract citation rewards from remaining
-	proverRewards, hasNegative := remaining.SafeSub(totalCitationRewards)
+	// Then subtract imported rewards from remaining
+	proverRewards, hasNegative := remaining.SafeSub(totalImportedRewards)
 	if hasNegative {
 		return errors.Wrapf(types.ErrInsufficientGrantTotal,
-			"total=%s, checker=%s, citations=%s", totalGrant, checkerRewards, totalCitationRewards)
+			"total=%s, checker=%s, imports=%s", totalGrant, checkerRewards, totalImportedRewards)
 	}
 
 	// ========== Phase 2: Update All Rewards ==========
@@ -169,28 +169,26 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 		return fmt.Errorf("failed to update checker reward: %w", err)
 	}
 
-	// Update citation rewards for all reference theorem proposers and increment citation counts
+	// Update imported rewards for all reference theorem proposers and increment imported counts
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	for i := range citationRewards {
-		// Update citation reward
-		if err := k.updateCitationReward(ctx, citationRewards[i].proposer, citationRewards[i].reward); err != nil {
-			return fmt.Errorf("failed to update citation reward for %s: %w", citationRewards[i].proposer.String(), err)
+	for i := range importedRewards {
+		// Update imported reward
+		if err := k.updateImportedReward(ctx, importedRewards[i].proposer, importedRewards[i].reward); err != nil {
+			return fmt.Errorf("failed to update imported reward for %s: %w", importedRewards[i].proposer.String(), err)
 		}
 
-		// Increment citation count for the referenced theorem
-		citationRewards[i].theorem.CitationCount++
-		if err := k.Theorems.Set(ctx, citationRewards[i].theorem.Id, *citationRewards[i].theorem); err != nil {
-			return fmt.Errorf("failed to update citation count for theorem %d: %w", citationRewards[i].theorem.Id, err)
+		// Increment imported count for the referenced theorem
+		importedRewards[i].theorem.ImportedCount++
+		if err := k.Theorems.Set(ctx, importedRewards[i].theorem.Id, *importedRewards[i].theorem); err != nil {
+			return fmt.Errorf("failed to update imported count for theorem %d: %w", importedRewards[i].theorem.Id, err)
 		}
 
-		// Emit citation reward event for each reference
+		// Emit imported reward event for each reference
 		sdkCtx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeCitationReward,
-				sdk.NewAttribute(types.AttributeKeyReferencedTheorem, fmt.Sprintf("%d", citationRewards[i].theorem.Id)),
-				sdk.NewAttribute(types.AttributeKeyProposer, citationRewards[i].proposer.String()),
-				sdk.NewAttribute(types.AttributeKeyReward, citationRewards[i].reward.String()),
-				sdk.NewAttribute(types.AttributeKeyCitationCount, fmt.Sprintf("%d", citationRewards[i].theorem.CitationCount)),
+				types.EventTypeImportedReward,
+				sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", importedRewards[i].theorem.Id)),
+				sdk.NewAttribute(types.AttributeKeyProposer, importedRewards[i].reward.String()),
 			),
 		)
 	}
@@ -230,9 +228,9 @@ func (k Keeper) updateReward(ctx context.Context, addr sdk.AccAddress, reward sd
 	return k.Rewards.Set(ctx, addr, existingReward)
 }
 
-// updateCitationReward updates the citation reward for a given address
-func (k Keeper) updateCitationReward(ctx context.Context, addr sdk.AccAddress, reward sdk.DecCoin) error {
-	existingReward, err := k.CitationRewards.Get(ctx, addr)
+// updateImportedReward updates the imported reward for a given address
+func (k Keeper) updateImportedReward(ctx context.Context, addr sdk.AccAddress, reward sdk.DecCoin) error {
+	existingReward, err := k.ImportedRewards.Get(ctx, addr)
 
 	if err != nil && !errors.IsOf(err, collections.ErrNotFound) {
 		return err
@@ -244,7 +242,7 @@ func (k Keeper) updateCitationReward(ctx context.Context, addr sdk.AccAddress, r
 		existingReward.Reward = existingReward.Reward.Add(reward)
 	}
 
-	return k.CitationRewards.Set(ctx, addr, existingReward)
+	return k.ImportedRewards.Set(ctx, addr, existingReward)
 }
 
 // SetGrant sets a grant in the store

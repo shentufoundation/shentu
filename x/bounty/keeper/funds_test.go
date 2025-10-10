@@ -220,36 +220,36 @@ func (suite *KeeperTestSuite) TestDistributionGrants() {
 	// Create a reference theorem (to be cited)
 	refTheoremID := uint64(100)
 	refTheorem := types.Theorem{
-		Id:             refTheoremID,
-		Title:          "Reference Theorem",
-		Description:    "A theorem that will be referenced",
-		Proposer:       suite.normalAddr.String(),
-		Status:         types.TheoremStatus_THEOREM_STATUS_CLOSED,
-		TermComplexity: 50, // Reference theorem complexity
-		CitationCount:  0,  // Initially not cited
-		TotalGrant:     sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(0))),
+		Id:            refTheoremID,
+		Title:         "Reference Theorem",
+		Description:   "A theorem that will be referenced",
+		Proposer:      suite.normalAddr.String(),
+		Status:        types.TheoremStatus_THEOREM_STATUS_CLOSED,
+		Complexity:    50, // Reference theorem complexity
+		ImportedCount: 0,  // Initially not cited
+		TotalGrant:    sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(0))),
 	}
 	require.NoError(suite.T(), suite.keeper.Theorems.Set(suite.ctx, refTheorem.Id, refTheorem))
 
 	// Create a theorem with reference
 	theoremID := uint64(5)
-	termComplexity := int64(10)
+	complexity := int64(10)
 	theorem := types.Theorem{
-		Id:                  theoremID,
-		Title:               "Test Theorem",
-		Description:         "Test Description",
-		Proposer:            suite.programAddr.String(),
-		Status:              types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD,
-		TermComplexity:      termComplexity,
-		ReferenceTheoremIds: []uint64{refTheoremID}, // Reference the first theorem
-		TotalGrant:          sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(0))),
+		Id:          theoremID,
+		Title:       "Test Theorem",
+		Description: "Test Description",
+		Proposer:    suite.programAddr.String(),
+		Status:      types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD,
+		Complexity:  complexity,
+		Imports:     []uint64{refTheoremID}, // Reference the first theorem
+		TotalGrant:  sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(0))),
 	}
 	require.NoError(suite.T(), suite.keeper.Theorems.Set(suite.ctx, theorem.Id, theorem))
 
 	// Add a grant
 	// Grant amount must be sufficient for:
-	// - Checker rewards: termComplexity (10) * complexityFee (10000) = 100000
-	// - Citation rewards: refComplexity (50) / (citationCount+1) * complexityFee = 50 * 10000 = 500000
+	// - Checker rewards: complexity (10) * complexityFee (10000) = 100000
+	// - Imported rewards: refComplexity (50) / (importedCount+1) * complexityFee = 50 * 10000 = 500000
 	// - Prover rewards: remainder
 	// Total needed: at least 600000, using 1000000 to leave room for prover
 	grantAmount := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(1000000)))
@@ -275,19 +275,19 @@ func (suite *KeeperTestSuite) TestDistributionGrants() {
 	totalGrant := sdk.NewDecCoinsFromCoins(grantAmount...)
 	complexityFeeAmount := math.LegacyNewDecFromInt(params.ComplexityFee.Amount)
 
-	// 1. Checker rewards: termComplexity * complexityFee
-	expectedCheckerRewardAmount := complexityFeeAmount.MulInt64(termComplexity)
+	// 1. Checker rewards: complexity * complexityFee
+	expectedCheckerRewardAmount := complexityFeeAmount.MulInt64(complexity)
 	expectedCheckerReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedCheckerRewardAmount))
 
-	// 2. Citation rewards: (TermComplexity / (CitationCount + 1)) * ComplexityFee
-	complexityDec := math.LegacyNewDec(refTheorem.TermComplexity)
-	citationCountDec := math.LegacyNewDec(refTheorem.CitationCount + 1) // 0 + 1 = 1
-	normalizedComplexity := complexityDec.Quo(citationCountDec)
-	expectedCitationRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
-	expectedCitationReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedCitationRewardAmount))
+	// 2. Imported rewards: (Complexity / (ImportedCount + 1)) * ComplexityFee
+	complexityDec := math.LegacyNewDec(refTheorem.Complexity)
+	importedCountDec := math.LegacyNewDec(refTheorem.ImportedCount + 1) // 0 + 1 = 1
+	normalizedComplexity := complexityDec.Quo(importedCountDec)
+	expectedImportedRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
+	expectedImportedReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedImportedRewardAmount))
 
-	// 3. Prover rewards: remaining after checker and citations
-	expectedProverReward := totalGrant.Sub(expectedCheckerReward).Sub(expectedCitationReward)
+	// 3. Prover rewards: remaining after checker and imported rewards
+	expectedProverReward := totalGrant.Sub(expectedCheckerReward).Sub(expectedImportedReward)
 
 	// Verify checker's reward
 	checkerReward, err := suite.keeper.Rewards.Get(suite.ctx, checker)
@@ -295,11 +295,11 @@ func (suite *KeeperTestSuite) TestDistributionGrants() {
 	require.True(suite.T(), expectedCheckerReward.Equal(checkerReward.Reward),
 		"expected checker reward: %v, got: %v", expectedCheckerReward, checkerReward.Reward)
 
-	// Verify citation reward for reference theorem proposer
-	citationReward, err := suite.keeper.CitationRewards.Get(suite.ctx, suite.normalAddr)
+	// Verify imported reward for reference theorem proposer
+	importedReward, err := suite.keeper.ImportedRewards.Get(suite.ctx, suite.normalAddr)
 	require.NoError(suite.T(), err)
-	require.True(suite.T(), expectedCitationReward.Equal(citationReward.Reward),
-		"expected citation reward: %v, got: %v", expectedCitationReward, citationReward.Reward)
+	require.True(suite.T(), expectedImportedReward.Equal(importedReward.Reward),
+		"expected imported reward: %v, got: %v", expectedImportedReward, importedReward.Reward)
 
 	// Verify prover's reward
 	proverReward, err := suite.keeper.Rewards.Get(suite.ctx, prover)
@@ -307,10 +307,10 @@ func (suite *KeeperTestSuite) TestDistributionGrants() {
 	require.True(suite.T(), expectedProverReward.Equal(proverReward.Reward),
 		"expected prover reward: %v, got: %v", expectedProverReward, proverReward.Reward)
 
-	// Verify reference theorem citation count was incremented
+	// Verify reference theorem imported count was incremented
 	updatedRefTheorem, err := suite.keeper.Theorems.Get(suite.ctx, refTheoremID)
 	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), int64(1), updatedRefTheorem.CitationCount)
+	require.Equal(suite.T(), int64(1), updatedRefTheorem.ImportedCount)
 
 	// Verify module account balance remains the same after distribution
 	// (since funds aren't actually transferred, just recorded as rewards)

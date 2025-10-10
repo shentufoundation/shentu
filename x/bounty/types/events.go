@@ -29,7 +29,7 @@ const (
 	EventTypeGrantTheorem            = "grant_theorem"
 	EventTypeDeleteTheorem           = "delete_theorem"
 	EventTypeDistributeReward        = "distribute_theorem_reward"
-	EventTypeCitationReward          = "citation_reward"
+	EventTypeImportedReward          = "imported_reward"
 	EventTypeUpdateTheoremComplexity = "update_theorem_complexity"
 
 	// Proof related events
@@ -43,16 +43,14 @@ const (
 	EventTypeProofFailed             = "proof_failed"
 
 	// Theorem/Proof attributes
-	AttributeKeyTheoremID         = "theorem_id"
-	AttributeKeyProofID           = "proof_id"
-	AttributeKeyProposer          = "proposer"
-	AttributeKeyTheoremGrantor    = "grantor"
-	AttributeKeyProofDepositor    = "depositor"
-	AttributeKeyChecker           = "checker"
-	AttributeKeyProofStatus       = "proof_status"
-	AttributeKeyReward            = "reward"
-	AttributeKeyAddress           = "address"
-	AttributeKeyReferencedTheorem = "referenced_theorem_id"
-	AttributeKeyCitationCount     = "citation_count"
-	AttributeKeyTermComplexity    = "term_complexity"
+	AttributeKeyTheoremID      = "theorem_id"
+	AttributeKeyProofID        = "proof_id"
+	AttributeKeyProposer       = "proposer"
+	AttributeKeyTheoremGrantor = "grantor"
+	AttributeKeyProofDepositor = "depositor"
+	AttributeKeyChecker        = "checker"
+	AttributeKeyProofStatus    = "proof_status"
+	AttributeKeyReward         = "reward"
+	AttributeKeyAddress        = "address"
+	AttributeKeyComplexity     = "complexity"
 )

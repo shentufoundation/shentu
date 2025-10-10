@@ -8,13 +8,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// ValidateTermComplexity validates that term complexity is non-negative and within allowed range
-func ValidateTermComplexity(termComplexity int64) error {
-	if termComplexity < 0 {
-		return errorsmod.Wrapf(ErrInvalidContent, "term complexity must be non-negative: %d", termComplexity)
+// ValidateComplexity validates that complexity is non-negative and within allowed range
+func ValidateComplexity(complexity int64) error {
+	if complexity < 0 {
+		return errorsmod.Wrapf(ErrInvalidContent, "complexity must be non-negative: %d", complexity)
 	}
-	if termComplexity > MaxTermComplexity {
-		return errorsmod.Wrapf(ErrInvalidContent, "term complexity exceeds maximum allowed: %d > %d", termComplexity, MaxTermComplexity)
+	if complexity > MaxComplexity {
+		return errorsmod.Wrapf(ErrInvalidContent, "complexity exceeds maximum allowed: %d > %d", complexity, MaxComplexity)
 	}
 	return nil
 }
@@ -127,14 +127,14 @@ func ValidateTheorem(theorem *Theorem) error {
 		return errorsmod.Wrapf(err, "invalid proposer address %s", theorem.Proposer)
 	}
 
-	// Validate term complexity is non-negative and within allowed range
-	if err := ValidateTermComplexity(theorem.TermComplexity); err != nil {
+	// Validate complexity is non-negative and within allowed range
+	if err := ValidateComplexity(theorem.Complexity); err != nil {
 		return errorsmod.Wrap(ErrInvalidContent, err.Error())
 	}
 
-	// Validate citation count is non-negative
-	if theorem.CitationCount < 0 {
-		return errorsmod.Wrapf(ErrInvalidContent, "citation count must be non-negative, got: %d", theorem.CitationCount)
+	// Validate imported count is non-negative
+	if theorem.ImportedCount < 0 {
+		return errorsmod.Wrapf(ErrInvalidContent, "imported count must be non-negative, got: %d", theorem.ImportedCount)
 	}
 
 	// If the theorem is active, make sure the end time is set

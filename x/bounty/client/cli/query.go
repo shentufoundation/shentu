@@ -441,9 +441,9 @@ func GetCmdQueryRewards() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rewards [address]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Query rewards for an address",
+		Short: "Query all rewards for an address",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query rewards for a given address.
+			fmt.Sprintf(`Query all rewards (including imported rewards) for a given address.
 
 Example:
 $ %s query bounty rewards [address]
@@ -458,8 +458,8 @@ $ %s query bounty rewards [address]
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// Query the rewards
-			res, err := queryClient.Reward(
+			// Query all rewards
+			res, err := queryClient.AllRewards(
 				cmd.Context(),
 				&types.QueryRewardsRequest{Address: args[0]},
 			)

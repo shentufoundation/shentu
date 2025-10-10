@@ -626,19 +626,19 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 				return fmt.Errorf("invalid status: %s", status)
 			}
 
-			termComplexity, err := cmd.Flags().GetInt64(FlagTermComplexity)
+			complexity, err := cmd.Flags().GetInt64(FlagComplexity)
 			if err != nil {
 				return err
 			}
 
-			referenceTheoremIdsStr, err := cmd.Flags().GetString(FlagReferenceTheoremIds)
+			importsStr, err := cmd.Flags().GetString(FlagImports)
 			if err != nil {
 				return err
 			}
 
-			var referenceTheoremIds []uint64
-			if referenceTheoremIdsStr != "" {
-				idStrs := strings.Split(referenceTheoremIdsStr, ",")
+			var imports []uint64
+			if importsStr != "" {
+				idStrs := strings.Split(importsStr, ",")
 				for _, idStr := range idStrs {
 					idStr = strings.TrimSpace(idStr)
 					if idStr == "" {
@@ -648,11 +648,11 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 					if err != nil {
 						return fmt.Errorf("invalid theorem id %s: %w", idStr, err)
 					}
-					referenceTheoremIds = append(referenceTheoremIds, id)
+					imports = append(imports, id)
 				}
 			}
 
-			msg := types.NewMsgSubmitProofVerification(proofID, proofStatus, checker.String(), termComplexity, referenceTheoremIds)
+			msg := types.NewMsgSubmitProofVerification(proofID, proofStatus, checker.String(), complexity, imports)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -660,8 +660,8 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 
 	cmd.Flags().String(FlagProofID, "", "The proof id")
 	cmd.Flags().String(FlagStatus, "", "The proof verification status (approved/rejected)")
-	cmd.Flags().Int64(FlagTermComplexity, 0, "The term complexity")
-	cmd.Flags().String(FlagReferenceTheoremIds, "", "The reference theorem ids (comma-separated)")
+	cmd.Flags().Int64(FlagComplexity, 0, "The complexity")
+	cmd.Flags().String(FlagImports, "", "The imported theorem ids (comma-separated)")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagProofID)

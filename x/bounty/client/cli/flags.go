@@ -22,6 +22,6 @@ const (
 	FlagFindingFingerprint    = "fingerprint"
 	FlagSubmitterAddress      = "submitter-address"
 
-	FlagTermComplexity      = "term-complexity"
-	FlagReferenceTheoremIds = "reference-theorem-ids"
+	FlagComplexity = "complexity"
+	FlagImports    = "imports"
 )

@@ -42,7 +42,7 @@ var (
 	GrantKeyPrefix          = collections.NewPrefix(41)
 	DepositKeyPrefix        = collections.NewPrefix(42)
 	RewardKeyPrefix         = collections.NewPrefix(43)
-	CitationRewardKeyPrefix = collections.NewPrefix(45)
+	ImportedRewardKeyPrefix = collections.NewPrefix(45)
 
 	// Relationship keys
 	TheoremProofPrefix   = collections.NewPrefix(51)

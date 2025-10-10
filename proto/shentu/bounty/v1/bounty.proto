@@ -132,13 +132,13 @@ message Theorem {
   string proposer = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // proof term complexity.
-  int64 term_complexity = 10;
+  int64 complexity = 10;
 
-  // the total number of times the theorem has been cited.
-  int64 citation_count = 11;
+  // the total number of times the theorem has been imported.
+  int64 imported_count = 11;
 
-  // a list of referenced external theorems or literature.
-  repeated uint64 reference_theorem_ids = 12;
+  // a list of import external theorems.
+  repeated uint64 imports = 12;
 }
 
 message Proof {
@@ -211,7 +211,7 @@ message Params {
   // Duration of the proof max lock period. 10min
   google.protobuf.Duration proof_max_lock_period = 4 [(gogoproto.stdduration) = true];
 
-  // Minimum fee a proof term complexity.
+  // Minimum fee for a complexity.
   cosmos.base.v1beta1.Coin complexity_fee = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
   // TODO add max_complexity
