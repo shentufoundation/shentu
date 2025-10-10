@@ -213,50 +213,104 @@ func (suite *KeeperTestSuite) TestDistributionGrants() {
 	bondDenom, err := suite.app.StakingKeeper.BondDenom(suite.ctx)
 	require.NoError(suite.T(), err)
 
-	// Create a theorem
+	// Get parameters
+	params, err := suite.keeper.Params.Get(suite.ctx)
+	require.NoError(suite.T(), err)
+
+	// Create a reference theorem (to be cited)
+	refTheoremID := uint64(100)
+	refTheorem := types.Theorem{
+		Id:             refTheoremID,
+		Title:          "Reference Theorem",
+		Description:    "A theorem that will be referenced",
+		Proposer:       suite.normalAddr.String(),
+		Status:         types.TheoremStatus_THEOREM_STATUS_CLOSED,
+		TermComplexity: 50, // Reference theorem complexity
+		CitationCount:  0,  // Initially not cited
+		TotalGrant:     sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(0))),
+	}
+	require.NoError(suite.T(), suite.keeper.Theorems.Set(suite.ctx, refTheorem.Id, refTheorem))
+
+	// Create a theorem with reference
 	theoremID := uint64(5)
+	termComplexity := int64(10)
 	theorem := types.Theorem{
-		Id:          theoremID,
-		Title:       "Test Theorem",
-		Description: "Test Description",
-		Proposer:    suite.programAddr.String(),
-		Status:      types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD,
-		TotalGrant:  sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(0))),
+		Id:                  theoremID,
+		Title:               "Test Theorem",
+		Description:         "Test Description",
+		Proposer:            suite.programAddr.String(),
+		Status:              types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD,
+		TermComplexity:      termComplexity,
+		ReferenceTheoremIds: []uint64{refTheoremID}, // Reference the first theorem
+		TotalGrant:          sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(0))),
 	}
 	require.NoError(suite.T(), suite.keeper.Theorems.Set(suite.ctx, theorem.Id, theorem))
 
 	// Add a grant
-	grantAmount := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(1001)))
-	err = suite.keeper.AddGrant(suite.ctx, theoremID, suite.normalAddr, grantAmount)
+	// Grant amount must be sufficient for:
+	// - Checker rewards: termComplexity (10) * complexityFee (10000) = 100000
+	// - Citation rewards: refComplexity (50) / (citationCount+1) * complexityFee = 50 * 10000 = 500000
+	// - Prover rewards: remainder
+	// Total needed: at least 600000, using 1000000 to leave room for prover
+	grantAmount := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(1000000)))
+	err = suite.keeper.AddGrant(suite.ctx, theoremID, suite.whiteHatAddr, grantAmount)
 	require.NoError(suite.T(), err)
+
+	// Update theorem with the grant
+	theorem.TotalGrant = grantAmount
 
 	// Check module account balance increased after grant
 	moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
 	moduleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAddr, bondDenom)
-	expectedModuleBalance := sdk.NewCoin(bondDenom, math.NewInt(1001))
+	expectedModuleBalance := sdk.NewCoin(bondDenom, math.NewInt(1000000))
 	require.True(suite.T(), moduleBalance.Equal(expectedModuleBalance))
 
 	// Distribute rewards
 	checker := suite.whiteHatAddr
 	prover := suite.programAddr
-	err = suite.keeper.DistributionGrants(suite.ctx, theoremID, checker, prover)
+	err = suite.keeper.DistributionGrants(suite.ctx, theorem, checker, prover)
 	require.NoError(suite.T(), err)
 
-	// Get parameters to check distribution ratio
-	params, err := suite.keeper.Params.Get(suite.ctx)
-	require.NoError(suite.T(), err)
+	// Calculate expected rewards based on actual implementation
+	totalGrant := sdk.NewDecCoinsFromCoins(grantAmount...)
+	complexityFeeAmount := math.LegacyNewDecFromInt(params.ComplexityFee.Amount)
+
+	// 1. Checker rewards: termComplexity * complexityFee
+	expectedCheckerRewardAmount := complexityFeeAmount.MulInt64(termComplexity)
+	expectedCheckerReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedCheckerRewardAmount))
+
+	// 2. Citation rewards: (TermComplexity / (CitationCount + 1)) * ComplexityFee
+	complexityDec := math.LegacyNewDec(refTheorem.TermComplexity)
+	citationCountDec := math.LegacyNewDec(refTheorem.CitationCount + 1) // 0 + 1 = 1
+	normalizedComplexity := complexityDec.Quo(citationCountDec)
+	expectedCitationRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
+	expectedCitationReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedCitationRewardAmount))
+
+	// 3. Prover rewards: remaining after checker and citations
+	expectedProverReward := totalGrant.Sub(expectedCheckerReward).Sub(expectedCitationReward)
 
 	// Verify checker's reward
 	checkerReward, err := suite.keeper.Rewards.Get(suite.ctx, checker)
 	require.NoError(suite.T(), err)
-	expectedCheckerReward := sdk.NewDecCoinsFromCoins(grantAmount...).MulDec(params.CheckerRate)
-	require.True(suite.T(), expectedCheckerReward.Equal(checkerReward.Reward))
+	require.True(suite.T(), expectedCheckerReward.Equal(checkerReward.Reward),
+		"expected checker reward: %v, got: %v", expectedCheckerReward, checkerReward.Reward)
+
+	// Verify citation reward for reference theorem proposer
+	citationReward, err := suite.keeper.CitationRewards.Get(suite.ctx, suite.normalAddr)
+	require.NoError(suite.T(), err)
+	require.True(suite.T(), expectedCitationReward.Equal(citationReward.Reward),
+		"expected citation reward: %v, got: %v", expectedCitationReward, citationReward.Reward)
 
 	// Verify prover's reward
 	proverReward, err := suite.keeper.Rewards.Get(suite.ctx, prover)
 	require.NoError(suite.T(), err)
-	expectedProverReward := sdk.NewDecCoinsFromCoins(grantAmount...).Sub(expectedCheckerReward)
-	require.True(suite.T(), expectedProverReward.Equal(proverReward.Reward))
+	require.True(suite.T(), expectedProverReward.Equal(proverReward.Reward),
+		"expected prover reward: %v, got: %v", expectedProverReward, proverReward.Reward)
+
+	// Verify reference theorem citation count was incremented
+	updatedRefTheorem, err := suite.keeper.Theorems.Get(suite.ctx, refTheoremID)
+	require.NoError(suite.T(), err)
+	require.Equal(suite.T(), int64(1), updatedRefTheorem.CitationCount)
 
 	// Verify module account balance remains the same after distribution
 	// (since funds aren't actually transferred, just recorded as rewards)
@@ -423,21 +477,39 @@ func (suite *KeeperTestSuite) TestValidateFunds() {
 
 	// Test valid grant amount
 	validGrantAmount := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(100)))
-	_, err = suite.keeper.ValidateFunds(suite.ctx, validGrantAmount, "grant")
+	_, err = suite.keeper.ValidateFunds(suite.ctx, validGrantAmount, types.FundTypeGrant)
 	require.NoError(suite.T(), err)
 
 	// Test invalid grant amount (too small)
 	invalidGrantAmount := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(10)))
-	_, err = suite.keeper.ValidateFunds(suite.ctx, invalidGrantAmount, "grant")
+	_, err = suite.keeper.ValidateFunds(suite.ctx, invalidGrantAmount, types.FundTypeGrant)
 	require.Error(suite.T(), err)
+	require.ErrorIs(suite.T(), err, types.ErrMinGrantTooSmall)
 
 	// Test valid deposit amount
 	validDepositAmount := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(50)))
-	_, err = suite.keeper.ValidateFunds(suite.ctx, validDepositAmount, "deposit")
+	_, err = suite.keeper.ValidateFunds(suite.ctx, validDepositAmount, types.FundTypeDeposit)
 	require.NoError(suite.T(), err)
 
 	// Test invalid deposit amount (too small)
 	invalidDepositAmount := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(10)))
-	_, err = suite.keeper.ValidateFunds(suite.ctx, invalidDepositAmount, "deposit")
+	_, err = suite.keeper.ValidateFunds(suite.ctx, invalidDepositAmount, types.FundTypeDeposit)
 	require.Error(suite.T(), err)
+	require.ErrorIs(suite.T(), err, types.ErrMinDepositTooSmall)
+
+	// Test invalid denomination
+	invalidDenom := sdk.NewCoins(sdk.NewCoin("invalid_denom", math.NewInt(100)))
+	_, err = suite.keeper.ValidateFunds(suite.ctx, invalidDenom, types.FundTypeGrant)
+	require.Error(suite.T(), err)
+	require.ErrorIs(suite.T(), err, types.ErrInvalidDepositDenom)
+
+	// Test negative amount
+	negativeAmount := sdk.Coins{sdk.Coin{Denom: bondDenom, Amount: math.NewInt(-100)}}
+	_, err = suite.keeper.ValidateFunds(suite.ctx, negativeAmount, types.FundTypeGrant)
+	require.Error(suite.T(), err)
+
+	// Test invalid funds type
+	_, err = suite.keeper.ValidateFunds(suite.ctx, validGrantAmount, "invalid_type")
+	require.Error(suite.T(), err)
+	require.Contains(suite.T(), err.Error(), "invalid funds type")
 }

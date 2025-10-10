@@ -104,12 +104,8 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 	if err != nil {
 		return err
 	}
-
-	// Validate current theorem complexity is non-negative
 	currentComplexity := theorem.GetTermComplexity()
-	if currentComplexity < 0 {
-		return fmt.Errorf("theorem %d complexity must be non-negative: %d", theorem.Id, currentComplexity)
-	}
+	// TODO complexity check
 
 	// Collect reference theorems and calculate total complexity
 	citationRewards := make([]citationReward, 0, len(theorem.ReferenceTheoremIds))
@@ -118,15 +114,11 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 		if err != nil {
 			return fmt.Errorf("failed to get reference theorem %d: %w", refTheoremID, err)
 		}
+		// TODO complexity check
 
 		proposer, err := k.authKeeper.AddressCodec().StringToBytes(refTheorem.Proposer)
 		if err != nil {
 			return fmt.Errorf("failed to parse proposer address for theorem %d: %w", refTheoremID, err)
-		}
-
-		// Validate complexity is non-negative
-		if refTheorem.GetTermComplexity() < 0 {
-			return fmt.Errorf("reference theorem %d complexity must be non-negative: %d", refTheoremID, refTheorem.TermComplexity)
 		}
 
 		citationRewards = append(citationRewards, citationReward{
@@ -148,10 +140,9 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 	// The more citations, the less reward per citation
 	totalCitationRewards := sdk.NewDecCoins()
 	for i := range citationRewards {
-		// Calculate: TermComplexity / divisor
+		// Calculate: TermComplexity / (CitationCount + 1)
 		complexityDec := sdkmath.LegacyNewDec(citationRewards[i].theorem.TermComplexity)
-		citationCountDec := sdkmath.LegacyNewDec(citationRewards[i].theorem.CitationCount + 1)
-		normalizedComplexity := complexityDec.Quo(citationCountDec)
+		normalizedComplexity := complexityDec.QuoInt64(citationRewards[i].theorem.CitationCount + 1)
 
 		// Multiply by complexity fee
 		refRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
@@ -160,11 +151,18 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 	}
 
 	// 3. Prover rewards: remaining after checker and citations
-	// Ensure prover rewards are not negative (which means distribution doesn't exceed grant)
-	proverRewards := totalGrant.Sub(checkerRewards).Sub(totalCitationRewards)
-	if proverRewards.IsAnyNegative() {
-		return fmt.Errorf("insufficient grant for prover rewards: total=%s, checker=%s, citations=%s, prover=%s",
-			totalGrant, checkerRewards, totalCitationRewards, proverRewards)
+	// First subtract checker rewards from total grant
+	remaining, hasNegative := totalGrant.SafeSub(checkerRewards)
+	if hasNegative {
+		return errors.Wrapf(types.ErrInsufficientGrantChecker,
+			"total=%s, checker=%s", totalGrant, checkerRewards)
+	}
+
+	// Then subtract citation rewards from remaining
+	proverRewards, hasNegative := remaining.SafeSub(totalCitationRewards)
+	if hasNegative {
+		return errors.Wrapf(types.ErrInsufficientGrantTotal,
+			"total=%s, checker=%s, citations=%s", totalGrant, checkerRewards, totalCitationRewards)
 	}
 
 	// ========== Phase 2: Update All Rewards ==========
@@ -191,7 +189,6 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 		sdkCtx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeCitationReward,
-				sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
 				sdk.NewAttribute(types.AttributeKeyReferencedTheorem, fmt.Sprintf("%d", citationRewards[i].theorem.Id)),
 				sdk.NewAttribute(types.AttributeKeyProposer, citationRewards[i].proposer.String()),
 				sdk.NewAttribute(types.AttributeKeyReward, citationRewards[i].reward.String()),
@@ -370,6 +367,20 @@ func (k Keeper) ValidateFunds(ctx context.Context, amount sdk.Coins, fundsType s
 		return nil, errors.Wrap(sdkerrors.ErrInvalidCoins, amount.String())
 	}
 
+	// Build accepted denominations map once for efficiency
+	acceptedDenoms := make(map[string]bool, len(params.MinGrant))
+	for _, coin := range params.MinGrant {
+		acceptedDenoms[coin.Denom] = true
+	}
+
+	// Validate denominations - fail fast on first invalid denom
+	for _, coin := range amount {
+		if !acceptedDenoms[coin.Denom] {
+			return nil, errors.Wrapf(types.ErrInvalidDepositDenom,
+				"invalid denomination: %s", coin.Denom)
+		}
+	}
+
 	// Determine minimum amount and error type based on funds type
 	var minAmount sdk.Coins
 	var errType error
@@ -385,34 +396,9 @@ func (k Keeper) ValidateFunds(ctx context.Context, amount sdk.Coins, fundsType s
 		return nil, fmt.Errorf("invalid funds type: %s", fundsType)
 	}
 
-	// Check minimum amount
+	// Check minimum amount after denomination validation
 	if !amount.IsAllGTE(minAmount) {
 		return nil, errors.Wrapf(errType, "was (%s), need (%s)", amount, minAmount)
-	}
-
-	// Build accepted denominations map once for efficiency
-	acceptedDenoms := make(map[string]bool, len(params.MinGrant))
-	for _, coin := range params.MinGrant {
-		acceptedDenoms[coin.Denom] = true
-	}
-
-	// Validate denominations
-	invalidDenoms := make([]string, 0)
-	for _, coin := range amount {
-		if !acceptedDenoms[coin.Denom] {
-			invalidDenoms = append(invalidDenoms, coin.Denom)
-		}
-	}
-
-	if len(invalidDenoms) > 0 {
-		// Build accepted denominations list for error message
-		acceptedDenomsList := make([]string, 0, len(acceptedDenoms))
-		for denom := range acceptedDenoms {
-			acceptedDenomsList = append(acceptedDenomsList, denom)
-		}
-		return nil, errors.Wrapf(types.ErrInvalidDepositDenom,
-			"deposited invalid denominations: %v, bounty accepts only the following denom(s): %v",
-			invalidDenoms, acceptedDenomsList)
 	}
 
 	return &params, nil

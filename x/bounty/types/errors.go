@@ -67,9 +67,11 @@ var (
 	ErrProofHashInvalid        = errors.Register(ModuleName, 404, "invalid proof hash")
 )
 
-// [5xx] Deposit
+// [5xx] Deposit & Distribution
 var (
-	ErrMinGrantTooSmall    = errors.Register(ModuleName, 501, "minimum grant is too small")
-	ErrMinDepositTooSmall  = errors.Register(ModuleName, 502, "minimum deposit is too small")
-	ErrInvalidDepositDenom = errors.Register(ModuleName, 23, "invalid deposit denom")
+	ErrMinGrantTooSmall         = errors.Register(ModuleName, 501, "minimum grant is too small")
+	ErrMinDepositTooSmall       = errors.Register(ModuleName, 502, "minimum deposit is too small")
+	ErrInvalidDepositDenom      = errors.Register(ModuleName, 503, "invalid deposit denom")
+	ErrInsufficientGrantChecker = errors.Register(ModuleName, 504, "insufficient grant for checker rewards")
+	ErrInsufficientGrantTotal   = errors.Register(ModuleName, 505, "insufficient grant for total distribution")
 )
