@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	upgradeName = "v2.15.0"
+	upgradeName = "v2.16.0"
 )
 
 func (app ShentuApp) setUpgradeHandler(_ codec.BinaryCodec) {
