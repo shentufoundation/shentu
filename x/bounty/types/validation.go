@@ -8,20 +8,31 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// ValidateTermComplexity validates that term complexity is non-negative and within allowed range
+func ValidateTermComplexity(termComplexity int64) error {
+	if termComplexity < 0 {
+		return errorsmod.Wrapf(ErrInvalidContent, "term complexity must be non-negative: %d", termComplexity)
+	}
+	if termComplexity > MaxTermComplexity {
+		return errorsmod.Wrapf(ErrInvalidContent, "term complexity exceeds maximum allowed: %d > %d", termComplexity, MaxTermComplexity)
+	}
+	return nil
+}
+
 // ValidateParams validates the module parameters
 func ValidateParams(params *Params) error {
 	if params == nil {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "params cannot be nil")
+		return errorsmod.Wrap(ErrInvalidContent, "params cannot be nil")
 	}
 
 	// Validate ProofMaxLockPeriod
 	if params.ProofMaxLockPeriod == nil {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "proof max lock period cannot be nil")
+		return errorsmod.Wrap(ErrInvalidContent, "proof max lock period cannot be nil")
 	}
 
 	// Validate TheoremMaxProofPeriod
 	if params.TheoremMaxProofPeriod == nil {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "theorem max proof period cannot be nil")
+		return errorsmod.Wrap(ErrInvalidContent, "theorem max proof period cannot be nil")
 	}
 
 	return params.Validate()
@@ -96,19 +107,19 @@ func ValidFindingStatus(status FindingStatus) bool {
 // ValidateTheorem validates a theorem
 func ValidateTheorem(theorem *Theorem) error {
 	if theorem == nil {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "theorem cannot be nil")
+		return errorsmod.Wrap(ErrInvalidContent, "theorem cannot be nil")
 	}
 
 	if theorem.Id == 0 {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "theorem id cannot be 0")
+		return errorsmod.Wrap(ErrInvalidContent, "theorem id cannot be 0")
 	}
 
 	if len(theorem.Title) == 0 {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "theorem title cannot be empty")
+		return errorsmod.Wrap(ErrInvalidContent, "theorem title cannot be empty")
 	}
 
 	if len(theorem.Description) == 0 {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "theorem description cannot be empty")
+		return errorsmod.Wrap(ErrInvalidContent, "theorem description cannot be empty")
 	}
 
 	// Check if Proposer is a valid address
@@ -117,21 +128,18 @@ func ValidateTheorem(theorem *Theorem) error {
 	}
 
 	// Validate term complexity is non-negative and within allowed range
-	if theorem.TermComplexity < 0 {
-		return errorsmod.Wrapf(ErrNoTheoremMsgs, "term complexity must be non-negative, got: %d", theorem.TermComplexity)
-	}
-	if theorem.TermComplexity > MaxTermComplexity {
-		return errorsmod.Wrapf(ErrNoTheoremMsgs, "term complexity exceeds maximum allowed: %d > %d", theorem.TermComplexity, MaxTermComplexity)
+	if err := ValidateTermComplexity(theorem.TermComplexity); err != nil {
+		return errorsmod.Wrap(ErrInvalidContent, err.Error())
 	}
 
 	// Validate citation count is non-negative
 	if theorem.CitationCount < 0 {
-		return errorsmod.Wrapf(ErrNoTheoremMsgs, "citation count must be non-negative, got: %d", theorem.CitationCount)
+		return errorsmod.Wrapf(ErrInvalidContent, "citation count must be non-negative, got: %d", theorem.CitationCount)
 	}
 
 	// If the theorem is active, make sure the end time is set
 	if theorem.Status == TheoremStatus_THEOREM_STATUS_PROOF_PERIOD && theorem.EndTime == nil {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "active theorem must have an end time")
+		return errorsmod.Wrap(ErrInvalidContent, "active theorem must have an end time")
 	}
 
 	return nil
@@ -140,11 +148,11 @@ func ValidateTheorem(theorem *Theorem) error {
 // ValidateGrant validates a grant
 func ValidateGrant(grant *Grant) error {
 	if grant == nil {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "grant cannot be nil")
+		return errorsmod.Wrap(ErrInvalidContent, "grant cannot be nil")
 	}
 
 	if grant.TheoremId == 0 {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "grant theorem id cannot be 0")
+		return errorsmod.Wrap(ErrInvalidContent, "grant theorem id cannot be 0")
 	}
 
 	// Check if Grantor is a valid address
@@ -154,7 +162,7 @@ func ValidateGrant(grant *Grant) error {
 
 	// Validate amount is not empty
 	if len(grant.Amount) == 0 {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "grant amount cannot be empty")
+		return errorsmod.Wrap(ErrInvalidContent, "grant amount cannot be empty")
 	}
 
 	return nil
@@ -221,7 +229,7 @@ func ValidateProof(proof *Proof) error {
 	}
 
 	if proof.TheoremId == 0 {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "proof theorem id cannot be 0")
+		return errorsmod.Wrap(ErrInvalidContent, "proof theorem id cannot be 0")
 	}
 
 	// Check if Prover is a valid address

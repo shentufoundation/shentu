@@ -25,11 +25,12 @@ const (
 	AttributeKeyFindingID = "finding_id"
 
 	// Theorem related events
-	EventTypeCreateTheorem    = "create_theorem"
-	EventTypeGrantTheorem     = "grant_theorem"
-	EventTypeDeleteTheorem    = "delete_theorem"
-	EventTypeDistributeReward = "distribute_theorem_reward"
-	EventTypeCitationReward   = "citation_reward"
+	EventTypeCreateTheorem           = "create_theorem"
+	EventTypeGrantTheorem            = "grant_theorem"
+	EventTypeDeleteTheorem           = "delete_theorem"
+	EventTypeDistributeReward        = "distribute_theorem_reward"
+	EventTypeCitationReward          = "citation_reward"
+	EventTypeUpdateTheoremComplexity = "update_theorem_complexity"
 
 	// Proof related events
 	EventTypeSubmitProofHash         = "submit_proof_hash"
@@ -53,4 +54,5 @@ const (
 	AttributeKeyAddress           = "address"
 	AttributeKeyReferencedTheorem = "referenced_theorem_id"
 	AttributeKeyCitationCount     = "citation_count"
+	AttributeKeyTermComplexity    = "term_complexity"
 )

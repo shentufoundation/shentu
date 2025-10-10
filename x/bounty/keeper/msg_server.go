@@ -889,6 +889,56 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	return &types.MsgSubmitProofVerificationResponse{}, nil
 }
 
+func (k msgServer) UpdateTheoremComplexity(goCtx context.Context, msg *types.MsgUpdateTheoremComplexity) (*types.MsgUpdateTheoremComplexityResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Validate checker address and authority
+	checkerAddr, err := k.validateAddress(msg.Checker)
+	if err != nil {
+		return nil, err
+	}
+	if !k.certKeeper.IsBountyAdmin(ctx, checkerAddr) {
+		return nil, types.ErrProofOperatorNotAllowed
+	}
+
+	// Get theorem
+	theorem, err := k.Theorems.Get(ctx, msg.TheoremId)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "theorem %d doesn't exist", msg.TheoremId)
+		}
+		return nil, err
+	}
+
+	// Check if term complexity can be updated (only when it's 0, meaning not set yet)
+	if theorem.TermComplexity != 0 {
+		return nil, fmt.Errorf("term complexity already set to %d and cannot be updated again", theorem.TermComplexity)
+	}
+
+	// Validate term complexity
+	if err := types.ValidateTermComplexity(msg.TermComplexity); err != nil {
+		return nil, err
+	}
+
+	// Update theorem term complexity
+	theorem.TermComplexity = msg.TermComplexity
+	if err = k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
+		return nil, err
+	}
+
+	// Emit event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUpdateTheoremComplexity,
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
+			sdk.NewAttribute(types.AttributeKeyChecker, msg.Checker),
+			sdk.NewAttribute(types.AttributeKeyTermComplexity, fmt.Sprintf("%d", msg.TermComplexity)),
+		),
+	)
+
+	return &types.MsgUpdateTheoremComplexityResponse{}, nil
+}
+
 // WithdrawReward withdraws rewards (both regular and citation) from a bounty program
 func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -1015,13 +1065,9 @@ func (k msgServer) handleProofVerification(
 	termComplexity int64,
 	referenceTheorems []uint64,
 ) error {
-	// Validate term complexity is non-negative
-	if termComplexity < 0 {
-		return fmt.Errorf("term complexity must be non-negative: %d", termComplexity)
-	}
-	// Validate term complexity does not exceed maximum to prevent overflow
-	if termComplexity > types.MaxTermComplexity {
-		return fmt.Errorf("term complexity exceeds maximum allowed: %d > %d", termComplexity, types.MaxTermComplexity)
+	// Validate term complexity
+	if err := types.ValidateTermComplexity(termComplexity); err != nil {
+		return err
 	}
 
 	proof.Status = status

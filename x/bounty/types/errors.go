@@ -54,7 +54,7 @@ var (
 
 // [3xx] Theorem
 var (
-	ErrNoTheoremMsgs             = errors.Register(ModuleName, 301, "no valid content")
+	ErrInvalidContent            = errors.Register(ModuleName, 301, "invalid content")
 	ErrTheoremProposal           = errors.Register(ModuleName, 302, "inactive theorem")
 	ErrTheoremProofStatusInvalid = errors.Register(ModuleName, 303, "theorem is not in proof period")
 )

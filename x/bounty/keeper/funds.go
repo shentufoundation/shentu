@@ -105,7 +105,6 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 		return err
 	}
 	currentComplexity := theorem.GetTermComplexity()
-	// TODO complexity check
 
 	// Collect reference theorems and calculate total complexity
 	citationRewards := make([]citationReward, 0, len(theorem.ReferenceTheoremIds))
@@ -114,7 +113,6 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 		if err != nil {
 			return fmt.Errorf("failed to get reference theorem %d: %w", refTheoremID, err)
 		}
-		// TODO complexity check
 
 		proposer, err := k.authKeeper.AddressCodec().StringToBytes(refTheorem.Proposer)
 		if err != nil {
