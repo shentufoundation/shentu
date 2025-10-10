@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -625,7 +626,33 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 				return fmt.Errorf("invalid status: %s", status)
 			}
 
-			msg := types.NewMsgSubmitProofVerification(proofID, proofStatus, checker.String())
+			termComplexity, err := cmd.Flags().GetInt64(FlagTermComplexity)
+			if err != nil {
+				return err
+			}
+
+			referenceTheoremIdsStr, err := cmd.Flags().GetString(FlagReferenceTheoremIds)
+			if err != nil {
+				return err
+			}
+
+			var referenceTheoremIds []uint64
+			if referenceTheoremIdsStr != "" {
+				idStrs := strings.Split(referenceTheoremIdsStr, ",")
+				for _, idStr := range idStrs {
+					idStr = strings.TrimSpace(idStr)
+					if idStr == "" {
+						continue
+					}
+					id, err := strconv.ParseUint(idStr, 10, 64)
+					if err != nil {
+						return fmt.Errorf("invalid theorem id %s: %w", idStr, err)
+					}
+					referenceTheoremIds = append(referenceTheoremIds, id)
+				}
+			}
+
+			msg := types.NewMsgSubmitProofVerification(proofID, proofStatus, checker.String(), termComplexity, referenceTheoremIds)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -633,6 +660,8 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 
 	cmd.Flags().String(FlagProofID, "", "The proof id")
 	cmd.Flags().String(FlagStatus, "", "The proof verification status (approved/rejected)")
+	cmd.Flags().Int64(FlagTermComplexity, 0, "The term complexity")
+	cmd.Flags().String(FlagReferenceTheoremIds, "", "The reference theorem ids (comma-separated)")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagProofID)

@@ -21,4 +21,7 @@ const (
 	FlagFindingPaymentHash    = "payment-hash"
 	FlagFindingFingerprint    = "fingerprint"
 	FlagSubmitterAddress      = "submitter-address"
+
+	FlagTermComplexity      = "term-complexity"
+	FlagReferenceTheoremIds = "reference-theorem-ids"
 )
