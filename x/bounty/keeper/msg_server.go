@@ -928,8 +928,14 @@ func (k msgServer) UpdateTheoremComplexity(goCtx context.Context, msg *types.Msg
 		return nil, fmt.Errorf("complexity already set to %d and cannot be updated again", theorem.Complexity)
 	}
 
+	// Get params for max complexity validation
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	// Validate complexity
-	if err := types.ValidateComplexity(msg.Complexity); err != nil {
+	if err = types.ValidateComplexity(msg.Complexity, params.MaxComplexity); err != nil {
 		return nil, err
 	}
 
@@ -1093,8 +1099,14 @@ func (k msgServer) handleProofVerification(
 	complexity int64,
 	referenceTheorems []uint64,
 ) error {
+	// Get params for max complexity validation
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return err
+	}
+
 	// Validate complexity
-	if err := types.ValidateComplexity(complexity); err != nil {
+	if err := types.ValidateComplexity(complexity, params.MaxComplexity); err != nil {
 		return err
 	}
 

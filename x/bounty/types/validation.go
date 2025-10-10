@@ -9,33 +9,14 @@ import (
 )
 
 // ValidateComplexity validates that complexity is non-negative and within allowed range
-func ValidateComplexity(complexity int64) error {
+func ValidateComplexity(complexity int64, maxComplexity int64) error {
 	if complexity < 0 {
 		return errorsmod.Wrapf(ErrInvalidContent, "complexity must be non-negative: %d", complexity)
 	}
-	if complexity > MaxComplexity {
-		return errorsmod.Wrapf(ErrInvalidContent, "complexity exceeds maximum allowed: %d > %d", complexity, MaxComplexity)
+	if complexity > maxComplexity {
+		return errorsmod.Wrapf(ErrInvalidContent, "complexity exceeds maximum allowed: %d > %d", complexity, maxComplexity)
 	}
 	return nil
-}
-
-// ValidateParams validates the module parameters
-func ValidateParams(params *Params) error {
-	if params == nil {
-		return errorsmod.Wrap(ErrInvalidContent, "params cannot be nil")
-	}
-
-	// Validate ProofMaxLockPeriod
-	if params.ProofMaxLockPeriod == nil {
-		return errorsmod.Wrap(ErrInvalidContent, "proof max lock period cannot be nil")
-	}
-
-	// Validate TheoremMaxProofPeriod
-	if params.TheoremMaxProofPeriod == nil {
-		return errorsmod.Wrap(ErrInvalidContent, "theorem max proof period cannot be nil")
-	}
-
-	return params.Validate()
 }
 
 // ValidateProgram validates a program
@@ -105,7 +86,7 @@ func ValidFindingStatus(status FindingStatus) bool {
 }
 
 // ValidateTheorem validates a theorem
-func ValidateTheorem(theorem *Theorem) error {
+func ValidateTheorem(theorem *Theorem, maxComplexity int64) error {
 	if theorem == nil {
 		return errorsmod.Wrap(ErrInvalidContent, "theorem cannot be nil")
 	}
@@ -128,7 +109,7 @@ func ValidateTheorem(theorem *Theorem) error {
 	}
 
 	// Validate complexity is non-negative and within allowed range
-	if err := ValidateComplexity(theorem.Complexity); err != nil {
+	if err := ValidateComplexity(theorem.Complexity, maxComplexity); err != nil {
 		return errorsmod.Wrap(ErrInvalidContent, err.Error())
 	}
 

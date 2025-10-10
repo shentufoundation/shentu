@@ -214,7 +214,8 @@ message Params {
   // Minimum fee for a complexity.
   cosmos.base.v1beta1.Coin complexity_fee = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
-  // TODO add max_complexity
+  // Maximum allowed complexity to prevent overflow and ensure reasonable reward calculations.
+  int64 max_complexity = 6;
 }
 
 enum TheoremStatus {

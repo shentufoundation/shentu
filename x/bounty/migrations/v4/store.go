@@ -24,6 +24,7 @@ func MigrateStore(ctx sdk.Context, storeService store.KVStoreService, cdc codec.
 		TheoremMaxProofPeriod: oldParam.TheoremMaxProofPeriod,
 		ProofMaxLockPeriod:    oldParam.ProofMaxLockPeriod,
 		ComplexityFee:         sdk.NewCoin("uctk", sdkmath.NewInt(10000)),
+		MaxComplexity:         int64(1000000),
 	}
 	err = params.Set(ctx, newParam)
 	if err != nil {

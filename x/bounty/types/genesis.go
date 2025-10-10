@@ -83,7 +83,7 @@ func ValidateGenesis(data *GenesisState) error {
 			return errorsmod.Wrapf(ErrInvalidContent, "duplicate theorem id %d", theorem.Id)
 		}
 
-		if err := ValidateTheorem(theorem); err != nil {
+		if err := ValidateTheorem(theorem, data.Params.MaxComplexity); err != nil {
 			return errorsmod.Wrapf(err, "invalid theorem %d", theorem.Id)
 		}
 

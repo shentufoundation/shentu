@@ -12,20 +12,17 @@ import (
 const (
 	// DefaultStartingTheoremID is 1
 	DefaultStartingTheoremID uint64 = 1
-
-	// MaxComplexity is the maximum allowed complexity to prevent overflow
-	// and ensure reasonable reward calculations. Set to 1 million as a safe upper bound.
-	MaxComplexity int64 = 1000000
 )
 
 // NewParams creates a new Params instance
-func NewParams(minGrant, minDeposit []sdk.Coin, theoremMaxProofPeriod, proofMaxLockPeriod time.Duration, complexityFee sdk.Coin) Params {
+func NewParams(minGrant, minDeposit []sdk.Coin, theoremMaxProofPeriod, proofMaxLockPeriod time.Duration, complexityFee sdk.Coin, maxComplexity int64) Params {
 	return Params{
 		MinGrant:              minGrant,
 		MinDeposit:            minDeposit,
 		TheoremMaxProofPeriod: &theoremMaxProofPeriod,
 		ProofMaxLockPeriod:    &proofMaxLockPeriod,
 		ComplexityFee:         complexityFee,
+		MaxComplexity:         maxComplexity,
 	}
 }
 
@@ -41,8 +38,10 @@ func DefaultParams() Params {
 	proofMaxLockPeriod := 15 * time.Minute
 	// Default complexity fee: 10000uctk
 	complexityFee := sdk.NewCoin("uctk", sdkmath.NewInt(10000))
+	// Default max complexity: 1000000
+	maxComplexity := int64(1000000)
 
-	return NewParams(minGrant, minDeposit, theoremMaxProofPeriod, proofMaxLockPeriod, complexityFee)
+	return NewParams(minGrant, minDeposit, theoremMaxProofPeriod, proofMaxLockPeriod, complexityFee, maxComplexity)
 }
 
 // Validate performs validation on params
@@ -61,6 +60,10 @@ func (p Params) Validate() error {
 
 	if p.ProofMaxLockPeriod == nil {
 		return fmt.Errorf("proof max lock period cannot be nil")
+	}
+
+	if p.MaxComplexity <= 0 {
+		return fmt.Errorf("max complexity must be positive, got %d", p.MaxComplexity)
 	}
 
 	return nil
