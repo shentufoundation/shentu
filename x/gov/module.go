@@ -8,9 +8,8 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-
 	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
+	"github.com/spf13/cobra"
 
 	modulev1 "cosmossdk.io/api/cosmos/gov/module/v1"
 
@@ -39,6 +38,7 @@ var (
 	_ module.AppModuleSimulation = AppModule{}
 	_ module.HasGenesis          = AppModule{}
 	_ module.HasServices         = AppModule{}
+	_ module.HasInvariants       = AppModule{}
 
 	_ appmodule.AppModule     = AppModule{}
 	_ appmodule.HasEndBlocker = AppModule{}
@@ -161,6 +161,11 @@ func init() {
 // Name returns the governance module's name.
 func (am AppModule) Name() string {
 	return govtypes.ModuleName
+}
+
+// RegisterInvariants registers the governance module invariants.
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	govkeeper.RegisterInvariants(ir, &am.keeper.Keeper, am.bankKeeper)
 }
 
 // RegisterServices registers module services.

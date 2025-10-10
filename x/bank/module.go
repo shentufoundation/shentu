@@ -33,6 +33,7 @@ var (
 	_ module.AppModuleSimulation = AppModule{}
 	_ module.HasGenesis          = AppModule{}
 	_ module.HasServices         = AppModule{}
+	_ module.HasInvariants       = AppModule{}
 
 	_ appmodule.AppModule = AppModule{}
 )
@@ -119,6 +120,11 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, accountKeeper types.Acc
 // Name returns the bank module's name.
 func (am AppModule) Name() string {
 	return am.cosmosAppModule.Name()
+}
+
+// RegisterInvariants registers the bank module invariants.
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	am.cosmosAppModule.RegisterInvariants(ir)
 }
 
 // QuerierRoute returns the bank module's querier route name.
