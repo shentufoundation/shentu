@@ -259,17 +259,17 @@ func (q queryServer) AllRewards(c context.Context, req *types.QueryRewardsReques
 		return nil, status.Error(codes.InvalidArgument, "invalid address")
 	}
 
-	// Get regular rewards (if they exist)
-	var rewardCoins sdk.DecCoins
-	reward, err := q.k.Rewards.Get(c, addr)
+	// Get proof rewards (if they exist)
+	var proofRewardCoins sdk.DecCoins
+	proofReward, err := q.k.Rewards.Get(c, addr)
 	if err != nil {
 		if !errors.IsOf(err, collections.ErrNotFound) {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 		// If not found, use empty coins
-		rewardCoins = sdk.NewDecCoins()
+		proofRewardCoins = sdk.NewDecCoins()
 	} else {
-		rewardCoins = reward.Reward
+		proofRewardCoins = proofReward.Reward
 	}
 
 	// Get imported rewards (if they exist)
@@ -286,12 +286,12 @@ func (q queryServer) AllRewards(c context.Context, req *types.QueryRewardsReques
 	}
 
 	// If both are empty, return not found error
-	if rewardCoins.IsZero() && importedRewardCoins.IsZero() {
+	if proofRewardCoins.IsZero() && importedRewardCoins.IsZero() {
 		return nil, status.Errorf(codes.NotFound, "no rewards found for address %s", req.Address)
 	}
 
 	return &types.QueryRewardsResponse{
-		Rewards:         rewardCoins,
+		ProofRewards:    proofRewardCoins,
 		ImportedRewards: importedRewardCoins,
 	}, nil
 }

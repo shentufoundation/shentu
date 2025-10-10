@@ -623,13 +623,13 @@ func (suite *KeeperTestSuite) TestGRPCQueryReward() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := queryClient.Reward(ctx, tc.req)
+			res, err := queryClient.AllRewards(ctx, tc.req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().NotEmpty(res.Rewards)
-				suite.Require().False(res.Rewards[0].Amount.IsZero())
+				suite.Require().NotEmpty(res.ProofRewards)
+				suite.Require().False(res.ProofRewards[0].Amount.IsZero())
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
