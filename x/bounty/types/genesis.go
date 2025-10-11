@@ -23,15 +23,15 @@ func DefaultGenesisState() *GenesisState {
 // ValidateGenesis - validate bounty genesis data
 func ValidateGenesis(data *GenesisState) error {
 	if data == nil {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "genesis state cannot be nil")
+		return errorsmod.Wrap(ErrInvalidContent, "genesis state cannot be nil")
 	}
 
 	if data.StartingTheoremId == 0 {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "starting theorem id cannot be 0")
+		return errorsmod.Wrap(ErrInvalidContent, "starting theorem id cannot be 0")
 	}
 
 	if data.Params == nil {
-		return errorsmod.Wrap(ErrNoTheoremMsgs, "params cannot be nil")
+		return errorsmod.Wrap(ErrInvalidContent, "params cannot be nil")
 	}
 
 	if err := data.Params.Validate(); err != nil {
@@ -76,14 +76,14 @@ func ValidateGenesis(data *GenesisState) error {
 	theorems := make(map[uint64]bool)
 	for _, theorem := range data.Theorems {
 		if theorem.Id == 0 {
-			return errorsmod.Wrap(ErrNoTheoremMsgs, "theorem id cannot be 0")
+			return errorsmod.Wrap(ErrInvalidContent, "theorem id cannot be 0")
 		}
 
 		if theorems[theorem.Id] {
-			return errorsmod.Wrapf(ErrNoTheoremMsgs, "duplicate theorem id %d", theorem.Id)
+			return errorsmod.Wrapf(ErrInvalidContent, "duplicate theorem id %d", theorem.Id)
 		}
 
-		if err := ValidateTheorem(theorem); err != nil {
+		if err := ValidateTheorem(theorem, data.Params.MaxComplexity); err != nil {
 			return errorsmod.Wrapf(err, "invalid theorem %d", theorem.Id)
 		}
 
@@ -116,7 +116,7 @@ func ValidateGenesis(data *GenesisState) error {
 	// Validate grants
 	for _, grant := range data.Grants {
 		if grant.TheoremId == 0 {
-			return errorsmod.Wrap(ErrNoTheoremMsgs, "grant theorem id cannot be 0")
+			return errorsmod.Wrap(ErrInvalidContent, "grant theorem id cannot be 0")
 		}
 
 		if !theorems[grant.TheoremId] {

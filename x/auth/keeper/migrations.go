@@ -9,6 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	v3 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v3"
 	v4 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v4"
+
+	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -90,4 +92,37 @@ func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 // big-endian encoded uint64, it also migrates it to use a more canonical prefix.
 func (m Migrator) Migrate4To5(ctx sdk.Context) error {
 	return v5.Migrate(ctx, m.keeper.storeService, m.AccountKeeper.AccountNumber)
+}
+
+// Migrate5To6 migrates the x/auth module state from the consensus version 5 to 6.
+// It updates the unlocker address of ManualVestingAccounts that have a specific old unlocker address.
+func (m Migrator) Migrate5To6(ctx sdk.Context) error {
+	var iterErr error
+
+	// Old unlocker address to match
+	oldUnlocker := "shentu1uzchr7k5t3suyge3gfzddapq6jsw554vddr0ds"
+	// New unlocker address to set, multisig address
+	newUnlocker := "shentu1f05dgzhprlw0cqjfpdlj26q8k3yrn3x7l7wyx7"
+
+	m.keeper.ak.IterateAccounts(ctx, func(account sdk.AccountI) (stop bool) {
+		// Check if the account is a ManualVestingAccount
+		mvacc, ok := account.(*types.ManualVestingAccount)
+		if !ok {
+			return false
+		}
+
+		// Only migrate if the current unlocker matches the old address
+		if mvacc.Unlocker != oldUnlocker {
+			return false
+		}
+
+		// Update the unlocker address
+		mvacc.Unlocker = newUnlocker
+
+		// Save the updated account
+		m.keeper.ak.SetAccount(ctx, mvacc)
+		return false
+	})
+
+	return iterErr
 }

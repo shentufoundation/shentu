@@ -39,9 +39,10 @@ var (
 	ActiveProofQueueKey = collections.NewPrefix(32)
 
 	// Grant and deposit related keys
-	GrantKeyPrefix   = collections.NewPrefix(41)
-	DepositKeyPrefix = collections.NewPrefix(42)
-	RewardKeyPrefix  = collections.NewPrefix(43)
+	GrantKeyPrefix          = collections.NewPrefix(41)
+	DepositKeyPrefix        = collections.NewPrefix(42)
+	RewardKeyPrefix         = collections.NewPrefix(43)
+	ImportedRewardKeyPrefix = collections.NewPrefix(45)
 
 	// Relationship keys
 	TheoremProofPrefix   = collections.NewPrefix(51)

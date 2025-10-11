@@ -29,7 +29,7 @@ type Keeper struct {
 	// State collections
 	Params collections.Item[types.Params] // Global module parameters
 
-	// OpenBountuy
+	// OpenBounty
 	Programs        collections.Map[string, types.Program]
 	Findings        collections.Map[string, types.Finding]
 	ProgramFindings collections.KeySet[collections.Pair[string, string]] // ProgramFindings key: (programID, findingID)
@@ -40,6 +40,7 @@ type Keeper struct {
 	Grants              collections.Map[collections.Pair[uint64, sdk.AccAddress], types.Grant]   // Grants key: TheoremID+Grantor | value: Grant
 	Deposits            collections.Map[collections.Pair[string, sdk.AccAddress], types.Deposit] // Deposits key: ProofID+Depositor | value: Deposit
 	Rewards             collections.Map[sdk.AccAddress, types.Reward]                            // Rewards key: address | value: Reward
+	ImportedRewards     collections.Map[sdk.AccAddress, types.Reward]                            // ImportedRewards key: address | value: Reward
 	Proofs              collections.Map[string, types.Proof]                                     // Proofs key: ProofID | value: Proof
 	ProofsByTheorem     collections.Map[collections.Pair[uint64, string], []byte]                // ProofsByTheorem key: TheoremID+ProofID | value: none used (index key for proofs by theorem index)
 	ActiveTheoremsQueue collections.Map[collections.Pair[time.Time, uint64], uint64]             // ActiveTheoremsQueue key: EndTime+TheoremID | value: TheoremID
@@ -79,6 +80,7 @@ func NewKeeper(
 		Theorems:            collections.NewMap(sb, types.TheoremKeyPrefix, "theorems", collections.Uint64Key, codec.CollValue[types.Theorem](cdc)),
 		Grants:              collections.NewMap(sb, types.GrantKeyPrefix, "grants", collections.PairKeyCodec(collections.Uint64Key, sdk.AccAddressKey), codec.CollValue[types.Grant](cdc)),
 		Rewards:             collections.NewMap(sb, types.RewardKeyPrefix, "rewards", sdk.AccAddressKey, codec.CollValue[types.Reward](cdc)),
+		ImportedRewards:     collections.NewMap(sb, types.ImportedRewardKeyPrefix, "imported_rewards", sdk.AccAddressKey, codec.CollValue[types.Reward](cdc)),
 		Deposits:            collections.NewMap(sb, types.DepositKeyPrefix, "deposits", collections.PairKeyCodec(collections.StringKey, sdk.AccAddressKey), codec.CollValue[types.Deposit](cdc)),
 		Proofs:              collections.NewMap(sb, types.ProofKeyPrefix, "proofs", collections.StringKey, codec.CollValue[types.Proof](cdc)),
 		ProofsByTheorem:     collections.NewMap(sb, types.ProofByTheoremPrefix, "proofs_by_theorem", collections.PairKeyCodec(collections.Uint64Key, collections.StringKey), collections.BytesValue),

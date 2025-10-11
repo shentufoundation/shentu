@@ -6,6 +6,7 @@ import (
 	v1 "github.com/shentufoundation/shentu/v2/x/bounty/migrations/v1"
 	v2 "github.com/shentufoundation/shentu/v2/x/bounty/migrations/v2"
 	v3 "github.com/shentufoundation/shentu/v2/x/bounty/migrations/v3"
+	v4 "github.com/shentufoundation/shentu/v2/x/bounty/migrations/v4"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -31,4 +32,9 @@ func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 // Migrate3to4 migrates from version 3 to 4.
 func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 	return v3.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc)
+}
+
+// Migrate4to5 migrates from version 4 to 5.
+func (m Migrator) Migrate4to5(ctx sdk.Context) error {
+	return v4.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc)
 }

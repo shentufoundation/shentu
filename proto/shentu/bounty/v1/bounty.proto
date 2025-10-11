@@ -130,6 +130,15 @@ message Theorem {
 
   // proposer is the address of the theorem submitter
   string proposer = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // proof term complexity.
+  int64 complexity = 10;
+
+  // the total number of times the theorem has been imported.
+  int64 imported_count = 11;
+
+  // a list of import external theorems.
+  repeated uint64 imports = 12;
 }
 
 message Proof {
@@ -202,13 +211,11 @@ message Params {
   // Duration of the proof max lock period. 10min
   google.protobuf.Duration proof_max_lock_period = 4 [(gogoproto.stdduration) = true];
 
-  // rate is the checker rate charged to theorem
-  string checker_rate = 5 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false,
-    (amino.dont_omitempty) = true
-  ];
+  // Minimum fee for a complexity.
+  cosmos.base.v1beta1.Coin complexity_fee = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // Maximum allowed complexity to prevent overflow and ensure reasonable reward calculations.
+  int64 max_complexity = 6;
 }
 
 enum TheoremStatus {

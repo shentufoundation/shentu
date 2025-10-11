@@ -704,7 +704,6 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	if len(msg.ProofHash) != 64 {
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proofHash must be a 64-character SHA-256 hash")
 	}
-
 	// validate proofHash is a valid hex string
 	if _, err := hex.DecodeString(msg.ProofHash); err != nil {
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proofHash must be a valid hex string")
@@ -723,18 +722,11 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	if exists {
 		return nil, types.ErrProofAlreadyExists
 	}
-	// check if theorem exists
-	theorem, err := k.Theorems.Get(ctx, msg.TheoremId)
-	if err != nil {
-		if errors.IsOf(err, collections.ErrNotFound) {
-			return nil, status.Errorf(codes.NotFound, "theorem %d doesn't exist", msg.TheoremId)
-		}
-		return nil, err
-	}
 
-	// check theorem is still proof able
-	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
-		return nil, types.ErrTheoremProofStatusInvalid
+	// check if theorem exists and is in proof period
+	theorem, err := k.validateTheoremStatus(ctx, msg.TheoremId)
+	if err != nil {
+		return nil, err
 	}
 
 	// check if there are any proofs in hash lock or detail period for this theorem
@@ -754,8 +746,16 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 
 	submitTime := ctx.BlockHeader().Time
 	endTime := submitTime.Add(*params.ProofMaxLockPeriod)
-	proof := types.NewProof(msg.TheoremId, msg.ProofHash, msg.Prover, submitTime, endTime, msg.Deposit)
+	// Validate that proof endTime does not exceed theorem endTime
+	if endTime.After(*theorem.EndTime) {
+		return nil, errors.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"proof lock period would extend beyond theorem end time (proof end: %s, theorem end: %s)",
+			endTime, *theorem.EndTime,
+		)
+	}
 
+	proof := types.NewProof(msg.TheoremId, msg.ProofHash, msg.Prover, submitTime, endTime, msg.Deposit)
 	if err = k.Proofs.Set(ctx, proof.Id, proof); err != nil {
 		return nil, err
 	}
@@ -765,7 +765,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	if err = k.ProofsByTheorem.Set(ctx, collections.Join(msg.TheoremId, msg.ProofHash), []byte{}); err != nil {
 		return nil, err
 	}
-	if err := k.Keeper.AddDeposit(ctx, proof.Id, proposer, msg.Deposit); err != nil {
+	if err = k.Keeper.AddDeposit(ctx, proof.Id, proposer, msg.Deposit); err != nil {
 		return nil, err
 	}
 
@@ -864,6 +864,12 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 		return nil, err
 	}
 
+	// check if theorem exists and is in proof period
+	_, err = k.validateTheoremStatus(ctx, proof.TheoremId)
+	if err != nil {
+		return nil, err
+	}
+
 	// Get prover address
 	proverAddr, err := k.validateAddress(proof.Prover)
 	if err != nil {
@@ -871,7 +877,7 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	}
 
 	// Handle proof verification based on status
-	if err = k.handleProofVerification(ctx, msg.Status, *proof, checkerAddr, proverAddr); err != nil {
+	if err = k.handleProofVerification(ctx, msg.Status, *proof, checkerAddr, proverAddr, msg.Complexity, msg.Imports); err != nil {
 		return nil, err
 	}
 
@@ -887,7 +893,72 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	return &types.MsgSubmitProofVerificationResponse{}, nil
 }
 
-// WithdrawReward withdraws a reward from a bounty program
+func (k msgServer) UpdateTheoremComplexity(goCtx context.Context, msg *types.MsgUpdateTheoremComplexity) (*types.MsgUpdateTheoremComplexityResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Validate checker address and authority
+	checkerAddr, err := k.validateAddress(msg.Checker)
+	if err != nil {
+		return nil, err
+	}
+	if !k.certKeeper.IsBountyAdmin(ctx, checkerAddr) {
+		return nil, types.ErrProofOperatorNotAllowed
+	}
+
+	// Get theorem
+	theorem, err := k.Theorems.Get(ctx, msg.TheoremId)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "theorem %d doesn't exist", msg.TheoremId)
+		}
+		return nil, err
+	}
+
+	// Check theorem status - only passed theorems can have complexity updated
+	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_PASSED {
+		return nil, errors.Wrapf(
+			types.ErrTheoremProofStatusInvalid,
+			"theorem must be in PASSED status to update complexity, current status: %s",
+			theorem.Status.String(),
+		)
+	}
+
+	// Check if complexity can be updated (only when it's 0, meaning not set yet)
+	if theorem.Complexity != 0 {
+		return nil, fmt.Errorf("complexity already set to %d and cannot be updated again", theorem.Complexity)
+	}
+
+	// Get params for max complexity validation
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate complexity
+	if err = types.ValidateComplexity(msg.Complexity, params.MaxComplexity); err != nil {
+		return nil, err
+	}
+
+	// Update theorem complexity
+	theorem.Complexity = msg.Complexity
+	if err = k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
+		return nil, err
+	}
+
+	// Emit event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUpdateTheoremComplexity,
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
+			sdk.NewAttribute(types.AttributeKeyChecker, msg.Checker),
+			sdk.NewAttribute(types.AttributeKeyComplexity, fmt.Sprintf("%d", msg.Complexity)),
+		),
+	)
+
+	return &types.MsgUpdateTheoremComplexityResponse{}, nil
+}
+
+// WithdrawReward withdraws rewards (both regular and imported) from a bounty program
 func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -896,17 +967,41 @@ func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawR
 		return nil, err
 	}
 
-	reward, err := k.Rewards.Get(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
+	// Collect all rewards (regular + imported)
+	totalRewards := sdk.DecCoins{}
 
-	finalRewards, _ := reward.Reward.TruncateDecimal()
-	if !finalRewards.IsZero() {
+	// Get regular rewards
+	reward, err := k.Rewards.Get(ctx, addr)
+	if err == nil {
+		totalRewards = totalRewards.Add(reward.Reward...)
 		if err = k.Rewards.Remove(ctx, addr); err != nil {
 			return nil, err
 		}
+	} else if !errors.IsOf(err, collections.ErrNotFound) {
+		return nil, err
+	}
 
+	// Get imported rewards
+	importedRewards, err := k.ImportedRewards.Get(ctx, addr)
+	if err == nil {
+		totalRewards = totalRewards.Add(importedRewards.Reward...)
+		if err = k.ImportedRewards.Remove(ctx, addr); err != nil {
+			return nil, err
+		}
+	} else if !errors.IsOf(err, collections.ErrNotFound) {
+		return nil, err
+	}
+
+	// Check if there are any rewards to withdraw
+	if totalRewards.IsZero() {
+		return nil, fmt.Errorf("no rewards available for withdrawal")
+	}
+
+	// Convert to regular coins (truncate decimals)
+	finalRewards, _ := totalRewards.TruncateDecimal()
+
+	// Send rewards to the user
+	if !finalRewards.IsZero() {
 		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, finalRewards); err != nil {
 			return nil, err
 		}
@@ -972,6 +1067,21 @@ func (k msgServer) validateProofStatus(ctx sdk.Context, proofID string, expected
 	return &proof, nil
 }
 
+// validateTheoremStatus checks if the theorem exists and is in proof period status
+func (k msgServer) validateTheoremStatus(ctx sdk.Context, theoremID uint64) (*types.Theorem, error) {
+	theorem, err := k.Theorems.Get(ctx, theoremID)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "theorem %d doesn't exist", theoremID)
+		}
+		return nil, err
+	}
+	if theorem.Status != types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD {
+		return nil, types.ErrTheoremProofStatusInvalid
+	}
+	return &theorem, nil
+}
+
 // isValidProofStatus checks if the given proof status is valid
 func isValidProofStatus(status types.ProofStatus) bool {
 	return status == types.ProofStatus_PROOF_STATUS_PASSED ||
@@ -986,12 +1096,24 @@ func (k msgServer) handleProofVerification(
 	status types.ProofStatus,
 	proof types.Proof,
 	checkerAddr, proverAddr sdk.AccAddress,
+	complexity int64,
+	referenceTheorems []uint64,
 ) error {
-	proof.Status = status
+	// Get params for max complexity validation
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return err
+	}
 
+	// Validate complexity
+	if err := types.ValidateComplexity(complexity, params.MaxComplexity); err != nil {
+		return err
+	}
+
+	proof.Status = status
 	switch status {
 	case types.ProofStatus_PROOF_STATUS_PASSED:
-		return k.handlePassedProof(ctx, proof, checkerAddr, proverAddr)
+		return k.handlePassedProof(ctx, proof, checkerAddr, proverAddr, complexity, referenceTheorems)
 	case types.ProofStatus_PROOF_STATUS_FAILED:
 		return k.handleFailedProof(ctx, proof)
 	default:
@@ -1004,19 +1126,23 @@ func (k msgServer) handlePassedProof(
 	ctx sdk.Context,
 	proof types.Proof,
 	checkerAddr, proverAddr sdk.AccAddress,
+	complexity int64,
+	referenceTheorems []uint64,
 ) error {
 	// update proof status
 	if err := k.Proofs.Set(ctx, proof.Id, proof); err != nil {
 		return err
 	}
 
-	// update theorem status
+	// update theorem
 	theorem, err := k.Theorems.Get(ctx, proof.TheoremId)
 	if err != nil {
 		return err
 	}
 
 	theorem.Status = types.TheoremStatus_THEOREM_STATUS_PASSED
+	theorem.Complexity = complexity
+	theorem.Imports = referenceTheorems
 	if err = k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
 		return err
 	}
@@ -1031,7 +1157,7 @@ func (k msgServer) handlePassedProof(
 		return err
 	}
 
-	if err = k.DistributionGrants(ctx, proof.TheoremId, checkerAddr, proverAddr); err != nil {
+	if err = k.DistributionGrants(ctx, theorem, checkerAddr, proverAddr); err != nil {
 		return err
 	}
 
@@ -1117,4 +1243,23 @@ func (k msgServer) getProgramFindings(ctx context.Context, programID string) ([]
 	}
 
 	return findingIDs, nil
+}
+
+func (k msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	// Check if the caller has authority to update parameters
+	if k.authority != msg.Authority {
+		return nil, errors.Wrapf(sdkerrors.ErrUnauthorized, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
+	// Validate the new parameters
+	if err := msg.Params.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Update the parameters in the store
+	if err := k.Params.Set(ctx, msg.Params); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

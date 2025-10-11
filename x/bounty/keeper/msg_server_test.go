@@ -1350,9 +1350,10 @@ func (suite *KeeperTestSuite) InitSubmitProofDetail(proofID string) {
 func (suite *KeeperTestSuite) InitVerifyProof(proofID string, status types.ProofStatus) {
 	// Verify the proof
 	verifyReq := &types.MsgSubmitProofVerification{
-		ProofId: proofID,
-		Status:  status,
-		Checker: suite.bountyAdminAddr.String(),
+		ProofId:    proofID,
+		Status:     status,
+		Checker:    suite.bountyAdminAddr.String(),
+		Complexity: 1,
 	}
 
 	ctx := sdk.WrapSDKContext(suite.ctx)
@@ -1419,9 +1420,10 @@ func (suite *KeeperTestSuite) TestSubmitProofVerification() {
 		{
 			"valid verification - passed",
 			&types.MsgSubmitProofVerification{
-				ProofId: validHash,
-				Status:  types.ProofStatus_PROOF_STATUS_PASSED,
-				Checker: suite.bountyAdminAddr.String(),
+				ProofId:    validHash,
+				Status:     types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:    suite.bountyAdminAddr.String(),
+				Complexity: 1,
 			},
 			true,
 		},

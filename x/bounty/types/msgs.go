@@ -143,11 +143,13 @@ func NewMsgSubmitProofDetail(proofID, prover, detail string) *MsgSubmitProofDeta
 	}
 }
 
-func NewMsgSubmitProofVerification(proofID string, status ProofStatus, checker string) *MsgSubmitProofVerification {
+func NewMsgSubmitProofVerification(proofID string, status ProofStatus, checker string, complexity int64, imports []uint64) *MsgSubmitProofVerification {
 	return &MsgSubmitProofVerification{
-		ProofId: proofID,
-		Status:  status,
-		Checker: checker,
+		ProofId:    proofID,
+		Status:     status,
+		Checker:    checker,
+		Complexity: complexity,
+		Imports:    imports,
 	}
 }
 

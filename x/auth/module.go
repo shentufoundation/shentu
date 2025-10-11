@@ -24,6 +24,8 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
+const ConsensusVersion = 6
+
 var (
 	_ module.AppModuleBasic      = AppModule{}
 	_ module.AppModuleSimulation = AppModule{}
@@ -135,6 +137,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err := cfg.RegisterMigration(types.ModuleName, 4, m.Migrate4To5); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/%s from version 4 to 5", types.ModuleName))
 	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 5, m.Migrate5To6); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/%s from version 5 to 6", types.ModuleName))
+	}
 }
 
 // InitGenesis performs genesis initialization for the auth module. It returns no validator updates.
@@ -148,7 +154,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (am AppModule) ConsensusVersion() uint64 { return am.cosmosAppModule.ConsensusVersion() }
+func (am AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 //____________________________________________________________________________
 

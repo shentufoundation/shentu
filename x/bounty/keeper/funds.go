@@ -6,12 +6,20 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
+
+// importedReward represents the reward calculation for an imported theorem
+type importedReward struct {
+	theorem  *types.Theorem
+	proposer sdk.AccAddress
+	reward   sdk.DecCoin
+}
 
 // ============================== Grant Operations ==============================
 
@@ -87,38 +95,114 @@ func (k Keeper) IterateGrants(ctx context.Context, theoremID uint64, cb func(key
 	return k.Grants.Walk(ctx, rng, cb)
 }
 
-// DistributionGrants distributes rewards to checker and prover
-func (k Keeper) DistributionGrants(ctx context.Context, theoremID uint64, checker, prover sdk.AccAddress) error {
-	// Get parameters and theorem
+// DistributionGrants distributes rewards to checker, reference theorem proposers, and prover
+func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, checker, prover sdk.AccAddress) error {
+	// ========== Phase 1: Collect and Calculate ==========
+
+	// Get parameters
 	param, err := k.Params.Get(ctx)
 	if err != nil {
 		return err
 	}
+	currentComplexity := theorem.GetComplexity()
 
-	theorem, err := k.Theorems.Get(ctx, theoremID)
-	if err != nil {
-		return err
+	// Collect reference theorems and calculate total complexity
+	importedRewards := make([]importedReward, 0, len(theorem.Imports))
+	for _, refTheoremID := range theorem.Imports {
+		refTheorem, err := k.Theorems.Get(ctx, refTheoremID)
+		if err != nil {
+			return fmt.Errorf("failed to get reference theorem %d: %w", refTheoremID, err)
+		}
+
+		proposer, err := k.authKeeper.AddressCodec().StringToBytes(refTheorem.Proposer)
+		if err != nil {
+			return fmt.Errorf("failed to parse proposer address for theorem %d: %w", refTheoremID, err)
+		}
+
+		importedRewards = append(importedRewards, importedReward{
+			theorem:  &refTheorem,
+			proposer: sdk.AccAddress(proposer),
+		})
 	}
 
-	// Calculate rewards
+	// Calculate all rewards
 	totalGrant := sdk.NewDecCoinsFromCoins(theorem.TotalGrant...)
-	checkerRewards := totalGrant.MulDec(param.CheckerRate)
-	proverRewards := totalGrant.Sub(checkerRewards)
+	complexityFeeAmount := sdkmath.LegacyNewDecFromInt(param.ComplexityFee.Amount)
 
-	// Update rewards for checker and prover
+	// 1. Checker rewards: current theorem's complexity * complexity_fee
+	checkerRewardAmount := complexityFeeAmount.MulInt64(currentComplexity)
+	checkerRewards := sdk.NewDecCoins(sdk.NewDecCoinFromDec(param.ComplexityFee.Denom, checkerRewardAmount))
+
+	// 2. Imported rewards: using inverse proportional function
+	// reward = (Complexity / (ImportedCount + 1)) * ComplexityFee
+	// The more imports, the less reward per import
+	totalImportedRewards := sdk.NewDecCoins()
+	for i := range importedRewards {
+		// Calculate: Complexity / (ImportedCount + 1)
+		complexityDec := sdkmath.LegacyNewDec(importedRewards[i].theorem.Complexity)
+		normalizedComplexity := complexityDec.QuoInt64(importedRewards[i].theorem.ImportedCount + 1)
+
+		// Multiply by complexity fee
+		refRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
+		importedRewards[i].reward = sdk.NewDecCoinFromDec(param.ComplexityFee.Denom, refRewardAmount)
+		totalImportedRewards = totalImportedRewards.Add(importedRewards[i].reward)
+	}
+
+	// 3. Prover rewards: remaining after checker and imported rewards
+	// First subtract checker rewards from total grant
+	remaining, hasNegative := totalGrant.SafeSub(checkerRewards)
+	if hasNegative {
+		return errors.Wrapf(types.ErrInsufficientGrantChecker,
+			"total=%s, checker=%s", totalGrant, checkerRewards)
+	}
+
+	// Then subtract imported rewards from remaining
+	proverRewards, hasNegative := remaining.SafeSub(totalImportedRewards)
+	if hasNegative {
+		return errors.Wrapf(types.ErrInsufficientGrantTotal,
+			"total=%s, checker=%s, imports=%s", totalGrant, checkerRewards, totalImportedRewards)
+	}
+
+	// ========== Phase 2: Update All Rewards ==========
+	// Update checker rewards
 	if err := k.updateReward(ctx, checker, checkerRewards); err != nil {
 		return fmt.Errorf("failed to update checker reward: %w", err)
 	}
 
+	// Update imported rewards for all reference theorem proposers and increment imported counts
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	for i := range importedRewards {
+		// Update imported reward
+		if err := k.updateImportedReward(ctx, importedRewards[i].proposer, importedRewards[i].reward); err != nil {
+			return fmt.Errorf("failed to update imported reward for %s: %w", importedRewards[i].proposer.String(), err)
+		}
+
+		// Increment imported count for the referenced theorem
+		importedRewards[i].theorem.ImportedCount++
+		if err := k.Theorems.Set(ctx, importedRewards[i].theorem.Id, *importedRewards[i].theorem); err != nil {
+			return fmt.Errorf("failed to update imported count for theorem %d: %w", importedRewards[i].theorem.Id, err)
+		}
+
+		// Emit imported reward event for each reference
+		sdkCtx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeImportedReward,
+				sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", importedRewards[i].theorem.Id)),
+				sdk.NewAttribute(types.AttributeKeyProposer, importedRewards[i].reward.String()),
+			),
+		)
+	}
+
+	// Update prover rewards
 	if err := k.updateReward(ctx, prover, proverRewards); err != nil {
 		return fmt.Errorf("failed to update prover reward: %w", err)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	// Emit distribution event
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDistributeReward,
-			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theoremID)),
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
 			sdk.NewAttribute(types.AttributeKeyChecker, checkerRewards.String()),
 			sdk.NewAttribute(types.AttributeKeyProposer, proverRewards.String()),
 		),
@@ -142,6 +226,23 @@ func (k Keeper) updateReward(ctx context.Context, addr sdk.AccAddress, reward sd
 	}
 
 	return k.Rewards.Set(ctx, addr, existingReward)
+}
+
+// updateImportedReward updates the imported reward for a given address
+func (k Keeper) updateImportedReward(ctx context.Context, addr sdk.AccAddress, reward sdk.DecCoin) error {
+	existingReward, err := k.ImportedRewards.Get(ctx, addr)
+
+	if err != nil && !errors.IsOf(err, collections.ErrNotFound) {
+		return err
+	}
+
+	if errors.IsOf(err, collections.ErrNotFound) {
+		existingReward = types.Reward{Address: addr.String(), Reward: sdk.NewDecCoins(reward)}
+	} else {
+		existingReward.Reward = existingReward.Reward.Add(reward)
+	}
+
+	return k.ImportedRewards.Set(ctx, addr, existingReward)
 }
 
 // SetGrant sets a grant in the store
@@ -262,6 +363,20 @@ func (k Keeper) ValidateFunds(ctx context.Context, amount sdk.Coins, fundsType s
 		return nil, errors.Wrap(sdkerrors.ErrInvalidCoins, amount.String())
 	}
 
+	// Build accepted denominations map once for efficiency
+	acceptedDenoms := make(map[string]bool, len(params.MinGrant))
+	for _, coin := range params.MinGrant {
+		acceptedDenoms[coin.Denom] = true
+	}
+
+	// Validate denominations - fail fast on first invalid denom
+	for _, coin := range amount {
+		if !acceptedDenoms[coin.Denom] {
+			return nil, errors.Wrapf(types.ErrInvalidDepositDenom,
+				"invalid denomination: %s", coin.Denom)
+		}
+	}
+
 	// Determine minimum amount and error type based on funds type
 	var minAmount sdk.Coins
 	var errType error
@@ -277,34 +392,9 @@ func (k Keeper) ValidateFunds(ctx context.Context, amount sdk.Coins, fundsType s
 		return nil, fmt.Errorf("invalid funds type: %s", fundsType)
 	}
 
-	// Check minimum amount
+	// Check minimum amount after denomination validation
 	if !amount.IsAllGTE(minAmount) {
 		return nil, errors.Wrapf(errType, "was (%s), need (%s)", amount, minAmount)
-	}
-
-	// Build accepted denominations map once for efficiency
-	acceptedDenoms := make(map[string]bool, len(params.MinGrant))
-	for _, coin := range params.MinGrant {
-		acceptedDenoms[coin.Denom] = true
-	}
-
-	// Validate denominations
-	invalidDenoms := make([]string, 0)
-	for _, coin := range amount {
-		if !acceptedDenoms[coin.Denom] {
-			invalidDenoms = append(invalidDenoms, coin.Denom)
-		}
-	}
-
-	if len(invalidDenoms) > 0 {
-		// Build accepted denominations list for error message
-		acceptedDenomsList := make([]string, 0, len(acceptedDenoms))
-		for denom := range acceptedDenoms {
-			acceptedDenomsList = append(acceptedDenomsList, denom)
-		}
-		return nil, errors.Wrapf(types.ErrInvalidDepositDenom,
-			"deposited invalid denominations: %v, bounty accepts only the following denom(s): %v",
-			invalidDenoms, acceptedDenomsList)
 	}
 
 	return &params, nil

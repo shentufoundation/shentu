@@ -15,30 +15,33 @@ const (
 )
 
 // NewParams creates a new Params instance
-func NewParams(minGrant, minDeposit []sdk.Coin, theoremMaxProofPeriod, proofMaxLockPeriod time.Duration, checkerRate sdkmath.LegacyDec) Params {
+func NewParams(minGrant, minDeposit []sdk.Coin, theoremMaxProofPeriod, proofMaxLockPeriod time.Duration, complexityFee sdk.Coin, maxComplexity int64) Params {
 	return Params{
 		MinGrant:              minGrant,
 		MinDeposit:            minDeposit,
 		TheoremMaxProofPeriod: &theoremMaxProofPeriod,
 		ProofMaxLockPeriod:    &proofMaxLockPeriod,
-		CheckerRate:           checkerRate,
+		ComplexityFee:         complexityFee,
+		MaxComplexity:         maxComplexity,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	// Default minimum grant: 1000000 uctk
+	// Default minimum grant: 1000000uctk
 	minGrant := sdk.NewCoins(sdk.NewCoin("uctk", sdkmath.NewInt(1000000)))
-	// Default minimum deposit: 1000000 uctk
+	// Default minimum deposit: 1000000uctk
 	minDeposit := sdk.NewCoins(sdk.NewCoin("uctk", sdkmath.NewInt(1000000)))
 	// Default theorem max proof period: 120 days
 	theoremMaxProofPeriod := 120 * 24 * time.Hour
 	// Default proof max lock period: 15 minutes
 	proofMaxLockPeriod := 15 * time.Minute
-	// Default checker rate: 0%
-	checkerRate := sdkmath.LegacyMustNewDecFromStr("0.0")
+	// Default complexity fee: 10000uctk
+	complexityFee := sdk.NewCoin("uctk", sdkmath.NewInt(10000))
+	// Default max complexity: 1000000
+	maxComplexity := int64(1000000)
 
-	return NewParams(minGrant, minDeposit, theoremMaxProofPeriod, proofMaxLockPeriod, checkerRate)
+	return NewParams(minGrant, minDeposit, theoremMaxProofPeriod, proofMaxLockPeriod, complexityFee, maxComplexity)
 }
 
 // Validate performs validation on params
@@ -59,7 +62,11 @@ func (p Params) Validate() error {
 		return fmt.Errorf("proof max lock period cannot be nil")
 	}
 
-	return validateCheckerRate(p.CheckerRate)
+	if p.MaxComplexity <= 0 {
+		return fmt.Errorf("max complexity must be positive, got %d", p.MaxComplexity)
+	}
+
+	return nil
 }
 
 func validateMinGrant(i interface{}) error {
@@ -95,23 +102,6 @@ func validateMinDeposit(i interface{}) error {
 		if !coin.IsValid() {
 			return fmt.Errorf("invalid min deposit: %s", coin)
 		}
-	}
-
-	return nil
-}
-
-func validateCheckerRate(i interface{}) error {
-	v, ok := i.(sdkmath.LegacyDec)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v.IsNegative() {
-		return fmt.Errorf("checker rate cannot be negative: %s", v)
-	}
-
-	if v.GT(sdkmath.LegacyOneDec()) {
-		return fmt.Errorf("checker rate cannot be greater than 1: %s", v)
 	}
 
 	return nil

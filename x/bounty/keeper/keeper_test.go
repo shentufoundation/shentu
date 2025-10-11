@@ -67,14 +67,15 @@ func (suite *KeeperTestSuite) SetupTest() {
 	minDeposit := sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(30)))
 	theoremMaxProofPeriod := 14 * 24 * time.Hour
 	proofMaxLockPeriod := 10 * time.Minute
-	checkerRate := math.LegacyMustNewDecFromStr("0.2") // 0.2
+	complexityFee := sdk.NewCoin(bondDenom, math.NewInt(10000))
 
 	params := types.Params{
 		MinGrant:              minGrant,
 		MinDeposit:            minDeposit,
 		TheoremMaxProofPeriod: &theoremMaxProofPeriod,
 		ProofMaxLockPeriod:    &proofMaxLockPeriod,
-		CheckerRate:           checkerRate,
+		ComplexityFee:         complexityFee,
+		MaxComplexity:         1000000,
 	}
 	err = suite.keeper.Params.Set(suite.ctx, params)
 	suite.Require().NoError(err)

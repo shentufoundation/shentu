@@ -249,7 +249,7 @@ func (q queryServer) Proofs(c context.Context, req *types.QueryProofsRequest) (*
 	}, nil
 }
 
-func (q queryServer) Reward(c context.Context, req *types.QueryRewardsRequest) (*types.QueryRewardsResponse, error) {
+func (q queryServer) AllRewards(c context.Context, req *types.QueryRewardsRequest) (*types.QueryRewardsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -259,15 +259,41 @@ func (q queryServer) Reward(c context.Context, req *types.QueryRewardsRequest) (
 		return nil, status.Error(codes.InvalidArgument, "invalid address")
 	}
 
-	reward, err := q.k.Rewards.Get(c, addr)
+	// Get proof rewards (if they exist)
+	var proofRewardCoins sdk.DecCoins
+	proofReward, err := q.k.Rewards.Get(c, addr)
 	if err != nil {
-		if errors.IsOf(err, collections.ErrNotFound) {
-			return nil, status.Errorf(codes.NotFound, "reward for address %s doesn't exist", req.Address)
+		if !errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Error(codes.Internal, err.Error())
 		}
-		return nil, status.Error(codes.Internal, err.Error())
+		// If not found, use empty coins
+		proofRewardCoins = sdk.NewDecCoins()
+	} else {
+		proofRewardCoins = proofReward.Reward
 	}
 
-	return &types.QueryRewardsResponse{Rewards: reward.Reward}, nil
+	// Get imported rewards (if they exist)
+	var importedRewardCoins sdk.DecCoins
+	importedRewards, err := q.k.ImportedRewards.Get(c, addr)
+	if err != nil {
+		if !errors.IsOf(err, collections.ErrNotFound) {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		// If not found, use empty coins
+		importedRewardCoins = sdk.NewDecCoins()
+	} else {
+		importedRewardCoins = importedRewards.Reward
+	}
+
+	// If both are empty, return not found error
+	if proofRewardCoins.IsZero() && importedRewardCoins.IsZero() {
+		return nil, status.Errorf(codes.NotFound, "no rewards found for address %s", req.Address)
+	}
+
+	return &types.QueryRewardsResponse{
+		ProofRewards:    proofRewardCoins,
+		ImportedRewards: importedRewardCoins,
+	}, nil
 }
 
 func (q queryServer) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
