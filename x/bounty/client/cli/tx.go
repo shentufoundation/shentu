@@ -42,6 +42,7 @@ func NewTxCmd() *cobra.Command {
 		NewSubmitProofHashCmd(),
 		NewSubmitProofDetailCmd(),
 		NewSubmitProofVerificationCmd(),
+		NewUpdateTheoremComplexityCmd(),
 		NewWithdrawRewardCmd(),
 	)
 
@@ -666,6 +667,43 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 
 	_ = cmd.MarkFlagRequired(FlagProofID)
 	_ = cmd.MarkFlagRequired(FlagStatus)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+func NewUpdateTheoremComplexityCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-theorem-complexity",
+		Short: "update theorem complexity",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			theoremID, err := cmd.Flags().GetUint64(FlagTheoremID)
+			if err != nil {
+				return err
+			}
+			checker := clientCtx.GetFromAddress()
+			complexity, err := cmd.Flags().GetInt64(FlagComplexity)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateTheoremComplexity(theoremID, checker.String(), complexity)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().Uint64(FlagTheoremID, 1, "The theorem id")
+	cmd.Flags().Int64(FlagComplexity, 0, "The complexity")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(FlagTheoremID)
+	_ = cmd.MarkFlagRequired(FlagComplexity)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd

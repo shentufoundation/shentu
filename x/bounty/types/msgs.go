@@ -8,7 +8,7 @@ var (
 	_, _, _, _       sdk.Msg = &MsgCreateProgram{}, &MsgEditProgram{}, &MsgActivateProgram{}, &MsgCloseProgram{}
 	_, _, _, _, _, _ sdk.Msg = &MsgSubmitFinding{}, &MsgEditFinding{}, &MsgActivateFinding{}, &MsgConfirmFinding{}, &MsgCloseFinding{}, &MsgPublishFinding{}
 	_, _             sdk.Msg = &MsgCreateTheorem{}, &MsgGrant{}
-	_, _, _          sdk.Msg = &MsgSubmitProofHash{}, &MsgSubmitProofDetail{}, &MsgSubmitProofVerification{}
+	_, _, _, _       sdk.Msg = &MsgSubmitProofHash{}, &MsgSubmitProofDetail{}, &MsgSubmitProofVerification{}, &MsgUpdateTheoremComplexity{}
 	_                sdk.Msg = &MsgWithdrawReward{}
 )
 
@@ -150,6 +150,14 @@ func NewMsgSubmitProofVerification(proofID string, status ProofStatus, checker s
 		Checker:    checker,
 		Complexity: complexity,
 		Imports:    imports,
+	}
+}
+
+func NewMsgUpdateTheoremComplexity(theoremID uint64, checker string, complexity int64) *MsgUpdateTheoremComplexity {
+	return &MsgUpdateTheoremComplexity{
+		TheoremId:  theoremID,
+		Checker:    checker,
+		Complexity: complexity,
 	}
 }
 
