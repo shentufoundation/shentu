@@ -83,6 +83,17 @@ func InitGenesis(ctx sdk.Context, ak types.AccountKeeper, k keeper.Keeper, data 
 		}
 	}
 
+	// initialize imported rewards
+	for _, reward := range data.ImportedRewards {
+		addr, err := ak.AddressCodec().StringToBytes(reward.Address)
+		if err != nil {
+			return err
+		}
+		if err := k.ImportedRewards.Set(ctx, addr, *reward); err != nil {
+			return err
+		}
+	}
+
 	// initialize params
 	if err := k.Params.Set(ctx, *data.Params); err != nil {
 		return err
@@ -110,13 +121,14 @@ func InitGenesis(ctx sdk.Context, ak types.AccountKeeper, k keeper.Keeper, data 
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	var (
-		programs []*types.Program
-		findings []*types.Finding
-		theorems []*types.Theorem
-		proofs   []*types.Proof
-		grants   []*types.Grant
-		rewards  []*types.Reward
-		deposits []*types.Deposit
+		programs        []*types.Program
+		findings        []*types.Finding
+		theorems        []*types.Theorem
+		proofs          []*types.Proof
+		grants          []*types.Grant
+		rewards         []*types.Reward
+		importedRewards []*types.Reward
+		deposits        []*types.Deposit
 	)
 
 	err := k.Programs.Walk(ctx, nil, func(_ string, value types.Program) (stop bool, err error) {
@@ -167,6 +179,14 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		panic(err)
 	}
 
+	err = k.ImportedRewards.Walk(ctx, nil, func(_ sdk.AccAddress, value types.Reward) (stop bool, err error) {
+		importedRewards = append(importedRewards, &value)
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	err = k.Deposits.Walk(ctx, nil, func(_ collections.Pair[string, sdk.AccAddress], value types.Deposit) (stop bool, err error) {
 		deposits = append(deposits, &value)
 		return false, nil
@@ -193,6 +213,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		Proofs:            proofs,
 		Grants:            grants,
 		Rewards:           rewards,
+		ImportedRewards:   importedRewards,
 		Deposits:          deposits,
 		Params:            &params,
 	}

@@ -154,5 +154,16 @@ func ValidateGenesis(data *GenesisState) error {
 		}
 	}
 
+	// Validate imported rewards
+	for _, reward := range data.ImportedRewards {
+		if len(reward.Address) == 0 {
+			return errorsmod.Wrap(ErrProofOperatorNotAllowed, "imported reward address cannot be empty")
+		}
+
+		if err := ValidateReward(reward); err != nil {
+			return errorsmod.Wrapf(err, "invalid imported reward for address %s", reward.Address)
+		}
+	}
+
 	return nil
 }
