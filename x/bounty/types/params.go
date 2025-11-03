@@ -62,6 +62,10 @@ func (p Params) Validate() error {
 		return fmt.Errorf("proof max lock period cannot be nil")
 	}
 
+	if !p.ComplexityFee.IsValid() {
+		return fmt.Errorf("complexity fee is invalid: %s", p.ComplexityFee)
+	}
+
 	if p.MaxComplexity <= 0 {
 		return fmt.Errorf("max complexity must be positive, got %d", p.MaxComplexity)
 	}
