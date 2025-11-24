@@ -282,6 +282,7 @@ func NewShentuApp(
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
+	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
 	app.CapabilityKeeper.Seal()
 
 	// initialize keepers
@@ -510,7 +511,7 @@ func NewShentuApp(
 		app.IBCFeeKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.PortKeeper,
-		app.scopedWasmKeeper,
+		scopedWasmKeeper,
 		app.TransferKeeper,
 		bApp.MsgServiceRouter(),
 		bApp.GRPCQueryRouter(),
@@ -725,6 +726,7 @@ func NewShentuApp(
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
 	app.ScopedICAHostKeeper = scopedICAHostKeeper
+	app.scopedWasmKeeper = scopedWasmKeeper
 
 	return app
 }
