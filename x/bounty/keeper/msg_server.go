@@ -720,7 +720,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 		return nil, err
 	}
 	if exists {
-		return nil, types.ErrProofAlreadyExists
+		return nil, types.ErrProofAlreadyExist
 	}
 
 	// check if theorem exists and is in proof period

@@ -97,7 +97,7 @@ func ValidateGenesis(data *GenesisState) error {
 		}
 
 		if proofs[proof.Id] {
-			return errorsmod.Wrapf(ErrProofAlreadyExists, "duplicate proof id %s", proof.Id)
+			return errorsmod.Wrapf(ErrProofAlreadyExist, "duplicate proof id %s", proof.Id)
 		}
 
 		if err := ValidateProof(proof); err != nil {
@@ -131,11 +131,11 @@ func ValidateGenesis(data *GenesisState) error {
 	// Validate deposits
 	for _, deposit := range data.Deposits {
 		if len(deposit.ProofId) == 0 {
-			return errorsmod.Wrap(ErrProofStatusInvalid, "deposit proof id cannot be empty")
+			return ErrInvalidDepositProofID
 		}
 
 		if !proofs[deposit.ProofId] {
-			return errorsmod.Wrapf(ErrProofAlreadyExists, "proof %s for deposit does not exist", deposit.ProofId)
+			return errorsmod.Wrapf(ErrProofNotExist, "%s", deposit.ProofId)
 		}
 
 		if err := ValidateDeposit(deposit); err != nil {
@@ -151,6 +151,17 @@ func ValidateGenesis(data *GenesisState) error {
 
 		if err := ValidateReward(reward); err != nil {
 			return errorsmod.Wrapf(err, "invalid reward for address %s", reward.Address)
+		}
+	}
+
+	// Validate imported rewards
+	for _, reward := range data.ImportedRewards {
+		if len(reward.Address) == 0 {
+			return errorsmod.Wrap(ErrProofOperatorNotAllowed, "imported reward address cannot be empty")
+		}
+
+		if err := ValidateReward(reward); err != nil {
+			return errorsmod.Wrapf(err, "invalid imported reward for address %s", reward.Address)
 		}
 	}
 

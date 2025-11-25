@@ -63,8 +63,9 @@ var (
 var (
 	ErrProofStatusInvalid      = errors.Register(ModuleName, 401, "proof status not hash locked")
 	ErrProofOperatorNotAllowed = errors.Register(ModuleName, 402, "proof access denied")
-	ErrProofAlreadyExists      = errors.Register(ModuleName, 403, "proof already exists")
+	ErrProofAlreadyExist       = errors.Register(ModuleName, 403, "proof already exist")
 	ErrProofHashInvalid        = errors.Register(ModuleName, 404, "invalid proof hash")
+	ErrProofNotExist           = errors.Register(ModuleName, 405, "proof does not exist.")
 )
 
 // [5xx] Deposit & Distribution
@@ -74,4 +75,5 @@ var (
 	ErrInvalidDepositDenom      = errors.Register(ModuleName, 503, "invalid deposit denom")
 	ErrInsufficientGrantChecker = errors.Register(ModuleName, 504, "insufficient grant for checker rewards")
 	ErrInsufficientGrantTotal   = errors.Register(ModuleName, 505, "insufficient grant for total distribution")
+	ErrInvalidDepositProofID    = errors.Register(ModuleName, 506, "proof_id for deposit is invalid.")
 )

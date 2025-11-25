@@ -138,7 +138,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 	err = cfg.RegisterMigration(types.ModuleName, 4, m.Migrate4to5)
 	if err != nil {
-		panic(fmt.Sprintf("failed to migrate x/bounty from version 4 to 6: %v", err))
+		panic(fmt.Sprintf("failed to migrate x/bounty from version 4 to 5: %v", err))
 	}
 }
 

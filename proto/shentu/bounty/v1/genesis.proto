@@ -23,4 +23,5 @@ message GenesisState {
   repeated Deposit deposits = 7;
   repeated Reward rewards = 8;
   Params params = 9;
+  repeated Reward imported_rewards = 10;
 }

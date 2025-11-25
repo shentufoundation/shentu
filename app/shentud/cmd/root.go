@@ -57,12 +57,15 @@ func NewRootCmd() *cobra.Command {
 	cfg.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 	cfg.Seal()
 
+	temp := tempDir()
+	defer os.RemoveAll(temp)
+
 	tempApp := app.NewShentuApp(
 		log.NewNopLogger(),
 		dbm.NewMemDB(),
 		nil,
 		true,
-		simtestutil.NewAppOptionsWithFlagHome(tempDir()),
+		simtestutil.NewAppOptionsWithFlagHome(temp),
 	)
 
 	encodingConfig := tempApp.EncodingConfig()
@@ -290,7 +293,6 @@ var tempDir = func() string {
 	if err != nil {
 		panic("failed to create temp dir: " + err.Error())
 	}
-	defer os.RemoveAll(dir)
 
 	return dir
 }
