@@ -594,6 +594,7 @@ func NewShentuApp(
 
 	app.mm.SetOrderPreBlockers(
 		upgradetypes.ModuleName,
+		authtypes.ModuleName,
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
