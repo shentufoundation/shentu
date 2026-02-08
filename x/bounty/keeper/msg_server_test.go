@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -1343,6 +1344,55 @@ func (suite *KeeperTestSuite) InitSubmitProofDetail(proofID string) {
 
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	_, err := suite.msgServer.SubmitProofDetail(ctx, submitDetailReq)
+	suite.Require().NoError(err)
+}
+
+// TestProofHashCaseInsensitivity tests that proof hashes are handled case-insensitively
+func (suite *KeeperTestSuite) TestProofHashCaseInsensitivity() {
+	theoremID := suite.InitCreateTheorem()
+	bondDenom, err := suite.app.StakingKeeper.BondDenom(suite.ctx)
+	suite.Require().NoError(err)
+
+	detail := "Case insensitive proof detail"
+	prover := suite.whiteHatAddr.String()
+	validHash := suite.app.BountyKeeper.GetProofHash(theoremID, prover, detail)
+	upperHash := strings.ToUpper(validHash)
+
+	ctx := sdk.WrapSDKContext(suite.ctx)
+
+	// 1. Submit uppercase hash
+	submitHashReq := &types.MsgSubmitProofHash{
+		TheoremId: theoremID,
+		Prover:    prover,
+		ProofHash: upperHash,
+		Deposit:   sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(500000))),
+	}
+	_, err = suite.msgServer.SubmitProofHash(ctx, submitHashReq)
+	suite.Require().NoError(err)
+
+	// Verify it was stored as lowercase
+	proof, err := suite.keeper.Proofs.Get(suite.ctx, validHash)
+	suite.Require().NoError(err)
+	suite.Require().Equal(validHash, proof.Id)
+
+	// 2. Submit detail using lowercase hash (should work)
+	submitDetailReq := &types.MsgSubmitProofDetail{
+		ProofId: validHash,
+		Prover:  prover,
+		Detail:  detail,
+	}
+	_, err = suite.msgServer.SubmitProofDetail(ctx, submitDetailReq)
+	suite.Require().NoError(err)
+
+	// 3. Verify using uppercase hash (should work too)
+	verifyReq := &types.MsgSubmitProofVerification{
+		ProofId:     upperHash,
+		Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+		Checker:     suite.bountyAdminAddr.String(),
+		Complexity:  1,
+		TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
+	}
+	_, err = suite.msgServer.SubmitProofVerification(ctx, verifyReq)
 	suite.Require().NoError(err)
 }
 

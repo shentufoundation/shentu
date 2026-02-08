@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -708,6 +709,7 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	if _, err := hex.DecodeString(msg.ProofHash); err != nil {
 		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "proofHash must be a valid hex string")
 	}
+	msg.ProofHash = strings.ToLower(msg.ProofHash)
 
 	proposer, err := k.validateAddress(msg.Prover)
 	if err != nil {
@@ -789,6 +791,7 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 	}); err != nil {
 		return nil, err
 	}
+	msg.ProofId = strings.ToLower(msg.ProofId)
 
 	// Get and validate the proof
 	proof, err := k.Proofs.Get(ctx, msg.ProofId)
@@ -857,6 +860,7 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	if !isValidProofStatus(msg.Status) {
 		return nil, types.ErrProofStatusInvalid
 	}
+	msg.ProofId = strings.ToLower(msg.ProofId)
 
 	// Get and validate proof
 	proof, err := k.validateProofStatus(ctx, msg.ProofId, types.ProofStatus_PROOF_STATUS_HASH_DETAIL_PERIOD)
