@@ -336,6 +336,7 @@ message MsgSubmitProofVerification {
   string checker = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   int64 complexity = 4;
   repeated uint64 imports = 5;
+  TheoremType theorem_type = 6;
 }
 
 // MsgSubmitProofVerificationResponse defines the Msg/SubmitProofVerification response type.

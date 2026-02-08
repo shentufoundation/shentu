@@ -877,7 +877,7 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	}
 
 	// Handle proof verification based on status
-	if err = k.handleProofVerification(ctx, msg.Status, *proof, checkerAddr, proverAddr, msg.Complexity, msg.Imports); err != nil {
+	if err = k.handleProofVerification(ctx, msg.Status, *proof, checkerAddr, proverAddr, msg.Complexity, msg.Imports, msg.TheoremType); err != nil {
 		return nil, err
 	}
 
@@ -1098,6 +1098,7 @@ func (k msgServer) handleProofVerification(
 	checkerAddr, proverAddr sdk.AccAddress,
 	complexity int64,
 	referenceTheorems []uint64,
+	theoremType types.TheoremType,
 ) error {
 	// Get params for max complexity validation
 	params, err := k.Params.Get(ctx)
@@ -1110,10 +1111,15 @@ func (k msgServer) handleProofVerification(
 		return err
 	}
 
+	// Validate theorem type
+	if err := types.ValidateTheoremType(theoremType); err != nil {
+		return err
+	}
+
 	proof.Status = status
 	switch status {
 	case types.ProofStatus_PROOF_STATUS_PASSED:
-		return k.handlePassedProof(ctx, proof, checkerAddr, proverAddr, complexity, referenceTheorems)
+		return k.handlePassedProof(ctx, proof, checkerAddr, proverAddr, complexity, referenceTheorems, theoremType)
 	case types.ProofStatus_PROOF_STATUS_FAILED:
 		return k.handleFailedProof(ctx, proof)
 	default:
@@ -1128,6 +1134,7 @@ func (k msgServer) handlePassedProof(
 	checkerAddr, proverAddr sdk.AccAddress,
 	complexity int64,
 	referenceTheorems []uint64,
+	theoremType types.TheoremType,
 ) error {
 	// update proof status
 	if err := k.Proofs.Set(ctx, proof.Id, proof); err != nil {
@@ -1157,7 +1164,7 @@ func (k msgServer) handlePassedProof(
 		return err
 	}
 
-	if err = k.DistributionGrants(ctx, theorem, checkerAddr, proverAddr); err != nil {
+	if err = k.DistributionGrants(ctx, theorem, theoremType, checkerAddr, proverAddr); err != nil {
 		return err
 	}
 

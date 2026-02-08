@@ -19,6 +19,14 @@ func ValidateComplexity(complexity int64, maxComplexity int64) error {
 	return nil
 }
 
+// ValidateTheoremType validates that the theorem type is specified (not UNSPECIFIED).
+func ValidateTheoremType(t TheoremType) error {
+	if t == TheoremType_THEOREM_TYPE_UNSPECIFIED {
+		return errorsmod.Wrap(ErrInvalidContent, "theorem type must be specified")
+	}
+	return nil
+}
+
 // ValidateProgram validates a program
 func ValidateProgram(program *Program) error {
 	if program == nil {

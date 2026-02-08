@@ -652,7 +652,16 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 				}
 			}
 
-			msg := types.NewMsgSubmitProofVerification(proofID, proofStatus, checker.String(), complexity, imports)
+			theoremTypeStr, err := cmd.Flags().GetString(FlagTheoremType)
+			if err != nil {
+				return err
+			}
+			theoremType, err := parseTheoremType(theoremTypeStr)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgSubmitProofVerification(proofID, proofStatus, checker.String(), complexity, imports, theoremType)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -662,13 +671,27 @@ func NewSubmitProofVerificationCmd() *cobra.Command {
 	cmd.Flags().String(FlagStatus, "", "The proof verification status (approved/rejected)")
 	cmd.Flags().Int64(FlagComplexity, 0, "The complexity")
 	cmd.Flags().String(FlagImports, "", "The imported theorem ids (comma-separated)")
+	cmd.Flags().String(FlagTheoremType, "", "The theorem type (rocq/lean)")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagProofID)
 	_ = cmd.MarkFlagRequired(FlagStatus)
+	_ = cmd.MarkFlagRequired(FlagTheoremType)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
+}
+
+// parseTheoremType parses the theorem type string into TheoremType enum.
+func parseTheoremType(s string) (types.TheoremType, error) {
+	switch strings.ToLower(s) {
+	case "rocq":
+		return types.TheoremType_THEOREM_TYPE_ROCQ, nil
+	case "lean":
+		return types.TheoremType_THEOREM_TYPE_LEAN, nil
+	default:
+		return types.TheoremType_THEOREM_TYPE_UNSPECIFIED, fmt.Errorf("invalid theorem type: %s (must be 'rocq' or 'lean')", s)
+	}
 }
 
 func NewWithdrawRewardCmd() *cobra.Command {

@@ -7,6 +7,7 @@ import (
 	v2 "github.com/shentufoundation/shentu/v2/x/bounty/migrations/v2"
 	v3 "github.com/shentufoundation/shentu/v2/x/bounty/migrations/v3"
 	v4 "github.com/shentufoundation/shentu/v2/x/bounty/migrations/v4"
+	v5 "github.com/shentufoundation/shentu/v2/x/bounty/migrations/v5"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -37,4 +38,10 @@ func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 // Migrate4to5 migrates from version 4 to 5.
 func (m Migrator) Migrate4to5(ctx sdk.Context) error {
 	return v4.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc)
+}
+
+// Migrate5to6 migrates from version 5 to 6.
+// Adds per-type complexity fees (complexity_fee_rocq, complexity_fee_lean).
+func (m Migrator) Migrate5to6(ctx sdk.Context) error {
+	return v5.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc)
 }
