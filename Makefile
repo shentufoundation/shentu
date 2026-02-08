@@ -313,7 +313,7 @@ start-localnet-ci: build
 	./build/shentud genesis gentx val 1000000000stake --home ~/.shentud-liveness --chain-id liveness --keyring-backend test
 	./build/shentud genesis collect-gentxs --home ~/.shentud-liveness
 	sed -i 's/minimum-gas-prices = ".*"/minimum-gas-prices = "0stake"/' ~/.shentud-liveness/config/app.toml
-	./build/shentud start --home ~/.shentud-liveness --x-crisis-skip-assert-invariants
+	./build/shentud start --home ~/.shentud-liveness
 
 .PHONY: start-localnet-ci
 

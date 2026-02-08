@@ -60,9 +60,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
-	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -185,7 +182,6 @@ type ShentuApp struct {
 	AccountKeeper         sdkauthkeeper.AccountKeeper
 	AuthzKeeper           authzkeeper.Keeper
 	BankKeeper            bankkeeper.Keeper
-	CrisisKeeper          *crisiskeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
@@ -361,15 +357,6 @@ func NewShentuApp(
 		app.MsgServiceRouter(),
 		app.AccountKeeper,
 	)
-	app.CrisisKeeper = crisiskeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[crisistypes.StoreKey]),
-		invCheckPeriod,
-		app.BankKeeper,
-		authtypes.FeeCollectorName,
-		authAddr,
-		app.AccountKeeper.AddressCodec(),
-	)
 	// get skipUpgradeHeights from the app options
 	skipUpgradeHeights := map[int64]bool{}
 	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
@@ -524,9 +511,6 @@ func NewShentuApp(
 
 	/****  Module Options ****/
 
-	// always skip genesis invariant for now
-	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
-
 	// NOTE: Any module instantiated in the module manager that is
 	// later modified must be passed by reference here.
 	app.mm = module.NewManager(
@@ -535,7 +519,6 @@ func NewShentuApp(
 		authz.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(sdkbanktypes.ModuleName)),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
-		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // skip genesis invariant check for now
 		distribution.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, *app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
 		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, *app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),
@@ -603,14 +586,14 @@ func NewShentuApp(
 	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, capabilitytypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName,
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName,
-		sdkauthz.ModuleName, sdkfeegrant.ModuleName, crisistypes.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName,
+		sdkauthz.ModuleName, sdkfeegrant.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName,
 		oracletypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
 	// unbonding delegations that staking endblocker deletes.
-	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, sdkgovtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName,
-		capabilitytypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
+	app.mm.SetOrderEndBlockers(sdkgovtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName, capabilitytypes.ModuleName,
+		authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
 		certtypes.ModuleName, oracletypes.ModuleName, bountytypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
@@ -629,7 +612,6 @@ func NewShentuApp(
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
 		shieldtypes.ModuleName,
-		crisistypes.ModuleName,
 		certtypes.ModuleName,
 		ibcexported.ModuleName,
 		icatypes.ModuleName,
@@ -656,7 +638,6 @@ func NewShentuApp(
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
-		crisistypes.ModuleName,
 		certtypes.ModuleName,
 		genutiltypes.ModuleName,
 		oracletypes.ModuleName,
@@ -675,7 +656,6 @@ func NewShentuApp(
 		wasmtypes.ModuleName,
 	)
 
-	app.mm.RegisterInvariants(app.CrisisKeeper)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	err = app.mm.RegisterServices(app.configurator)
 	if err != nil {
@@ -970,7 +950,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(sdkgovtypes.ModuleName)
-	paramsKeeper.Subspace(crisistypes.ModuleName)
 	keyTable := ibcclienttypes.ParamKeyTable()
 	keyTable.RegisterParamSet(&ibcconnectiontypes.Params{})
 	paramsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
@@ -993,7 +972,6 @@ func StoreKeys() (
 		authzkeeper.StoreKey,
 		sdkbanktypes.StoreKey,
 		stakingtypes.StoreKey,
-		crisistypes.StoreKey,
 		distrtypes.StoreKey,
 		sdkfeegrant.StoreKey,
 		sdkminttypes.StoreKey,
