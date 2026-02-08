@@ -1423,6 +1423,30 @@ func (suite *KeeperTestSuite) TestSubmitProofVerification() {
 			false,
 		},
 		{
+			"import self",
+			&types.MsgSubmitProofVerification{
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				Complexity:  1,
+				Imports:     []uint64{theoremID},
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
+			},
+			false,
+		},
+		{
+			"duplicate theorem imports",
+			&types.MsgSubmitProofVerification{
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				Complexity:  1,
+				Imports:     []uint64{1, 1},
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
+			},
+			false,
+		},
+		{
 			"valid verification - passed",
 			&types.MsgSubmitProofVerification{
 				ProofId:     validHash,

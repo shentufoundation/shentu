@@ -27,6 +27,21 @@ func ValidateTheoremType(t TheoremType) error {
 	return nil
 }
 
+// ValidateTheoremImports validates that theorem imports are unique and do not contain the theorem itself.
+func ValidateTheoremImports(theoremID uint64, imports []uint64) error {
+	seen := make(map[uint64]bool)
+	for _, id := range imports {
+		if id == theoremID {
+			return errorsmod.Wrapf(ErrInvalidContent, "theorem cannot import itself: %d", id)
+		}
+		if seen[id] {
+			return errorsmod.Wrapf(ErrInvalidContent, "duplicate theorem import: %d", id)
+		}
+		seen[id] = true
+	}
+	return nil
+}
+
 // ValidateProgram validates a program
 func ValidateProgram(program *Program) error {
 	if program == nil {

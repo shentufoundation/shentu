@@ -1116,6 +1116,11 @@ func (k msgServer) handleProofVerification(
 		return err
 	}
 
+	// Validate theorem imports
+	if err := types.ValidateTheoremImports(proof.TheoremId, referenceTheorems); err != nil {
+		return err
+	}
+
 	proof.Status = status
 	switch status {
 	case types.ProofStatus_PROOF_STATUS_PASSED:
