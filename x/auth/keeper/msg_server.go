@@ -26,6 +26,11 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) Unlock(goCtx context.Context, msg *types.MsgUnlock) (*types.MsgUnlockResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// stateless checks
+	if !msg.UnlockAmount.IsValid() || !msg.UnlockAmount.IsAllPositive() {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidCoins, "unlock amount must be valid and positive")
+	}
+
 	issuerAddr, err := sdk.AccAddressFromBech32(msg.Issuer)
 	if err != nil {
 		return nil, err
