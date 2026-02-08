@@ -3,8 +3,8 @@ package app
 import (
 	"errors"
 
-	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
-	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibcante "github.com/cosmos/ibc-go/v10/modules/core/ante"
+	"github.com/cosmos/ibc-go/v10/modules/core/keeper"
 
 	corestoretypes "cosmossdk.io/core/store"
 
