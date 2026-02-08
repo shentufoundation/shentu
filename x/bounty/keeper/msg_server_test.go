@@ -1350,10 +1350,11 @@ func (suite *KeeperTestSuite) InitSubmitProofDetail(proofID string) {
 func (suite *KeeperTestSuite) InitVerifyProof(proofID string, status types.ProofStatus) {
 	// Verify the proof
 	verifyReq := &types.MsgSubmitProofVerification{
-		ProofId:    proofID,
-		Status:     status,
-		Checker:    suite.bountyAdminAddr.String(),
-		Complexity: 1,
+		ProofId:     proofID,
+		Status:      status,
+		Checker:     suite.bountyAdminAddr.String(),
+		Complexity:  1,
+		TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 	}
 
 	ctx := sdk.WrapSDKContext(suite.ctx)
@@ -1384,46 +1385,51 @@ func (suite *KeeperTestSuite) TestSubmitProofVerification() {
 		{
 			"invalid proof ID",
 			&types.MsgSubmitProofVerification{
-				ProofId: "invalid-hash",
-				Status:  types.ProofStatus_PROOF_STATUS_PASSED,
-				Checker: suite.bountyAdminAddr.String(),
+				ProofId:     "invalid-hash",
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			false,
 		},
 		{
 			"non-existent proof ID",
 			&types.MsgSubmitProofVerification{
-				ProofId: "0000000000000000000000000000000000000000000000000000000000000000",
-				Status:  types.ProofStatus_PROOF_STATUS_PASSED,
-				Checker: suite.bountyAdminAddr.String(),
+				ProofId:     "0000000000000000000000000000000000000000000000000000000000000000",
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			false,
 		},
 		{
 			"unauthorized checker",
 			&types.MsgSubmitProofVerification{
-				ProofId: validHash,
-				Status:  types.ProofStatus_PROOF_STATUS_PASSED,
-				Checker: suite.normalAddr.String(), // Not a bounty admin
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.normalAddr.String(), // Not a bounty admin
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			false,
 		},
 		{
 			"invalid status",
 			&types.MsgSubmitProofVerification{
-				ProofId: validHash,
-				Status:  types.ProofStatus_PROOF_STATUS_UNSPECIFIED, // Invalid status
-				Checker: suite.bountyAdminAddr.String(),
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_UNSPECIFIED, // Invalid status
+				Checker:     suite.bountyAdminAddr.String(),
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			false,
 		},
 		{
 			"valid verification - passed",
 			&types.MsgSubmitProofVerification{
-				ProofId:    validHash,
-				Status:     types.ProofStatus_PROOF_STATUS_PASSED,
-				Checker:    suite.bountyAdminAddr.String(),
-				Complexity: 1,
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				Complexity:  1,
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			true,
 		},
@@ -1526,9 +1532,10 @@ func (suite *KeeperTestSuite) TestSubmitProofVerificationFailed() {
 
 	// Create verification request for failed proof
 	verifyReq := &types.MsgSubmitProofVerification{
-		ProofId: validHash,
-		Status:  types.ProofStatus_PROOF_STATUS_FAILED,
-		Checker: suite.bountyAdminAddr.String(),
+		ProofId:     validHash,
+		Status:      types.ProofStatus_PROOF_STATUS_FAILED,
+		Checker:     suite.bountyAdminAddr.String(),
+		TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 	}
 
 	// Submit verification
