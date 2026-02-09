@@ -13,6 +13,7 @@ option go_package = "github.com/shentufoundation/shentu/x/oracle/types";
 
 // Msg defines the shield Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   rpc CreateOperator(MsgCreateOperator) returns (MsgCreateOperatorResponse);
   rpc RemoveOperator(MsgRemoveOperator) returns (MsgRemoveOperatorResponse);
   rpc AddCollateral(MsgAddCollateral) returns (MsgAddCollateralResponse);

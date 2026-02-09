@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -1346,14 +1347,64 @@ func (suite *KeeperTestSuite) InitSubmitProofDetail(proofID string) {
 	suite.Require().NoError(err)
 }
 
+// TestProofHashCaseInsensitivity tests that proof hashes are handled case-insensitively
+func (suite *KeeperTestSuite) TestProofHashCaseInsensitivity() {
+	theoremID := suite.InitCreateTheorem()
+	bondDenom, err := suite.app.StakingKeeper.BondDenom(suite.ctx)
+	suite.Require().NoError(err)
+
+	detail := "Case insensitive proof detail"
+	prover := suite.whiteHatAddr.String()
+	validHash := suite.app.BountyKeeper.GetProofHash(theoremID, prover, detail)
+	upperHash := strings.ToUpper(validHash)
+
+	ctx := sdk.WrapSDKContext(suite.ctx)
+
+	// 1. Submit uppercase hash
+	submitHashReq := &types.MsgSubmitProofHash{
+		TheoremId: theoremID,
+		Prover:    prover,
+		ProofHash: upperHash,
+		Deposit:   sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(500000))),
+	}
+	_, err = suite.msgServer.SubmitProofHash(ctx, submitHashReq)
+	suite.Require().NoError(err)
+
+	// Verify it was stored as lowercase
+	proof, err := suite.keeper.Proofs.Get(suite.ctx, validHash)
+	suite.Require().NoError(err)
+	suite.Require().Equal(validHash, proof.Id)
+
+	// 2. Submit detail using lowercase hash (should work)
+	submitDetailReq := &types.MsgSubmitProofDetail{
+		ProofId: validHash,
+		Prover:  prover,
+		Detail:  detail,
+	}
+	_, err = suite.msgServer.SubmitProofDetail(ctx, submitDetailReq)
+	suite.Require().NoError(err)
+
+	// 3. Verify using uppercase hash (should work too)
+	verifyReq := &types.MsgSubmitProofVerification{
+		ProofId:     upperHash,
+		Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+		Checker:     suite.bountyAdminAddr.String(),
+		Complexity:  1,
+		TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
+	}
+	_, err = suite.msgServer.SubmitProofVerification(ctx, verifyReq)
+	suite.Require().NoError(err)
+}
+
 // Helper function to initialize proof verification
 func (suite *KeeperTestSuite) InitVerifyProof(proofID string, status types.ProofStatus) {
 	// Verify the proof
 	verifyReq := &types.MsgSubmitProofVerification{
-		ProofId:    proofID,
-		Status:     status,
-		Checker:    suite.bountyAdminAddr.String(),
-		Complexity: 1,
+		ProofId:     proofID,
+		Status:      status,
+		Checker:     suite.bountyAdminAddr.String(),
+		Complexity:  1,
+		TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 	}
 
 	ctx := sdk.WrapSDKContext(suite.ctx)
@@ -1384,46 +1435,75 @@ func (suite *KeeperTestSuite) TestSubmitProofVerification() {
 		{
 			"invalid proof ID",
 			&types.MsgSubmitProofVerification{
-				ProofId: "invalid-hash",
-				Status:  types.ProofStatus_PROOF_STATUS_PASSED,
-				Checker: suite.bountyAdminAddr.String(),
+				ProofId:     "invalid-hash",
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			false,
 		},
 		{
 			"non-existent proof ID",
 			&types.MsgSubmitProofVerification{
-				ProofId: "0000000000000000000000000000000000000000000000000000000000000000",
-				Status:  types.ProofStatus_PROOF_STATUS_PASSED,
-				Checker: suite.bountyAdminAddr.String(),
+				ProofId:     "0000000000000000000000000000000000000000000000000000000000000000",
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			false,
 		},
 		{
 			"unauthorized checker",
 			&types.MsgSubmitProofVerification{
-				ProofId: validHash,
-				Status:  types.ProofStatus_PROOF_STATUS_PASSED,
-				Checker: suite.normalAddr.String(), // Not a bounty admin
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.normalAddr.String(), // Not a bounty admin
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			false,
 		},
 		{
 			"invalid status",
 			&types.MsgSubmitProofVerification{
-				ProofId: validHash,
-				Status:  types.ProofStatus_PROOF_STATUS_UNSPECIFIED, // Invalid status
-				Checker: suite.bountyAdminAddr.String(),
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_UNSPECIFIED, // Invalid status
+				Checker:     suite.bountyAdminAddr.String(),
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
+			},
+			false,
+		},
+		{
+			"import self",
+			&types.MsgSubmitProofVerification{
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				Complexity:  1,
+				Imports:     []uint64{theoremID},
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
+			},
+			false,
+		},
+		{
+			"duplicate theorem imports",
+			&types.MsgSubmitProofVerification{
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				Complexity:  1,
+				Imports:     []uint64{1, 1},
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			false,
 		},
 		{
 			"valid verification - passed",
 			&types.MsgSubmitProofVerification{
-				ProofId:    validHash,
-				Status:     types.ProofStatus_PROOF_STATUS_PASSED,
-				Checker:    suite.bountyAdminAddr.String(),
-				Complexity: 1,
+				ProofId:     validHash,
+				Status:      types.ProofStatus_PROOF_STATUS_PASSED,
+				Checker:     suite.bountyAdminAddr.String(),
+				Complexity:  1,
+				TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 			},
 			true,
 		},
@@ -1526,9 +1606,10 @@ func (suite *KeeperTestSuite) TestSubmitProofVerificationFailed() {
 
 	// Create verification request for failed proof
 	verifyReq := &types.MsgSubmitProofVerification{
-		ProofId: validHash,
-		Status:  types.ProofStatus_PROOF_STATUS_FAILED,
-		Checker: suite.bountyAdminAddr.String(),
+		ProofId:     validHash,
+		Status:      types.ProofStatus_PROOF_STATUS_FAILED,
+		Checker:     suite.bountyAdminAddr.String(),
+		TheoremType: types.TheoremType_THEOREM_TYPE_ROCQ,
 	}
 
 	// Submit verification

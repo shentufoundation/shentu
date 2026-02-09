@@ -34,7 +34,6 @@ import (
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -224,7 +223,6 @@ func TestAppImportExport(t *testing.T) {
 			oracletypes.ClosingTaskStoreKeyTimedPrefix, oracletypes.ExpireTaskStoreKeyPrefix,
 		}},
 		{app.GetKey(evidence.StoreKey), newApp.GetKey(evidence.StoreKey), [][]byte{}},
-		{app.GetKey(capabilitytypes.StoreKey), newApp.GetKey(capabilitytypes.StoreKey), [][]byte{}},
 		{app.GetKey(paramtypes.StoreKey), newApp.GetKey(paramtypes.StoreKey), [][]byte{}},
 		{app.GetKey(authzkeeper.StoreKey), newApp.GetKey(authzkeeper.StoreKey), [][]byte{authzkeeper.GrantKey, authzkeeper.GrantQueuePrefix}},
 	}

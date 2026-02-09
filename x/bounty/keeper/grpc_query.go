@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -203,6 +204,7 @@ func (q queryServer) Proof(c context.Context, req *types.QueryProofRequest) (*ty
 	if req.ProofId == "" {
 		return nil, status.Error(codes.InvalidArgument, "proof id can not be empty")
 	}
+	req.ProofId = strings.ToLower(req.ProofId)
 
 	proof, err := q.k.Proofs.Get(c, req.ProofId)
 	if err != nil {

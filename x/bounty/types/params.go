@@ -15,7 +15,7 @@ const (
 )
 
 // NewParams creates a new Params instance
-func NewParams(minGrant, minDeposit []sdk.Coin, theoremMaxProofPeriod, proofMaxLockPeriod time.Duration, complexityFee sdk.Coin, maxComplexity int64) Params {
+func NewParams(minGrant, minDeposit []sdk.Coin, theoremMaxProofPeriod, proofMaxLockPeriod time.Duration, complexityFee sdk.Coin, maxComplexity int64, complexityFeeRocq, complexityFeeLean sdk.Coin) Params {
 	return Params{
 		MinGrant:              minGrant,
 		MinDeposit:            minDeposit,
@@ -23,6 +23,8 @@ func NewParams(minGrant, minDeposit []sdk.Coin, theoremMaxProofPeriod, proofMaxL
 		ProofMaxLockPeriod:    &proofMaxLockPeriod,
 		ComplexityFee:         complexityFee,
 		MaxComplexity:         maxComplexity,
+		ComplexityFeeRocq:     complexityFeeRocq,
+		ComplexityFeeLean:     complexityFeeLean,
 	}
 }
 
@@ -36,12 +38,15 @@ func DefaultParams() Params {
 	theoremMaxProofPeriod := 120 * 24 * time.Hour
 	// Default proof max lock period: 15 minutes
 	proofMaxLockPeriod := 15 * time.Minute
-	// Default complexity fee: 10000uctk
+	// Default complexity fee: 10000uctk (deprecated, kept for compatibility)
 	complexityFee := sdk.NewCoin("uctk", sdkmath.NewInt(10000))
 	// Default max complexity: 1000000
 	maxComplexity := int64(1000000)
+	// Default per-type complexity fees
+	complexityFeeRocq := sdk.NewCoin("uctk", sdkmath.NewInt(10000))
+	complexityFeeLean := sdk.NewCoin("uctk", sdkmath.NewInt(10000))
 
-	return NewParams(minGrant, minDeposit, theoremMaxProofPeriod, proofMaxLockPeriod, complexityFee, maxComplexity)
+	return NewParams(minGrant, minDeposit, theoremMaxProofPeriod, proofMaxLockPeriod, complexityFee, maxComplexity, complexityFeeRocq, complexityFeeLean)
 }
 
 // Validate performs validation on params
@@ -70,7 +75,27 @@ func (p Params) Validate() error {
 		return fmt.Errorf("max complexity must be positive, got %d", p.MaxComplexity)
 	}
 
+	if !p.ComplexityFeeRocq.IsValid() {
+		return fmt.Errorf("complexity fee rocq is invalid: %s", p.ComplexityFeeRocq)
+	}
+
+	if !p.ComplexityFeeLean.IsValid() {
+		return fmt.Errorf("complexity fee lean is invalid: %s", p.ComplexityFeeLean)
+	}
+
 	return nil
+}
+
+// GetComplexityFeeByType returns the complexity fee for the given theorem type.
+func (p Params) GetComplexityFeeByType(t TheoremType) (sdk.Coin, error) {
+	switch t {
+	case TheoremType_THEOREM_TYPE_ROCQ:
+		return p.ComplexityFeeRocq, nil
+	case TheoremType_THEOREM_TYPE_LEAN:
+		return p.ComplexityFeeLean, nil
+	default:
+		return sdk.Coin{}, fmt.Errorf("unsupported theorem type: %s", t)
+	}
 }
 
 func validateMinGrant(i interface{}) error {

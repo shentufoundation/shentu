@@ -16,6 +16,7 @@ option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
 
 // Msg defines the staking Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   // CreateProgram defines a method for creating a new program.
   rpc CreateProgram(MsgCreateProgram) returns (MsgCreateProgramResponse);
 
@@ -336,6 +337,7 @@ message MsgSubmitProofVerification {
   string checker = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   int64 complexity = 4;
   repeated uint64 imports = 5;
+  TheoremType theorem_type = 6;
 }
 
 // MsgSubmitProofVerificationResponse defines the Msg/SubmitProofVerification response type.

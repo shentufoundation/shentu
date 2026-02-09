@@ -364,23 +364,26 @@ func (suite *KeeperTestSuite) TestDistributionGrants() {
 	// Distribute rewards
 	checker := suite.whiteHatAddr
 	prover := suite.programAddr
-	err = suite.keeper.DistributionGrants(suite.ctx, theorem, checker, prover)
+	theoremType := types.TheoremType_THEOREM_TYPE_ROCQ
+	err = suite.keeper.DistributionGrants(suite.ctx, theorem, theoremType, checker, prover)
 	require.NoError(suite.T(), err)
 
 	// Calculate expected rewards based on actual implementation
 	totalGrant := sdk.NewDecCoinsFromCoins(grantAmount...)
-	complexityFeeAmount := math.LegacyNewDecFromInt(params.ComplexityFee.Amount)
+	complexityFee, err := params.GetComplexityFeeByType(theoremType)
+	require.NoError(suite.T(), err)
+	complexityFeeAmount := math.LegacyNewDecFromInt(complexityFee.Amount)
 
 	// 1. Checker rewards: complexity * complexityFee
 	expectedCheckerRewardAmount := complexityFeeAmount.MulInt64(complexity)
-	expectedCheckerReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedCheckerRewardAmount))
+	expectedCheckerReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(complexityFee.Denom, expectedCheckerRewardAmount))
 
 	// 2. Imported rewards: (Complexity / (ImportedCount + 1)) * ComplexityFee
 	complexityDec := math.LegacyNewDec(refTheorem.Complexity)
 	importedCountDec := math.LegacyNewDec(refTheorem.ImportedCount + 1) // 0 + 1 = 1
 	normalizedComplexity := complexityDec.Quo(importedCountDec)
 	expectedImportedRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
-	expectedImportedReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedImportedRewardAmount))
+	expectedImportedReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(complexityFee.Denom, expectedImportedRewardAmount))
 
 	// 3. Prover rewards: remaining after checker and imported rewards
 	expectedProverReward := totalGrant.Sub(expectedCheckerReward).Sub(expectedImportedReward)
@@ -454,7 +457,7 @@ func (suite *KeeperTestSuite) TestDistributionGrantsInsufficientFunds() {
 	}
 	require.NoError(suite.T(), suite.keeper.Theorems.Set(suite.ctx, theorem1.Id, theorem1))
 
-	err = suite.keeper.DistributionGrants(suite.ctx, theorem1, suite.whiteHatAddr, suite.programAddr)
+	err = suite.keeper.DistributionGrants(suite.ctx, theorem1, types.TheoremType_THEOREM_TYPE_ROCQ, suite.whiteHatAddr, suite.programAddr)
 	require.Error(suite.T(), err)
 	require.ErrorIs(suite.T(), err, types.ErrInsufficientGrantChecker)
 
@@ -490,7 +493,7 @@ func (suite *KeeperTestSuite) TestDistributionGrantsInsufficientFunds() {
 	}
 	require.NoError(suite.T(), suite.keeper.Theorems.Set(suite.ctx, theorem2.Id, theorem2))
 
-	err = suite.keeper.DistributionGrants(suite.ctx, theorem2, suite.whiteHatAddr, suite.programAddr)
+	err = suite.keeper.DistributionGrants(suite.ctx, theorem2, types.TheoremType_THEOREM_TYPE_ROCQ, suite.whiteHatAddr, suite.programAddr)
 	require.Error(suite.T(), err)
 	require.ErrorIs(suite.T(), err, types.ErrInsufficientGrantTotal)
 
@@ -511,14 +514,17 @@ func (suite *KeeperTestSuite) TestDistributionGrantsInsufficientFunds() {
 	}
 	require.NoError(suite.T(), suite.keeper.Theorems.Set(suite.ctx, theorem3.Id, theorem3))
 
-	err = suite.keeper.DistributionGrants(suite.ctx, theorem3, suite.whiteHatAddr, suite.programAddr)
+	theoremType := types.TheoremType_THEOREM_TYPE_ROCQ
+	err = suite.keeper.DistributionGrants(suite.ctx, theorem3, theoremType, suite.whiteHatAddr, suite.programAddr)
 	require.NoError(suite.T(), err)
 
 	// Verify checker got exact amount
 	checkerReward, err := suite.keeper.Rewards.Get(suite.ctx, suite.whiteHatAddr)
 	require.NoError(suite.T(), err)
-	expectedCheckerAmount := math.LegacyNewDecFromInt(params.ComplexityFee.Amount).MulInt64(complexity3)
-	expectedChecker := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedCheckerAmount))
+	complexityFee, err := params.GetComplexityFeeByType(theoremType)
+	require.NoError(suite.T(), err)
+	expectedCheckerAmount := math.LegacyNewDecFromInt(complexityFee.Amount).MulInt64(complexity3)
+	expectedChecker := sdk.NewDecCoins(sdk.NewDecCoinFromDec(complexityFee.Denom, expectedCheckerAmount))
 	require.True(suite.T(), expectedChecker.Equal(checkerReward.Reward))
 
 	// Verify prover got zero
@@ -586,16 +592,19 @@ func (suite *KeeperTestSuite) TestDistributionGrantsMultipleImports() {
 	// Distribute rewards
 	checker := suite.whiteHatAddr
 	prover := suite.normalAddr // Different from checker
-	err = suite.keeper.DistributionGrants(suite.ctx, theorem, checker, prover)
+	theoremType := types.TheoremType_THEOREM_TYPE_ROCQ
+	err = suite.keeper.DistributionGrants(suite.ctx, theorem, theoremType, checker, prover)
 	require.NoError(suite.T(), err)
 
 	// Calculate expected rewards
 	totalGrant := sdk.NewDecCoinsFromCoins(grantAmount...)
-	complexityFeeAmount := math.LegacyNewDecFromInt(params.ComplexityFee.Amount)
+	complexityFee, err := params.GetComplexityFeeByType(theoremType)
+	require.NoError(suite.T(), err)
+	complexityFeeAmount := math.LegacyNewDecFromInt(complexityFee.Amount)
 
 	// 1. Expected checker reward
 	expectedCheckerAmount := complexityFeeAmount.MulInt64(complexity)
-	expectedCheckerReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedCheckerAmount))
+	expectedCheckerReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(complexityFee.Denom, expectedCheckerAmount))
 
 	// 2. Expected imported rewards for each reference
 	expectedImportedRewards := make(map[string]sdk.DecCoins)
@@ -605,7 +614,7 @@ func (suite *KeeperTestSuite) TestDistributionGrantsMultipleImports() {
 		complexityDec := math.LegacyNewDec(refComplexities[i])
 		normalizedComplexity := complexityDec.QuoInt64(int64(i) + 1) // original ImportedCount + 1
 		refRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
-		refReward := sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, refRewardAmount)
+		refReward := sdk.NewDecCoinFromDec(complexityFee.Denom, refRewardAmount)
 
 		proposerStr := refProposers[i].String()
 		if existing, ok := expectedImportedRewards[proposerStr]; ok {
@@ -680,16 +689,19 @@ func (suite *KeeperTestSuite) TestDistributionGrantsNoImports() {
 	// Distribute rewards
 	checker := suite.whiteHatAddr
 	prover := suite.normalAddr
-	err = suite.keeper.DistributionGrants(suite.ctx, theorem, checker, prover)
+	theoremType := types.TheoremType_THEOREM_TYPE_ROCQ
+	err = suite.keeper.DistributionGrants(suite.ctx, theorem, theoremType, checker, prover)
 	require.NoError(suite.T(), err)
 
 	// Calculate expected rewards
 	totalGrant := sdk.NewDecCoinsFromCoins(grantAmount...)
-	complexityFeeAmount := math.LegacyNewDecFromInt(params.ComplexityFee.Amount)
+	complexityFee, err := params.GetComplexityFeeByType(theoremType)
+	require.NoError(suite.T(), err)
+	complexityFeeAmount := math.LegacyNewDecFromInt(complexityFee.Amount)
 
 	// Checker reward
 	expectedCheckerAmount := complexityFeeAmount.MulInt64(complexity)
-	expectedCheckerReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, expectedCheckerAmount))
+	expectedCheckerReward := sdk.NewDecCoins(sdk.NewDecCoinFromDec(complexityFee.Denom, expectedCheckerAmount))
 
 	// Prover gets everything else (no imported rewards)
 	expectedProverReward := totalGrant.Sub(expectedCheckerReward)

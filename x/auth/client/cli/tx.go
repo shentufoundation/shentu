@@ -51,9 +51,6 @@ func GetCmdUnlock() *cobra.Command {
 			}
 
 			msg := types.NewMsgUnlock(cliCtx.GetFromAddress(), addr, amount)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
 
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},

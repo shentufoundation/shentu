@@ -211,11 +211,17 @@ message Params {
   // Duration of the proof max lock period. 10min
   google.protobuf.Duration proof_max_lock_period = 4 [(gogoproto.stdduration) = true];
 
-  // Minimum fee for a complexity.
+  // Deprecated: use complexity_fee_rocq / complexity_fee_lean instead.
   cosmos.base.v1beta1.Coin complexity_fee = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
   // Maximum allowed complexity to prevent overflow and ensure reasonable reward calculations.
   int64 max_complexity = 6;
+
+  // Complexity fee for Rocq theorems.
+  cosmos.base.v1beta1.Coin complexity_fee_rocq = 7 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // Complexity fee for Lean theorems.
+  cosmos.base.v1beta1.Coin complexity_fee_lean = 8 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
 enum TheoremStatus {
@@ -242,6 +248,15 @@ enum ProofStatus {
   PROOF_STATUS_PASSED = 4;
   // theorem that has failed.
   PROOF_STATUS_FAILED = 5;
+}
+
+enum TheoremType {
+  // default theorem type.
+  THEOREM_TYPE_UNSPECIFIED = 0;
+  // Rocq theorem type.
+  THEOREM_TYPE_ROCQ = 1;
+  // Lean theorem type.
+  THEOREM_TYPE_LEAN = 2;
 }
 
 message Reward {

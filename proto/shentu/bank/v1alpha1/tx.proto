@@ -11,6 +11,7 @@ option go_package = "github.com/shentufoundation/shentu/x/bank/types";
 
 // Msg defines the bank Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   // LockedSend defines a method for sending coins and locking them from one
   // account to another account.
   rpc LockedSend(MsgLockedSend) returns (MsgLockedSendResponse);

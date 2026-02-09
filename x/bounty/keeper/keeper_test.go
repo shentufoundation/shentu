@@ -76,6 +76,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 		ProofMaxLockPeriod:    &proofMaxLockPeriod,
 		ComplexityFee:         complexityFee,
 		MaxComplexity:         1000000,
+		ComplexityFeeRocq:     complexityFee,
+		ComplexityFeeLean:     complexityFee,
 	}
 	err = suite.keeper.Params.Set(suite.ctx, params)
 	suite.Require().NoError(err)

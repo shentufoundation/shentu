@@ -273,11 +273,23 @@ docker-build-hermes:
 
 docker-build-all: docker-build-debug docker-build-hermes
 
+# E2E debug: use default GOPROXY (avoids goproxy.cn lookup), run single suite
+# Usage: make test-e2e-debug [E2E_RUN=TestIntegrationTestSuite/TestBank]
+E2E_RUN ?= TestIntegrationTestSuite
+test-e2e-debug:
+	@echo "--> Running e2e with GOPROXY=https://proxy.golang.org,direct (override: E2E_RUN=$(E2E_RUN))"
+	@go test -mod=readonly -v -timeout=35m -count=1 -run '$(E2E_RUN)' $(PACKAGES_E2E)
+
+# E2E build-only: verify deps and compile without running tests
+test-e2e-build:
+	@echo "--> Building e2e tests only (no run)"
+	@go test -mod=readonly -c -o /tmp/e2e.test $(PACKAGES_E2E) && echo "Build OK: /tmp/e2e.test"
+
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################
 golangci_lint_cmd=golangci-lint
-golangci_version=v1.60.1
+golangci_version=v1.63.4
 
 tidy:
 	@gofmt -s -w .
@@ -313,7 +325,7 @@ start-localnet-ci: build
 	./build/shentud genesis gentx val 1000000000stake --home ~/.shentud-liveness --chain-id liveness --keyring-backend test
 	./build/shentud genesis collect-gentxs --home ~/.shentud-liveness
 	sed -i 's/minimum-gas-prices = ".*"/minimum-gas-prices = "0stake"/' ~/.shentud-liveness/config/app.toml
-	./build/shentud start --home ~/.shentud-liveness --x-crisis-skip-assert-invariants
+	./build/shentud start --home ~/.shentud-liveness
 
 .PHONY: start-localnet-ci
 
@@ -339,4 +351,3 @@ test-docker-push: test-docker
 #build-linux: go.sum
 #	CGO_ENABLED=1 LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 #
-

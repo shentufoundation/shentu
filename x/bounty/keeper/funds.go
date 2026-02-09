@@ -96,7 +96,7 @@ func (k Keeper) IterateGrants(ctx context.Context, theoremID uint64, cb func(key
 }
 
 // DistributionGrants distributes rewards to checker, reference theorem proposers, and prover
-func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, checker, prover sdk.AccAddress) error {
+func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, theoremType types.TheoremType, checker, prover sdk.AccAddress) error {
 	// ========== Phase 1: Collect and Calculate ==========
 
 	// Get parameters
@@ -105,6 +105,12 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 		return err
 	}
 	currentComplexity := theorem.GetComplexity()
+
+	// Get type-specific complexity fee
+	complexityFee, err := param.GetComplexityFeeByType(theoremType)
+	if err != nil {
+		return err
+	}
 
 	// Collect reference theorems and calculate total complexity
 	importedRewards := make([]importedReward, 0, len(theorem.Imports))
@@ -127,11 +133,11 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 
 	// Calculate all rewards
 	totalGrant := sdk.NewDecCoinsFromCoins(theorem.TotalGrant...)
-	complexityFeeAmount := sdkmath.LegacyNewDecFromInt(param.ComplexityFee.Amount)
+	complexityFeeAmount := sdkmath.LegacyNewDecFromInt(complexityFee.Amount)
 
 	// 1. Checker rewards: current theorem's complexity * complexity_fee
 	checkerRewardAmount := complexityFeeAmount.MulInt64(currentComplexity)
-	checkerRewards := sdk.NewDecCoins(sdk.NewDecCoinFromDec(param.ComplexityFee.Denom, checkerRewardAmount))
+	checkerRewards := sdk.NewDecCoins(sdk.NewDecCoinFromDec(complexityFee.Denom, checkerRewardAmount))
 
 	// 2. Imported rewards: using inverse proportional function
 	// reward = (Complexity / (ImportedCount + 1)) * ComplexityFee
@@ -144,7 +150,7 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, c
 
 		// Multiply by complexity fee
 		refRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
-		importedRewards[i].reward = sdk.NewDecCoinFromDec(param.ComplexityFee.Denom, refRewardAmount)
+		importedRewards[i].reward = sdk.NewDecCoinFromDec(complexityFee.Denom, refRewardAmount)
 		totalImportedRewards = totalImportedRewards.Add(importedRewards[i].reward)
 	}
 
@@ -363,20 +369,6 @@ func (k Keeper) ValidateFunds(ctx context.Context, amount sdk.Coins, fundsType s
 		return nil, errors.Wrap(sdkerrors.ErrInvalidCoins, amount.String())
 	}
 
-	// Build accepted denominations map once for efficiency
-	acceptedDenoms := make(map[string]bool, len(params.MinGrant))
-	for _, coin := range params.MinGrant {
-		acceptedDenoms[coin.Denom] = true
-	}
-
-	// Validate denominations - fail fast on first invalid denom
-	for _, coin := range amount {
-		if !acceptedDenoms[coin.Denom] {
-			return nil, errors.Wrapf(types.ErrInvalidDepositDenom,
-				"invalid denomination: %s", coin.Denom)
-		}
-	}
-
 	// Determine minimum amount and error type based on funds type
 	var minAmount sdk.Coins
 	var errType error
@@ -390,6 +382,20 @@ func (k Keeper) ValidateFunds(ctx context.Context, amount sdk.Coins, fundsType s
 		errType = types.ErrMinDepositTooSmall
 	default:
 		return nil, fmt.Errorf("invalid funds type: %s", fundsType)
+	}
+
+	// Build accepted denominations map once for efficiency
+	acceptedDenoms := make(map[string]bool, len(minAmount))
+	for _, coin := range minAmount {
+		acceptedDenoms[coin.Denom] = true
+	}
+
+	// Validate denominations - fail fast on first invalid denom
+	for _, coin := range amount {
+		if !acceptedDenoms[coin.Denom] {
+			return nil, errors.Wrapf(types.ErrInvalidDepositDenom,
+				"invalid denomination: %s", coin.Denom)
+		}
 	}
 
 	// Check minimum amount after denomination validation
