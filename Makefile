@@ -289,7 +289,7 @@ test-e2e-build:
 ###                                Linting                                  ###
 ###############################################################################
 golangci_lint_cmd=golangci-lint
-golangci_version=v1.60.1
+golangci_version=v1.63.4
 
 tidy:
 	@gofmt -s -w .
@@ -351,4 +351,3 @@ test-docker-push: test-docker
 #build-linux: go.sum
 #	CGO_ENABLED=1 LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 #
-
