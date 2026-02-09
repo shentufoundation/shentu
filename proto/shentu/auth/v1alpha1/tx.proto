@@ -10,6 +10,7 @@ option go_package = "github.com/shentufoundation/shentu/x/auth/types";
 
 // Msg defines the auth Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   // Unlock defines a method for unlocking coins from a manual vesting
   // account.
   rpc Unlock(MsgUnlock) returns (MsgUnlockResponse);

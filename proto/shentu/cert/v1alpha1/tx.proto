@@ -14,6 +14,7 @@ option go_package = "github.com/shentufoundation/shentu/x/cert/types";
 
 // Msg defines the shield Msg service.
 service Msg {
+    option (cosmos.msg.v1.service) = true;
     rpc ProposeCertifier(MsgProposeCertifier) returns (MsgProposeCertifierResponse);
     rpc IssueCertificate(MsgIssueCertificate) returns (MsgIssueCertificateResponse);
     rpc RevokeCertificate(MsgRevokeCertificate) returns (MsgRevokeCertificateResponse);
