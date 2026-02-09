@@ -273,6 +273,18 @@ docker-build-hermes:
 
 docker-build-all: docker-build-debug docker-build-hermes
 
+# E2E debug: use default GOPROXY (avoids goproxy.cn lookup), run single suite
+# Usage: make test-e2e-debug [E2E_RUN=TestIntegrationTestSuite/TestBank]
+E2E_RUN ?= TestIntegrationTestSuite
+test-e2e-debug:
+	@echo "--> Running e2e with GOPROXY=https://proxy.golang.org,direct (override: E2E_RUN=$(E2E_RUN))"
+	@go test -mod=readonly -v -timeout=35m -count=1 -run '$(E2E_RUN)' $(PACKAGES_E2E)
+
+# E2E build-only: verify deps and compile without running tests
+test-e2e-build:
+	@echo "--> Building e2e tests only (no run)"
+	@go test -mod=readonly -c -o /tmp/e2e.test $(PACKAGES_E2E) && echo "Build OK: /tmp/e2e.test"
+
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################

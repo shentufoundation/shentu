@@ -448,6 +448,11 @@ func NewShentuApp(
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
+	// register 07-tendermint light client module (ibc-go v10)
+	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
+	app.IBCKeeper.ClientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec,
@@ -506,7 +511,7 @@ func NewShentuApp(
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		ibc.NewAppModule(app.IBCKeeper),
-		ibctm.AppModule{},
+		ibctm.NewAppModule(tmLightClientModule),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		icaModule,

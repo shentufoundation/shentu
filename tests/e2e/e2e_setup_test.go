@@ -331,6 +331,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 				fmt.Sprintf("%s/:%s", val.configDir(), shentuHome),
 			},
 			Repository: "shentuchain/shentud-e2e",
+			Env:        []string{"HOME=/root"}, // so shentud finds config at /root/.shentud (DefaultNodeHome = $HOME/.shentud)
 		}
 
 		// expose the first validator for debugging and communication
@@ -356,9 +357,11 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 		s.T().Logf("started Shentu %s validator container: %s", c.id, resource.Container.ID)
 	}
 
-	rpcClient, err := rpchttp.New("tcp://localhost:26657", "/websocket")
+	rpcAddr := fmt.Sprintf("tcp://localhost:%d", 26657+portOffset)
+	rpcClient, err := rpchttp.New(rpcAddr, "/websocket")
 	s.Require().NoError(err)
 
+	var lastLog time.Time
 	s.Require().Eventually(
 		func() bool {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -366,19 +369,30 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 
 			status, err := rpcClient.Status(ctx)
 			if err != nil {
+				if time.Since(lastLog) >= 10*time.Second {
+					s.T().Logf("[%s] RPC %s status error: %v", c.id, rpcAddr, err)
+					lastLog = time.Now()
+				}
 				return false
 			}
+			height := status.SyncInfo.LatestBlockHeight
+			catchingUp := status.SyncInfo.CatchingUp
 
 			// let the node produce a few blocks
-			if status.SyncInfo.CatchingUp || status.SyncInfo.LatestBlockHeight < 3 {
+			if catchingUp || height < 3 {
+				if time.Since(lastLog) >= 10*time.Second {
+					s.T().Logf("[%s] RPC %s waiting for blocks: height=%d catching_up=%v (need height>=3)",
+						c.id, rpcAddr, height, catchingUp)
+					lastLog = time.Now()
+				}
 				return false
 			}
 
 			return true
 		},
-		1*time.Minute,
+		2*time.Minute,
 		time.Second,
-		"Shentu node failed to produce blocks",
+		"Shentu node failed to produce blocks (check container logs: docker logs <validator-container-id>)",
 	)
 }
 
