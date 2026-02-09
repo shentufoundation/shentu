@@ -614,7 +614,7 @@ func (suite *KeeperTestSuite) TestDistributionGrantsMultipleImports() {
 		complexityDec := math.LegacyNewDec(refComplexities[i])
 		normalizedComplexity := complexityDec.QuoInt64(int64(i) + 1) // original ImportedCount + 1
 		refRewardAmount := complexityFeeAmount.Mul(normalizedComplexity)
-		refReward := sdk.NewDecCoinFromDec(params.ComplexityFee.Denom, refRewardAmount)
+		refReward := sdk.NewDecCoinFromDec(complexityFee.Denom, refRewardAmount)
 
 		proposerStr := refProposers[i].String()
 		if existing, ok := expectedImportedRewards[proposerStr]; ok {
