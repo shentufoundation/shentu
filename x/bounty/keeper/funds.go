@@ -369,20 +369,6 @@ func (k Keeper) ValidateFunds(ctx context.Context, amount sdk.Coins, fundsType s
 		return nil, errors.Wrap(sdkerrors.ErrInvalidCoins, amount.String())
 	}
 
-	// Build accepted denominations map once for efficiency
-	acceptedDenoms := make(map[string]bool, len(params.MinGrant))
-	for _, coin := range params.MinGrant {
-		acceptedDenoms[coin.Denom] = true
-	}
-
-	// Validate denominations - fail fast on first invalid denom
-	for _, coin := range amount {
-		if !acceptedDenoms[coin.Denom] {
-			return nil, errors.Wrapf(types.ErrInvalidDepositDenom,
-				"invalid denomination: %s", coin.Denom)
-		}
-	}
-
 	// Determine minimum amount and error type based on funds type
 	var minAmount sdk.Coins
 	var errType error
@@ -396,6 +382,20 @@ func (k Keeper) ValidateFunds(ctx context.Context, amount sdk.Coins, fundsType s
 		errType = types.ErrMinDepositTooSmall
 	default:
 		return nil, fmt.Errorf("invalid funds type: %s", fundsType)
+	}
+
+	// Build accepted denominations map once for efficiency
+	acceptedDenoms := make(map[string]bool, len(minAmount))
+	for _, coin := range minAmount {
+		acceptedDenoms[coin.Denom] = true
+	}
+
+	// Validate denominations - fail fast on first invalid denom
+	for _, coin := range amount {
+		if !acceptedDenoms[coin.Denom] {
+			return nil, errors.Wrapf(types.ErrInvalidDepositDenom,
+				"invalid denomination: %s", coin.Denom)
+		}
 	}
 
 	// Check minimum amount after denomination validation
