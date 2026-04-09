@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -35,21 +34,9 @@ func GetGenesisStateFromAppState(cdc codec.Codec, appState map[string]json.RawMe
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (p Platform) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(p.ValidatorPubkey, &pubKey)
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (g GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	for _, certificate := range g.Certificates {
 		err := certificate.UnpackInterfaces(unpacker)
-		if err != nil {
-			return err
-		}
-	}
-	for _, platform := range g.Platforms {
-		err := platform.UnpackInterfaces(unpacker)
 		if err != nil {
 			return err
 		}

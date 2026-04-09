@@ -11,8 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
@@ -35,7 +33,6 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	certTxCmds.AddCommand(
-		GetCmdCertifyPlatform(),
 		GetCmdIssueCertificate(),
 		GetCmdRevokeCertificate(),
 	)
@@ -103,59 +100,6 @@ func parseCertifyCompilationFlags() (string, string, error) {
 		return "", "", fmt.Errorf("bytecode hash is required to issue a compilation certificate")
 	}
 	return compiler, bytecodeHash, nil
-}
-
-// GetCmdCertifyPlatform returns the validator host platform certification transaction command.
-func GetCmdCertifyPlatform() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "certify-platform <validator pubkey> <platform>",
-		Short: "Certify a validator's host platform",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Certify a validator's host platform
-Example:
-$ %s tx cert certify-platform '{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"A/N4uA+0c7xg1nOI8eGSB5tYIiQXbLfAZif0/MnwdeJP\"}' test --from=<key_or_address>
-`,
-				version.AppName,
-			),
-		),
-		Args: cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			txf, err := tx.NewFactoryCLI(cliCtx, cmd.Flags())
-			if err != nil {
-				return err
-			}
-			txf = txf.WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			from := cliCtx.GetFromAddress()
-			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
-				return err
-			}
-
-			var validator cryptotypes.PubKey
-			err = cliCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &validator)
-			if err != nil {
-				return err
-			}
-
-			msg, err := types.NewMsgCertifyPlatform(from, validator, args[1])
-			if err != nil {
-				return err
-			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
 }
 
 // GetCmdRevokeCertificate returns the certificate revoke command

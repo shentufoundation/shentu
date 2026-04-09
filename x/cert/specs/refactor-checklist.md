@@ -72,75 +72,79 @@ Work should be executed in this order:
 
 ## Certificate Storage Refactor
 
-- [ ] Add new certificate index key prefixes
-- [ ] Add helper functions for certificate index keys
-- [ ] Add helper to write all certificate indexes
-- [ ] Add helper to delete all certificate indexes
-- [ ] Refactor `SetCertificate` to maintain indexes
-- [ ] Refactor `DeleteCertificate` to maintain indexes
-- [ ] Refactor `IssueCertificate` to use indexed storage path
-- [ ] Refactor `RevokeCertificate` to use indexed delete path
-- [ ] Refactor genesis init/export to preserve index consistency
+- [x] Add new certificate index key prefixes
+- [x] Add helper functions for certificate index keys
+- [x] Add helper to write all certificate indexes
+- [x] Add helper to delete all certificate indexes
+- [x] Refactor `SetCertificate` to maintain indexes
+- [x] Refactor `DeleteCertificate` to maintain indexes
+- [x] Refactor `IssueCertificate` to use indexed storage path
+- [x] Refactor `RevokeCertificate` to use indexed delete path
+- [x] Refactor genesis init/export to preserve index consistency
 
 ## Certificate Query Refactor
 
-- [ ] Replace full-scan filtered query with prefix-based pagination
-- [ ] Choose index dynamically for certifier/type/composite filters
-- [ ] Fix `total` semantics in `GetCertificatesFiltered`
-- [ ] Fix response assembly in gRPC query to use page result length
-- [ ] Refactor `IsCertified` to use indexed lookup
-- [ ] Refactor `IsContentCertified` to use indexed lookup
-- [ ] Refactor `IsBountyAdmin` to use indexed lookup
+- [x] Replace full-scan filtered query with prefix-based pagination
+- [x] Choose index dynamically for certifier/type/composite filters
+- [x] Fix `total` semantics in `GetCertificatesFiltered`
+- [x] Fix response assembly in gRPC query to use page result length
+- [x] Refactor `IsCertified` to use indexed lookup
+- [x] Refactor `IsContentCertified` to use indexed lookup
+- [x] Refactor `IsBountyAdmin` to use indexed lookup
 
 ## Platform Removal
 
-- [ ] Remove `MsgCertifyPlatform`
-- [ ] Remove platform gRPC query
-- [ ] Remove platform CLI tx command
-- [ ] Remove platform CLI query command
-- [ ] Remove platform proto messages
-- [ ] Remove platform keeper logic
-- [ ] Remove platform genesis field handling
-- [ ] Remove platform store key prefix
-- [ ] Remove platform docs and swagger entries
-- [ ] Remove stale sync/e2e references to platform commands
+- [x] Remove `MsgCertifyPlatform` CLI tx command
+- [x] Remove platform gRPC query (stub returning Unimplemented)
+- [x] Remove platform CLI query command
+- [x] Remove platform keeper logic (`CertifyPlatform`, `GetPlatform`, `GetAllPlatforms`)
+- [x] Remove platform genesis field handling (init/export no-op)
+- [x] Remove platform store key prefix from `types/keys.go`
+- [x] Remove stale sync/e2e references to platform commands (CLI removed)
+- [ ] Remove platform proto messages (deferred; requires protoc regeneration)
+- [ ] Remove platform docs and swagger entries (deferred; requires swagger regen)
 
 ## Library Removal
 
-- [ ] Remove library keeper logic
-- [ ] Remove library genesis field handling
-- [ ] Remove library proto message if no longer needed
-- [ ] Remove library store key prefix
-- [ ] Remove library-specific errors if no longer used
-- [ ] Remove library legacy migration code if no longer needed
+- [x] Remove library keeper logic (gutted `keeper/library.go`)
+- [x] Remove library genesis field handling (init/export no-op)
+- [x] Remove library store key prefix from `types/keys.go`
+- [x] Remove library-specific errors (`ErrLibraryNotExists`, `ErrLibraryAlreadyExists`)
+- [ ] Remove library proto message (deferred; requires protoc regeneration)
+- [ ] Remove library legacy migration code if no longer needed (kept in legacy/v2 as no-op reference)
 
 ## Migration
 
-- [ ] Bump cert module consensus version
-- [ ] Add new migrator step for the next version
-- [ ] Rebuild certificate indexes from existing primary certificate store
-- [ ] Delete obsolete platform store entries during migration
-- [ ] Delete obsolete library store entries during migration
-- [ ] Add migration tests for pre-upgrade state
+- [x] Bump cert module consensus version (2 → 3)
+- [x] Add new migrator step `Migrate2to3`
+- [x] Rebuild certificate indexes from existing primary certificate store
+- [x] Delete obsolete validator store entries during migration (prefix 0x1)
+- [x] Delete obsolete platform store entries during migration (prefix 0x2)
+- [x] Delete obsolete library store entries during migration (prefix 0x6)
+- [x] Delete obsolete certifier alias index entries during migration (prefix 0x7)
+- [x] Add migration tests (`Test_Migrate2to3IndexRebuild`, `Test_Migrate2to3DeletesObsoletePrefixes`)
 
 ## Tests
 
 - [x] Add unit tests for authority-controlled certifier add/remove
 - [x] Add unit tests for certifier query by address after alias removal
 - [x] Add unit tests for governance detection of certifier update proposal messages
-- [ ] Add unit tests for certificate index writes
-- [ ] Add unit tests for certificate index deletes
-- [ ] Add unit tests for filtered certificate queries
-- [ ] Add unit tests for `IsCertified`
-- [ ] Add unit tests for `IsContentCertified`
-- [ ] Add unit tests for `IsBountyAdmin`
-- [ ] Add migration tests
-- [ ] Run `go test ./x/cert/...`
-- [ ] Run impacted module tests for `x/gov`, `x/bounty`, and `x/oracle`
+- [x] Add unit tests for certificate index writes (`Test_CertificateIndexWrites`)
+- [x] Add unit tests for certificate index deletes (`Test_CertificateIndexDeletes`)
+- [x] Add unit tests for filtered certificate queries (`Test_CertificateQueries`)
+- [x] Add unit tests for `IsCertified` (`Test_IsCertified`)
+- [x] Add unit tests for `IsContentCertified` (`Test_IsContentCertified`)
+- [x] Add unit tests for `IsBountyAdmin` (`Test_IsBountyAdmin`)
+- [x] Add migration tests (`Test_Migrate2to3IndexRebuild`)
+- [x] Run `go test ./x/cert/...`
+- [x] Run impacted module tests for `x/gov`, `x/bounty`, and `x/oracle`
 
 ## Cleanup
 
 - [x] Remove outdated validator/platform/library/alias language from docs
-- [ ] Refresh generated docs/swagger if required
-- [ ] Review for dead code and unused imports after removal
+- [x] Remove `GetCmdCertifyPlatform` from CLI tx commands
+- [x] Update `specs.md` to reflect completed state (index key layout, migration, removed prefixes, query behavior)
+- [x] Update `refactor-plan.md` with completion status for all phases
+- [ ] Refresh generated docs/swagger if required (deferred; requires tooling)
+- [ ] Review for dead code and unused imports after removal (minor; `MsgCertifyPlatform` methods retained for proto compatibility)
 - [ ] Prepare follow-up patch for deeper certificate model simplification if still desired

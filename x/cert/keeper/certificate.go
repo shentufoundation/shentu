@@ -6,28 +6,79 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
-// SetCertificate stores a certificate using its ID field.
+// SetCertificate stores a certificate using its ID field and maintains all secondary indexes.
 func (k Keeper) SetCertificate(ctx context.Context, certificate types.Certificate) error {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&certificate)
-	return store.Set(types.CertificateStoreKey(certificate.CertificateId), bz)
+	if err := store.Set(types.CertificateStoreKey(certificate.CertificateId), bz); err != nil {
+		return err
+	}
+	return k.writeCertificateIndexes(ctx, certificate)
 }
 
-// DeleteCertificate deletes a certificate using its ID field.
+// DeleteCertificate deletes a certificate and removes all secondary index entries.
 func (k Keeper) DeleteCertificate(ctx context.Context, certificate types.Certificate) error {
 	_, err := k.HasCertificateByID(ctx, certificate.CertificateId)
 	if err != nil {
 		return err
 	}
 	store := k.storeService.OpenKVStore(ctx)
-	return store.Delete(types.CertificateStoreKey(certificate.CertificateId))
+	if err := store.Delete(types.CertificateStoreKey(certificate.CertificateId)); err != nil {
+		return err
+	}
+	return k.deleteCertificateIndexes(ctx, certificate)
+}
+
+// writeCertificateIndexes writes all secondary index entries for a certificate.
+func (k Keeper) writeCertificateIndexes(ctx context.Context, cert types.Certificate) error {
+	store := k.storeService.OpenKVStore(ctx)
+	certType := types.TranslateCertificateType(cert)
+	content := cert.GetContentString()
+	certifier := cert.GetCertifier()
+	id := cert.CertificateId
+
+	if err := store.Set(types.CertifierIndexKey(certifier, id), []byte{}); err != nil {
+		return err
+	}
+	if err := store.Set(types.TypeIndexKey(certType, id), []byte{}); err != nil {
+		return err
+	}
+	if err := store.Set(types.CertifierTypeIndexKey(certifier, certType, id), []byte{}); err != nil {
+		return err
+	}
+	if err := store.Set(types.ContentIndexKey(content, id), []byte{}); err != nil {
+		return err
+	}
+	return store.Set(types.TypeContentIndexKey(certType, content, id), []byte{})
+}
+
+// deleteCertificateIndexes removes all secondary index entries for a certificate.
+func (k Keeper) deleteCertificateIndexes(ctx context.Context, cert types.Certificate) error {
+	store := k.storeService.OpenKVStore(ctx)
+	certType := types.TranslateCertificateType(cert)
+	content := cert.GetContentString()
+	certifier := cert.GetCertifier()
+	id := cert.CertificateId
+
+	if err := store.Delete(types.CertifierIndexKey(certifier, id)); err != nil {
+		return err
+	}
+	if err := store.Delete(types.TypeIndexKey(certType, id)); err != nil {
+		return err
+	}
+	if err := store.Delete(types.CertifierTypeIndexKey(certifier, certType, id)); err != nil {
+		return err
+	}
+	if err := store.Delete(types.ContentIndexKey(content, id)); err != nil {
+		return err
+	}
+	return store.Delete(types.TypeContentIndexKey(certType, content, id))
 }
 
 // HasCertificateByID checks if a certificate exists given an ID.
@@ -58,15 +109,24 @@ func (k Keeper) GetCertificateType(ctx context.Context, id uint64) (types.Certif
 }
 
 // IsCertified checks if a certificate of given type and content exists.
+// Uses the type+content index for efficient lookup.
 func (k Keeper) IsCertified(ctx context.Context, content string, certType string) bool {
-	certificateType := types.CertificateTypeFromString(certType)
-	certificates := k.GetCertificatesByTypeAndContent(ctx, certificateType, content)
-	return len(certificates) > 0
+	ct := types.CertificateTypeFromString(certType)
+	prefix := types.TypeContentIndexPrefix(ct, content)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
+	defer iterator.Close()
+	return iterator.Valid()
 }
 
 // IsContentCertified checks if a certificate of given content exists.
+// Uses the content hash index for efficient lookup.
 func (k Keeper) IsContentCertified(ctx context.Context, content string) bool {
-	return len(k.GetCertificatesByContent(ctx, content)) > 0
+	prefix := types.ContentIndexPrefix(content)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
+	defer iterator.Close()
+	return iterator.Valid()
 }
 
 // IssueCertificate issues a certificate.
@@ -120,63 +180,113 @@ func (k Keeper) GetAllCertificates(ctx context.Context) (certificates []types.Ce
 }
 
 // GetCertificatesByCertifier gets certificates certified by a given certifier.
+// Uses the certifier secondary index for efficient prefix-based lookup.
 func (k Keeper) GetCertificatesByCertifier(ctx context.Context, certifier sdk.AccAddress) []types.Certificate {
-	certificates := []types.Certificate{}
-	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if certificate.GetCertifier().Equals(certifier) {
-			certificates = append(certificates, certificate)
-		}
-		return false
-	})
-	return certificates
+	return k.loadCertsFromIndexPrefix(ctx, types.CertifierIndexPrefix(certifier))
 }
 
 // GetCertificatesByContent retrieves all certificates with given content.
+// Uses the content hash secondary index for efficient lookup.
 func (k Keeper) GetCertificatesByContent(ctx context.Context, content string) []types.Certificate {
-	certificates := []types.Certificate{}
-	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if certificate.GetContentString() == content {
-			certificates = append(certificates, certificate)
-		}
-		return false
-	})
-	return certificates
+	return k.loadCertsFromIndexPrefix(ctx, types.ContentIndexPrefix(content))
 }
 
 // GetCertificatesByTypeAndContent retrieves all certificates with given certificate type and content.
+// Uses the type+content secondary index for efficient lookup.
 func (k Keeper) GetCertificatesByTypeAndContent(ctx context.Context, certType types.CertificateType, content string) []types.Certificate {
-	certificates := []types.Certificate{}
-	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if certificate.GetContentString() == content &&
-			types.TranslateCertificateType(certificate) == certType {
-			certificates = append(certificates, certificate)
-		}
-		return false
-	})
-	return certificates
+	return k.loadCertsFromIndexPrefix(ctx, types.TypeContentIndexPrefix(certType, content))
 }
 
-// GetCertificatesFiltered gets certificates filtered.
-func (k Keeper) GetCertificatesFiltered(ctx context.Context, params types.QueryCertificatesParams) (uint64, []types.Certificate, error) {
-	filteredCertificates := []types.Certificate{}
-	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if (len(params.Certifier) != 0 && !certificate.GetCertifier().Equals(params.Certifier)) ||
-			(params.CertificateType != types.CertificateTypeNil && types.TranslateCertificateType(certificate) != params.CertificateType) {
-			return false
-		}
-		filteredCertificates = append(filteredCertificates, certificate)
-		return false
-	})
+// loadCertsFromIndexPrefix loads all certificates whose IDs appear under the given index prefix.
+func (k Keeper) loadCertsFromIndexPrefix(ctx context.Context, prefix []byte) []types.Certificate {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
+	defer iterator.Close()
 
-	// Post-processing
-	start, end := client.Paginate(len(filteredCertificates), params.Page, params.Limit, 100)
-	if start < 0 || end < 0 {
-		filteredCertificates = []types.Certificate{}
-	} else {
-		filteredCertificates = filteredCertificates[start:end]
+	var certs []types.Certificate
+	for ; iterator.Valid(); iterator.Next() {
+		id := types.CertIDFromIndexKey(iterator.Key())
+		cert, err := k.GetCertificateByID(ctx, id)
+		if err != nil {
+			continue
+		}
+		certs = append(certs, cert)
+	}
+	return certs
+}
+
+// GetCertificatesFiltered gets certificates filtered by certifier and/or type.
+// Chooses the narrowest index for the given filter combination and paginates directly
+// on the index prefix iterator, avoiding full-store scans.
+// Returns the true total count of matching certificates and the requested page.
+func (k Keeper) GetCertificatesFiltered(ctx context.Context, params types.QueryCertificatesParams) (uint64, []types.Certificate, error) {
+	limit := params.Limit
+	if limit <= 0 {
+		limit = 100
+	}
+	skip := 0
+	if params.Page > 1 {
+		skip = (params.Page - 1) * limit
 	}
 
-	return uint64(len(filteredCertificates)), filteredCertificates, nil
+	hasCertifier := len(params.Certifier) > 0
+	hasType := params.CertificateType != types.CertificateTypeNil
+
+	// Choose the narrowest matching index prefix.
+	if hasCertifier && hasType {
+		return k.paginateIndex(ctx, types.CertifierTypeIndexPrefix(params.Certifier, params.CertificateType), skip, limit)
+	}
+	if hasCertifier {
+		return k.paginateIndex(ctx, types.CertifierIndexPrefix(params.Certifier), skip, limit)
+	}
+	if hasType {
+		return k.paginateIndex(ctx, types.TypeIndexPrefix(params.CertificateType), skip, limit)
+	}
+
+	// No filter: iterate the primary certificate store directly.
+	return k.paginatePrimary(ctx, skip, limit)
+}
+
+// paginateIndex iterates an index prefix, counts total matching entries, and loads
+// the page of certificate objects from the primary store.
+func (k Keeper) paginateIndex(ctx context.Context, prefix []byte, skip, limit int) (uint64, []types.Certificate, error) {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
+	defer iterator.Close()
+
+	var total uint64
+	var certs []types.Certificate
+	for ; iterator.Valid(); iterator.Next() {
+		total++
+		if int(total) > skip && len(certs) < limit {
+			id := types.CertIDFromIndexKey(iterator.Key())
+			cert, err := k.GetCertificateByID(ctx, id)
+			if err != nil {
+				continue
+			}
+			certs = append(certs, cert)
+		}
+	}
+	return total, certs, nil
+}
+
+// paginatePrimary iterates the primary certificate store for the no-filter case.
+func (k Keeper) paginatePrimary(ctx context.Context, skip, limit int) (uint64, []types.Certificate, error) {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, types.CertificatesStoreKey())
+	defer iterator.Close()
+
+	var total uint64
+	var certs []types.Certificate
+	for ; iterator.Valid(); iterator.Next() {
+		total++
+		if int(total) > skip && len(certs) < limit {
+			var cert types.Certificate
+			k.cdc.MustUnmarshal(iterator.Value(), &cert)
+			certs = append(certs, cert)
+		}
+	}
+	return total, certs, nil
 }
 
 // RevokeCertificate revokes a certificate.
@@ -190,19 +300,6 @@ func (k Keeper) RevokeCertificate(ctx context.Context, certificate types.Certifi
 	}
 
 	return k.DeleteCertificate(ctx, certificate)
-}
-
-// GetCertifiedIdentities returns a list of addresses certified as identities.
-func (k Keeper) GetCertifiedIdentities(ctx context.Context) []sdk.AccAddress {
-	identities := []sdk.AccAddress{}
-	k.IterateAllCertificate(ctx, func(certificate types.Certificate) (stop bool) {
-		if types.TranslateCertificateType(certificate) == types.CertificateTypeIdentity {
-			addr, _ := sdk.AccAddressFromBech32(certificate.GetContentString())
-			identities = append(identities, addr)
-		}
-		return false
-	})
-	return identities
 }
 
 // SetNextCertificateID sets the next certificate ID to store.
@@ -224,14 +321,11 @@ func (k Keeper) GetNextCertificateID(ctx context.Context) (uint64, error) {
 }
 
 // IsBountyAdmin checks if an address is a bounty admin.
+// Uses the type+content secondary index for efficient lookup.
 func (k Keeper) IsBountyAdmin(ctx context.Context, address sdk.AccAddress) bool {
-	certificates := k.GetCertificatesByTypeAndContent(ctx, types.CertificateTypeBountyAdmin, address.String())
-
-	for _, certificate := range certificates {
-		if certificate.GetContentString() == address.String() {
-			return true
-		}
-	}
-
-	return false
+	prefix := types.TypeContentIndexPrefix(types.CertificateTypeBountyAdmin, address.String())
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
+	defer iterator.Close()
+	return iterator.Valid()
 }

@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -123,22 +122,7 @@ func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevoke
 	return &types.MsgRevokeCertificateResponse{}, nil
 }
 
-func (k msgServer) CertifyPlatform(goCtx context.Context, msg *types.MsgCertifyPlatform) (*types.MsgCertifyPlatformResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	valPubKey, ok := msg.ValidatorPubkey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", valPubKey)
-	}
-
-	certifierAddr, err := sdk.AccAddressFromBech32(msg.Certifier)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := k.Keeper.CertifyPlatform(ctx, certifierAddr, valPubKey, msg.Platform); err != nil {
-		return nil, err
-	}
-
-	return &types.MsgCertifyPlatformResponse{}, nil
+// CertifyPlatform is a stub. Platform certification has been removed.
+func (k msgServer) CertifyPlatform(_ context.Context, _ *types.MsgCertifyPlatform) (*types.MsgCertifyPlatformResponse, error) {
+	return nil, errorsmod.Wrap(sdkerrors.ErrNotSupported, "platform certification has been removed")
 }

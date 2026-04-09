@@ -132,34 +132,9 @@ func migrateCertifierAlias(store storetypes.KVStore, cdc codec.BinaryCodec) erro
 	return nil
 }
 
-func migrateLibrary(store storetypes.KVStore, cdc codec.BinaryCodec) error {
-	oldStore := prefix.NewStore(store, types.LibrariesStoreKey())
-
-	iterator := oldStore.Iterator(nil, nil)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		var library types.Library
-		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &library)
-
-		libraryAddr, err := common.PrefixToShentu(library.Address)
-		if err != nil {
-			return err
-		}
-		library.Address = libraryAddr
-
-		publisher, err := common.PrefixToShentu(library.Publisher)
-		if err != nil {
-			return err
-		}
-		library.Publisher = publisher
-
-		bz := cdc.MustMarshalLengthPrefixed(&library)
-		oldStore.Set(iterator.Key(), bz)
-	}
-	return nil
-}
-
+// MigrateStore performs the v1→v2 address-prefix migration.
+// NOTE: This function is kept for reference but is no longer called;
+// Migrate1to2 is a no-op because this migration was already applied.
 func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 
@@ -171,12 +146,5 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 		return err
 	}
 
-	if err := migrateCertifierAlias(store, cdc); err != nil {
-		return err
-	}
-
-	if err := migrateLibrary(store, cdc); err != nil {
-		return err
-	}
-	return nil
+	return migrateCertifierAlias(store, cdc)
 }

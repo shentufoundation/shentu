@@ -16,14 +16,6 @@ const (
 )
 
 const (
-	errRejectedValidator uint32 = iota + 201
-	errValidatorCertified
-	errValidatorUncertified
-	errTombstonedValidator
-	errMissingValidator
-)
-
-const (
 	errCertificateNotExists uint32 = iota + 301
 	errCertificateGenesis
 	errInvalidCertificateType
@@ -32,11 +24,6 @@ const (
 	errBytecodeHash
 	errInvalidRequestContentType
 	errUnqualifiedRevoker
-)
-
-const (
-	errLibraryNotExists uint32 = iota + 401
-	errLibraryAlreadyExists
 )
 
 // [1xx] Certifier
@@ -50,15 +37,6 @@ var (
 	ErrOnlyOneCertifier       = errorsmod.Register(ModuleName, errOnlyOneCertifier, "cannot remove only certifier")
 )
 
-// [2xx] Validator
-var (
-	ErrRejectedValidator    = errorsmod.Register(ModuleName, errRejectedValidator, "only certifiers can certify or de-certify validators")
-	ErrValidatorCertified   = errorsmod.Register(ModuleName, errValidatorCertified, "validator has already been certified")
-	ErrValidatorUncertified = errorsmod.Register(ModuleName, errValidatorUncertified, "validator has not been certified")
-	ErrTombstonedValidator  = errorsmod.Register(ModuleName, errTombstonedValidator, "validator has already been tombstoned")
-	ErrMissingValidator     = errorsmod.Register(ModuleName, errMissingValidator, "validator missing from staking store")
-)
-
 // [3xx] Certificate
 var (
 	ErrCertificateNotExists      = errorsmod.Register(ModuleName, errCertificateNotExists, "certificate id does not exist")
@@ -69,10 +47,4 @@ var (
 	ErrBytecodeHash              = errorsmod.Register(ModuleName, errBytecodeHash, "invalid bytecode hash")
 	ErrInvalidRequestContentType = errorsmod.Register(ModuleName, errInvalidRequestContentType, "invalid request content type")
 	ErrUnqualifiedRevoker        = errorsmod.Register(ModuleName, errUnqualifiedRevoker, "only certifiers can revoke this certificate")
-)
-
-// [4xx] Library
-var (
-	ErrLibraryNotExists     = errorsmod.Register(ModuleName, errLibraryNotExists, "library does not exist")
-	ErrLibraryAlreadyExists = errorsmod.Register(ModuleName, errLibraryAlreadyExists, "library already exists")
 )

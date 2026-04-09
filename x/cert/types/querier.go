@@ -3,8 +3,6 @@ package types
 import (
 	"strings"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -15,19 +13,16 @@ const (
 	// QueryCertifiers is the query endpoint for all certifiers information.
 	QueryCertifiers = "certifiers"
 
-	// QueryValidator is the query endpoint for validator node certification.
+	// QueryCertifiedValidator is the query endpoint for validator node certification.
 	QueryCertifiedValidator = "validator"
 
-	// QueryValidators is the query endpoint for all certified validator nodes.
+	// QueryCertifiedValidators is the query endpoint for all certified validator nodes.
 	QueryCertifiedValidators = "validators"
-
-	// QueryPlatform is the query endpoint for validator host platform.
-	QueryPlatform = "platform"
 
 	// QueryCertificate is the query endpoint for a certificate.
 	QueryCertificate = "certificate"
 
-	// QueryCertificate is the query endpoint for a certificate type.
+	// QueryCertificateType is the query endpoint for a certificate type.
 	QueryCertificateType = "certificateType"
 
 	// QueryCertificates is the query endpoint for certificates.
@@ -82,10 +77,4 @@ func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, certT
 		Certifier:       certifier,
 		CertificateType: certType,
 	}
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (q QueryPlatformRequest) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(q.Pubkey, &pubKey)
 }

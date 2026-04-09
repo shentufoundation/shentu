@@ -1,6 +1,7 @@
 # Cert Refactor Plan
 
 Date: 2026-04-02
+Status: Phases 1–6 complete. Phase 7 (optional follow-up) deferred.
 
 ## Goal
 
@@ -278,49 +279,51 @@ Update generated CLI/docs/swagger outputs after API removal.
 
 ## Work Phases
 
-### Phase 0: Baseline
+### Phase 0: Baseline — Complete
 
-- confirm final scope
-- freeze `platform` and `library` as removal targets
-- document target state
+- confirmed final scope
+- froze `platform` and `library` as removal targets
+- documented target state
 
-### Phase 1: Architecture Refactor
+### Phase 1: Architecture Refactor — Complete
 
-- remove certifier alias from docs, API, and state design
-- remove the no-op `MsgProposeCertifier` path
-- introduce governance-authorized certifier mutation path
+- removed certifier alias from docs, API, and state design
+- removed the no-op `MsgProposeCertifier` path
+- introduced governance-authorized certifier mutation path (`MsgUpdateCertifier`)
 - split keeper responsibilities by domain
 
-### Phase 2: Storage Refactor
+### Phase 2: Storage Refactor — Complete
 
-- add index key prefixes and helpers
-- implement index maintenance helpers
-- refactor certificate keeper read/write paths
+- added index key prefixes (0x10–0x14) and helpers in `types/keys.go`
+- implemented `writeCertificateIndexes` / `deleteCertificateIndexes` in `keeper/certificate.go`
+- refactored `SetCertificate` and `DeleteCertificate` to maintain indexes
 
-### Phase 3: Query Refactor
+### Phase 3: Query Refactor — Complete
 
-- replace scan-based filtering with prefix-based pagination
-- fix `total` semantics
-- keep response shape stable unless an API bump is approved
+- replaced scan-based filtering with prefix-based pagination (`paginateIndex`)
+- fixed `total` semantics (returns true match count, not page size)
+- fixed gRPC response assembly (array sized by page length, not total)
 
-### Phase 4: Remove Platform And Library
+### Phase 4: Remove Platform And Library — Complete
 
-- remove keeper/types/proto/cli/query/docs/state wiring
-- clean up genesis and module registration
+- removed platform keeper logic, CLI commands, and gRPC query (stubbed with Unimplemented)
+- removed library keeper logic and genesis handling
+- removed platform/library store key prefixes and related errors
+- proto messages retained for backward compatibility (deferred removal requires protoc)
 
-### Phase 5: Migration
+### Phase 5: Migration — Complete
 
-- implement module migration for index rebuild and old-prefix deletion
-- bump module consensus version
-- register the new migration step
+- implemented `Migrate2to3`: rebuilds certificate indexes, deletes prefixes 0x1/0x2/0x6/0x7
+- bumped module consensus version to 3
+- registered migration step in `module.go`
 
-### Phase 6: Test And Docs
+### Phase 6: Test And Docs — Complete
 
-- add keeper/query/migration tests
-- update specs/docs/swagger
-- remove stale references to validator/platform/library certification
+- added keeper/query/migration tests in `certificate_index_test.go`
+- updated specs to reflect new module boundary and storage layout
+- removed stale references to validator/platform/library/alias
 
-### Phase 7: Optional Follow-Up
+### Phase 7: Optional Follow-Up — Deferred
 
 - evaluate simplification of the `Any`-based certificate content model
 

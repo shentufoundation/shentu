@@ -5,7 +5,7 @@ The `cert` module is responsible for two domain concepts:
 - `certifier`: a governance-controlled roster of privileged security reviewers
 - `certificate`: an on-chain record issued by a certifier
 
-This module no longer treats validator certification, platform certification, or library registration as first-class scope. The current refactor direction is to remove `platform` and `library`, keep `certifier` and `certificate`, and improve certificate storage/query performance before any deeper certificate model redesign.
+Validator certification, platform certification, and library registration have been removed. The module scope is now limited to `certifier` and `certificate`.
 
 ## Domain Boundary
 
@@ -19,7 +19,7 @@ It exists as module state because:
 - certifiers are governance-controlled actors, not runtime config
 - the roster may carry governance metadata and lifecycle checks
 
-The target certifier model is intentionally small:
+The certifier model:
 
 ```go
 type Certifier struct {
@@ -31,71 +31,75 @@ type Certifier struct {
 
 Notes:
 
-- `alias` is being removed from the certifier model
+- `alias` has been removed from the certifier model
 - certifier identity is address-based only
 - any human-friendly labeling should be handled off-chain or as optional non-indexed metadata later
 
 ### Certificates
 
-`Certificate` remains the core business object of the module.
+`Certificate` is the core business object of the module.
 
-At the current refactor stage, the chain keeps the existing certificate data model and focuses first on:
-
-- storage/index refactor
-- query refactor
-- runtime/API cleanup
-
-This means the current `Any`-based content model is still preserved during the architecture refactor, even though it may be simplified in a later follow-up.
+The current `Any`-based content model is preserved. A follow-up patch may simplify it later.
 
 ## State
 
 ### Certificates
 
-Certificates remain stored by ID as the canonical primary record.
+Certificates are stored by ID as the canonical primary record.
 
-- Certificate: `0x5 | LittleEndian(CertificateId) -> certificate`
-- NextCertificateID: `0x8 -> NextCertificateID`
+- Certificate: `0x5 | LittleEndian(CertificateId) -> ProtoBuf(Certificate)`
+- NextCertificateID: `0x8 -> uint64`
 
-The architecture refactor adds secondary indexes so common reads no longer require full-store scans.
+### Certificate Secondary Indexes
 
-Required index directions:
+Five secondary indexes eliminate full-store scans for common reads. Each index key stores a sentinel value (`[]byte{0x1}`); the certificate ID is embedded in the key for extraction during iteration.
 
-- `certifier -> certificate ids`
-- `certificate type -> certificate ids`
-- `certifier + certificate type -> certificate ids`
-- `content hash -> certificate ids`
-- `certificate type + content hash -> certificate ids`
+| Prefix | Key Layout | Purpose |
+|--------|-----------|---------|
+| `0x10` | `[0x10][20B certifier_addr][8B cert_id_BE]` | Lookup by certifier |
+| `0x11` | `[0x11][1B cert_type][8B cert_id_BE]` | Lookup by certificate type |
+| `0x12` | `[0x12][20B certifier_addr][1B cert_type][8B cert_id_BE]` | Lookup by certifier + type |
+| `0x13` | `[0x13][32B content_sha256][8B cert_id_BE]` | Lookup by content hash |
+| `0x14` | `[0x14][1B cert_type][32B content_sha256][8B cert_id_BE]` | Lookup by type + content hash |
 
 These indexes support:
 
-- certificate list queries
-- `IsCertified`
-- `IsContentCertified`
-- `IsBountyAdmin`
+- `GetCertificatesFiltered` (paginated certificate list queries)
+- `GetCertificatesByCertifier`
+- `IsCertified` (type + content hash prefix scan)
+- `IsContentCertified` (content hash prefix scan)
+- `IsBountyAdmin` (type + content hash prefix scan)
+
+Index consistency is maintained by `writeCertificateIndexes` and `deleteCertificateIndexes`, called from `SetCertificate`, `DeleteCertificate`, and the v2→v3 migration.
 
 ### Certifiers
 
-Certifiers remain stored as dedicated module state.
+Certifiers are stored as dedicated module state.
 
-- Certifier: `0x0 | Address -> certifier`
+- Certifier: `0x0 | Address -> LengthPrefixed(Certifier)`
 
-The previous alias index is being removed as part of the certifier refactor.
+The alias index (prefix `0x7`) has been removed.
+
+### Removed Prefixes
+
+The following store prefixes have been removed and are deleted during the v2→v3 migration:
+
+| Prefix | Former Purpose |
+|--------|---------------|
+| `0x1` | Validator certifications |
+| `0x2` | Platform certifications |
+| `0x6` | Library registrations |
+| `0x7` | Certifier alias index |
 
 ## Governance And Mutation Model
 
 ### Certifier updates
 
-Adding or removing certifiers should be governance-authorized and use a single execution path.
+Adding or removing certifiers is governance-authorized through a single execution path.
 
-The refactor direction is:
+`MsgUpdateCertifier` is an authority-gated message executed only by the governance authority after proposal passage. The previous `MsgProposeCertifier` flow has been removed.
 
-- remove the ineffective `MsgProposeCertifier` flow
-- stop exposing a user-facing message that appears successful but performs no state transition
-- replace certifier mutation with an authority-controlled path executed by governance proposal messages
-
-The preferred end state is an authority-gated message such as `MsgUpdateCertifier`, called only by the governance authority after proposal passage.
-
-Target execution flow:
+Execution flow:
 
 1. a user submits a governance proposal
 2. the proposal contains `MsgUpdateCertifier`
@@ -103,7 +107,7 @@ Target execution flow:
 4. the governance module executes `MsgUpdateCertifier` using module authority
 5. `cert` keeper applies the certifier roster change
 
-That path should own:
+That path owns:
 
 - add certifier
 - remove certifier
@@ -111,53 +115,67 @@ That path should own:
 
 ### Certificate updates
 
-Certificate mutation remains message-driven:
+Certificate mutation is message-driven:
 
 - `MsgIssueCertificate`
 - `MsgRevokeCertificate`
 
-Revocation behavior is part of the storage/query refactor scope because current revocation semantics interact with indexed lookups.
+Both paths maintain secondary index consistency.
 
 ## Queries
 
-The module should expose:
+The module exposes:
 
 - query certifier by address
 - query all certifiers
 - query certificate by ID
-- query certificates with indexed filtering
+- query certificates with indexed filtering (by certifier, type, or both)
 
-The previous certifier query-by-alias path is being removed together with `alias`.
+The certifier query-by-alias path has been removed together with `alias`.
 
-The previous platform query is being removed together with `platform`.
+The platform query has been removed together with `platform`.
+
+### Query Behavior
+
+- `GetCertificatesFiltered` chooses the narrowest index prefix based on filter params
+- `total` returns the true count of all matching records, not page size
+- pagination operates directly on the index iterator
 
 ## Messages
 
-Current target public message surface after refactor:
+Public message surface:
 
-- governance-authorized certifier update message
+- `MsgUpdateCertifier` (governance-authorized certifier add/remove)
 - `MsgIssueCertificate`
 - `MsgRevokeCertificate`
 
-Messages planned for removal:
+Removed messages:
 
-- `MsgProposeCertifier`
-- `MsgCertifyPlatform`
+- `MsgProposeCertifier` (removed; was a no-op)
+- `MsgCertifyPlatform` (handler stubbed with `ErrNotSupported`; proto type retained for backward compatibility)
 
-## Refactor Direction
+## Migration
 
-The current execution order is:
+### v2 → v3 (consensus version 3)
 
-1. shrink module scope to `certifier` and `certificate`
-2. remove `platform` and `library`
-3. refactor keeper structure by responsibility
-4. add certificate secondary indexes
-5. replace scan-based queries with indexed lookups
-6. migrate existing state and update tests/docs
-7. evaluate a later follow-up to simplify the certificate content model
+The module migration `Migrate2to3` performs:
+
+1. Rebuilds all five secondary certificate indexes from existing primary certificate records
+2. Deletes obsolete validator store entries (prefix `0x1`)
+3. Deletes obsolete platform store entries (prefix `0x2`)
+4. Deletes obsolete library store entries (prefix `0x6`)
+5. Deletes obsolete certifier alias index entries (prefix `0x7`)
+
+All deletions tolerate already-empty prefixes.
 
 ## Parameters
 
-There are currently no parameters specific to the `cert` module.
+There are no parameters specific to the `cert` module.
 
 `certifier` must not be moved into params. It is governance-controlled state, not module configuration.
+
+## Deferred Items
+
+- Remove platform and library proto messages (requires protoc regeneration)
+- Refresh generated docs/swagger (requires tooling)
+- Evaluate certificate content model simplification (follow-up patch)

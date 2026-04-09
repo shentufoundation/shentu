@@ -3,13 +3,10 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/shentufoundation/shentu/v2/common"
@@ -53,23 +50,9 @@ func (q Querier) Certifiers(c context.Context, req *types.QueryCertifiersRequest
 	return &types.QueryCertifiersResponse{Certifiers: q.GetAllCertifiers(ctx)}, nil
 }
 
-func (q Querier) Platform(c context.Context, req *types.QueryPlatformRequest) (*types.QueryPlatformResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	pk, ok := req.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return nil, errors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", req.Pubkey)
-	}
-
-	platform, ok := q.GetPlatform(ctx, pk)
-	if !ok {
-		return nil, nil
-	}
-
-	return &types.QueryPlatformResponse{Platform: platform}, nil
+// Platform is a stub that returns Unimplemented. Platform certification has been removed.
+func (q Querier) Platform(_ context.Context, _ *types.QueryPlatformRequest) (*types.QueryPlatformResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "platform certification has been removed")
 }
 
 func (q Querier) Certificate(c context.Context, req *types.QueryCertificateRequest) (*types.QueryCertificateResponse, error) {
@@ -119,7 +102,7 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		return nil, err
 	}
 
-	results := make([]types.QueryCertificateResponse, total)
+	results := make([]types.QueryCertificateResponse, len(certificates))
 	for i, certificate := range certificates {
 		results[i] = types.QueryCertificateResponse{
 			Certificate: certificate,

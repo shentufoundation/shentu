@@ -175,8 +175,8 @@ func (m MsgRevokeCertificate) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{revokerAddr}
 }
 
-// NewMsgCertifyPlatform returns a new validator host platform certification
-// message.
+// NewMsgCertifyPlatform is kept for amino codec compatibility but platform certification
+// has been removed. Sending this message will return ErrNotSupported.
 func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk cryptotypes.PubKey, platform string) (*MsgCertifyPlatform, error) {
 	var pkAny *codectypes.Any
 	if pk != nil {
@@ -185,7 +185,6 @@ func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk cryptotypes.PubKey, plat
 			return nil, err
 		}
 	}
-
 	return &MsgCertifyPlatform{Certifier: certifier.String(), ValidatorPubkey: pkAny, Platform: platform}, nil
 }
 
@@ -204,7 +203,6 @@ func (m MsgCertifyPlatform) ValidateBasic() error {
 	if certifierAddr.Empty() {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
 	}
-
 	if m.ValidatorPubkey == nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
 	}
