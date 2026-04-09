@@ -29,16 +29,6 @@ type QueryCertificatesParams struct {
 	CertificateType CertificateType
 }
 
-// QueryResCertifiers is the query result payload for all certifiers.
-type QueryResCertifiers struct {
-	Certifiers Certifiers `json:"certifiers"`
-}
-
-// String implements fmt.Stringer.
-func (q QueryResCertifiers) String() string {
-	return q.Certifiers.String()
-}
-
 // NewQueryCertificatesParams creates a new instance of QueryCertificatesParams.
 func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, certType CertificateType) QueryCertificatesParams {
 	return QueryCertificatesParams{

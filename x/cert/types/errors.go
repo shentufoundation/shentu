@@ -23,7 +23,6 @@ const (
 	errCompiler
 	errBytecodeHash
 	errInvalidRequestContentType
-	errUnqualifiedRevoker
 )
 
 // [1xx] Certifier
@@ -46,5 +45,4 @@ var (
 	ErrCompiler                  = errorsmod.Register(ModuleName, errCompiler, "invalid compiler")
 	ErrBytecodeHash              = errorsmod.Register(ModuleName, errBytecodeHash, "invalid bytecode hash")
 	ErrInvalidRequestContentType = errorsmod.Register(ModuleName, errInvalidRequestContentType, "invalid request content type")
-	ErrUnqualifiedRevoker        = errorsmod.Register(ModuleName, errUnqualifiedRevoker, "only certifiers can revoke this certificate")
 )

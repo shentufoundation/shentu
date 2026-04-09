@@ -320,8 +320,6 @@ func NewShentuApp(
 	app.CertKeeper = certkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[certtypes.StoreKey]),
-		app.SlashingKeeper,
-		app.StakingKeeper,
 		authAddr,
 	)
 	app.AuthKeeper = authkeeper.NewKeeper(
