@@ -93,21 +93,37 @@ func (k Keeper) CertifierVoteIsRequired(ctx context.Context, proposalID uint64) 
 			return true, nil
 		}
 
-		if legacyMsg, ok := proposalmsg.(*govtypesv1.MsgExecLegacyContent); ok {
-			// check that the content struct can be unmarshalled
-			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
-			if err != nil {
-				return false, err
-			}
-			switch content.(type) {
-			// nolint
-			case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal:
-				return true, nil
-			default:
-				return false, nil
-			}
+		required, err := isCertifierUpdateProposalMsg(proposalmsg)
+		if err != nil {
+			return false, err
+		}
+		if required {
+			return true, nil
 		}
 	}
 
 	return false, nil
+}
+
+func isCertifierUpdateProposalMsg(msg sdk.Msg) (bool, error) {
+	if sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&certtypes.MsgUpdateCertifier{}) {
+		return true, nil
+	}
+
+	legacyMsg, ok := msg.(*govtypesv1.MsgExecLegacyContent)
+	if !ok {
+		return false, nil
+	}
+
+	content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
+	if err != nil {
+		return false, err
+	}
+
+	switch content.(type) {
+	case *certtypes.CertifierUpdateProposal:
+		return true, nil
+	default:
+		return false, nil
+	}
 }

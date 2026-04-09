@@ -14,7 +14,7 @@ option go_package = "github.com/shentufoundation/shentu/x/cert/types";
 // Query defines the gRPC querier service for cert module.
 service Query {
     rpc Certifier(QueryCertifierRequest) returns (QueryCertifierResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/certifier/{address}/alias/{alias}";
+        option (google.api.http).get = "/shentu/cert/v1alpha1/certifier/{address}";
     }
 
     rpc Certifiers(QueryCertifiersRequest) returns (QueryCertifiersResponse) {
@@ -40,7 +40,8 @@ service Query {
 
 message QueryCertifierRequest {
     string address = 1;
-    string alias = 2;
+    reserved 2;
+    reserved "alias";
 }
 
 message QueryCertifierResponse {

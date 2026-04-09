@@ -27,7 +27,6 @@ type AccountKeeper interface {
 type CertKeeper interface {
 	IsCertifier(ctx context.Context, addr sdk.AccAddress) (bool, error)
 	GetCertifier(ctx context.Context, certifierAddress sdk.AccAddress) (certtypes.Certifier, error)
-	HasCertifierAlias(ctx context.Context, alias string) (bool, error)
 	IsCertified(ctx context.Context, content string, certType string) bool
 	GetAllCertifiers(ctx context.Context) (certifiers certtypes.Certifiers)
 }

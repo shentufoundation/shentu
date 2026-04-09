@@ -13,7 +13,8 @@ message Certifier {
     option (gogoproto.goproto_getters) = false;
 
     string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
-    string alias = 2 [ (gogoproto.moretags) = "yaml:\"alias\"" ];
+    reserved 2;
+    reserved "alias";
     string proposer = 3 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
     string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
 }
@@ -125,7 +126,8 @@ message CertifierUpdateProposal {
 
     string title = 1 [ (gogoproto.moretags) = "yaml:\"title\"" ];
     string proposer = 2 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
-    string alias = 3 [ (gogoproto.moretags) = "yaml:\"alias\"" ];
+    reserved 3;
+    reserved "alias";
     string certifier = 4 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
     string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     bool add_or_remove = 6 [ (gogoproto.moretags) = "yaml:\"add_or_remove\"", (gogoproto.casttype) = "AddOrRemove" ];

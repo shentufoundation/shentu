@@ -3,6 +3,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store/types"
@@ -22,15 +23,27 @@ type Keeper struct {
 	cdc            codec.BinaryCodec
 	slashingKeeper types.SlashingKeeper
 	stakingKeeper  types.StakingKeeper
+	authority      string
 }
 
 // NewKeeper creates a new instance of the certifier keeper.
-func NewKeeper(cdc codec.BinaryCodec, storeService store.KVStoreService, slashingKeeper types.SlashingKeeper, stakingKeeper types.StakingKeeper) Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeService store.KVStoreService,
+	slashingKeeper types.SlashingKeeper,
+	stakingKeeper types.StakingKeeper,
+	authority string,
+) Keeper {
+	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
+		panic(fmt.Sprintf("invalid authority address: %s", authority))
+	}
+
 	return Keeper{
 		cdc:            cdc,
 		storeService:   storeService,
 		slashingKeeper: slashingKeeper,
 		stakingKeeper:  stakingKeeper,
+		authority:      authority,
 	}
 }
 

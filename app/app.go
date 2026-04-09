@@ -115,7 +115,6 @@ import (
 	bountykeeper "github.com/shentufoundation/shentu/v2/x/bounty/keeper"
 	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 	"github.com/shentufoundation/shentu/v2/x/cert"
-	certclient "github.com/shentufoundation/shentu/v2/x/cert/client"
 	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	"github.com/shentufoundation/shentu/v2/x/gov"
@@ -323,6 +322,7 @@ func NewShentuApp(
 		runtime.NewKVStoreService(keys[certtypes.StoreKey]),
 		app.SlashingKeeper,
 		app.StakingKeeper,
+		authAddr,
 	)
 	app.AuthKeeper = authkeeper.NewKeeper(
 		appCodec,
@@ -530,7 +530,6 @@ func NewShentuApp(
 			sdkgovtypes.ModuleName: gov.NewAppModuleBasic(
 				[]govclient.ProposalHandler{
 					paramsclient.ProposalHandler,
-					certclient.LegacyProposalHandler,
 				},
 			),
 		})

@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	TypeMsgProposeCertifier   = "propose_certifier"
+	TypeMsgUpdateCertifier    = "update_certifier"
 	TypeMsgCertifyValidator   = "certify_validator"
 	TypeMsgDecertifyValidator = "decertify_validator"
 	TypeMsgCertifyGeneral     = "certify_general"
@@ -23,41 +23,73 @@ const (
 	TypeMsgCertifyPlatform    = "certify_platform"
 )
 
-// NewMsgProposeCertifier returns a new certifier proposal message.
-func NewMsgProposeCertifier(proposer, certifier sdk.AccAddress, alias string, description string) *MsgProposeCertifier {
-	return &MsgProposeCertifier{
-		Proposer:    proposer.String(),
+// NewMsgUpdateCertifier returns a new governance-authorized certifier update message.
+func NewMsgUpdateCertifier(
+	authority sdk.AccAddress,
+	certifier sdk.AccAddress,
+	description string,
+	operation AddOrRemove,
+	proposer sdk.AccAddress,
+) *MsgUpdateCertifier {
+	msg := &MsgUpdateCertifier{
+		Authority:   authority.String(),
 		Certifier:   certifier.String(),
-		Alias:       alias,
 		Description: description,
+		Operation:   operation.String(),
 	}
+	if len(proposer) > 0 {
+		msg.Proposer = proposer.String()
+	}
+	return msg
 }
 
 // Route returns the module name.
-func (m MsgProposeCertifier) Route() string { return ModuleName }
+func (m MsgUpdateCertifier) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (m MsgProposeCertifier) Type() string { return "propose_certifier" }
+func (m MsgUpdateCertifier) Type() string { return TypeMsgUpdateCertifier }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgProposeCertifier) ValidateBasic() error {
+func (m MsgUpdateCertifier) ValidateBasic() error {
+	authorityAddr, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Authority)
+	}
+	if authorityAddr.Empty() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
+
 	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
 	if err != nil {
-		panic(err)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Certifier)
 	}
 	if certifierAddr.Empty() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, certifierAddr.String())
+		return ErrEmptyCertifier
+	}
+
+	if _, err := AddOrRemoveFromString(m.Operation); err != nil {
+		return err
+	}
+
+	if m.Proposer != "" {
+		proposerAddr, err := sdk.AccAddressFromBech32(m.Proposer)
+		if err != nil {
+			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Proposer)
+		}
+		if proposerAddr.Empty() {
+			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+		}
 	}
 	return nil
 }
 
 // GetSigners defines whose signature is required.
-func (m MsgProposeCertifier) GetSigners() []sdk.AccAddress {
-	proposerAddr, err := sdk.AccAddressFromBech32(m.Proposer)
+func (m MsgUpdateCertifier) GetSigners() []sdk.AccAddress {
+	authorityAddr, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{proposerAddr}
+	return []sdk.AccAddress{authorityAddr}
 }
 
 // NewMsgIssueCertificate returns a new certification message.

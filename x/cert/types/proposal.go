@@ -1,9 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
@@ -25,14 +22,12 @@ func init() {
 func NewCertifierUpdateProposal(title,
 	description string,
 	certifier sdk.AccAddress,
-	alias string,
 	proposer sdk.AccAddress,
 	addorremove AddOrRemove,
 ) *CertifierUpdateProposal {
 	return &CertifierUpdateProposal{
 		Title:       title,
 		Proposer:    proposer.String(),
-		Alias:       alias,
 		Certifier:   certifier.String(),
 		Description: description,
 		AddOrRemove: addorremove,
@@ -66,59 +61,5 @@ func (cup CertifierUpdateProposal) ValidateBasic() error {
 		return ErrEmptyCertifier
 	}
 
-	return nil
-}
-
-type AddOrRemove bool
-
-const (
-	Add    AddOrRemove = false
-	Remove AddOrRemove = true
-
-	StringAdd    = "add"
-	StringRemove = "remove"
-)
-
-func (aor AddOrRemove) String() string {
-	switch aor {
-	case Add:
-		return StringAdd
-	case Remove:
-		return StringRemove
-	default:
-		panic("Invalid AddOrRemove value")
-	}
-}
-
-func AddOrRemoveFromString(str string) (AddOrRemove, error) {
-	switch strings.ToLower(str) {
-	case StringAdd:
-		return Add, nil
-	case StringRemove:
-		return Remove, nil
-	default:
-		return AddOrRemove(false), ErrAddOrRemove
-	}
-}
-
-// MarshalJSON marshals to JSON using string
-func (aor AddOrRemove) MarshalJSON() ([]byte, error) {
-	return json.Marshal(aor.String())
-}
-
-// UnmarshalJSON unmarshals from JSON assuming Bech32 encoding
-func (aor *AddOrRemove) UnmarshalJSON(data []byte) error {
-	var s string
-	err := json.Unmarshal(data, &s)
-	if err != nil {
-		return err
-	}
-
-	bz2, err := AddOrRemoveFromString(s)
-	if err != nil {
-		return err
-	}
-
-	*aor = bz2
 	return nil
 }

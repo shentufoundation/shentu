@@ -31,9 +31,6 @@ var (
 	// libraryStoreKeyPrefix is the prefix of library kv-store keys.
 	libraryStoreKeyPrefix = []byte{0x6}
 
-	// certifierAliasStoreKeyPrefix is the prefix of certifier alias kv-store keys.
-	certifierAliasStoreKeyPrefix = []byte{0x7}
-
 	// nextCertificateIDKeyPrefix is the prefix of the next certificate ID to assign.
 	nextCertificateIDKeyPrefix = []byte{0x08}
 )
@@ -46,16 +43,6 @@ func CertifierStoreKey(certifier sdk.AccAddress) []byte {
 // CertifiersStoreKey returns the kv-store key for accessing all current certifiers in the security council.
 func CertifiersStoreKey() []byte {
 	return certifierStoreKeyPrefix
-}
-
-// CertifierAliasStoreKey returns the kv-store key for the certifier alias.
-func CertifierAliasStoreKey(alias string) []byte {
-	return concat(certifierAliasStoreKeyPrefix, []byte(alias))
-}
-
-// CertifierAliasesStoreKey returns the kv-store key for accessing aliases of all current certifiers.
-func CertifierAliasesStoreKey() []byte {
-	return certifierAliasStoreKeyPrefix
 }
 
 // ValidatorStoreKey returns the kv-store key for the validator node certification.

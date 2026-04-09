@@ -13,8 +13,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 type msgServer struct {
@@ -308,12 +306,6 @@ func (k legacyMsgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1be
 		return nil, err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(goCtx)
-	err := validateProposalByType(sdkCtx, k.keeper, msg)
-	if err != nil {
-		return nil, err
-	}
-
 	contentMsg, err := govtypesv1.NewLegacyContent(msg.GetContent(), k.govAcct)
 	if err != nil {
 		return nil, fmt.Errorf("error converting legacy content into proposal message: %w", err)
@@ -388,22 +380,6 @@ func (k legacyMsgServer) Deposit(goCtx context.Context, msg *govtypesv1beta1.Msg
 func validateDeposit(amount sdk.Coins) error {
 	if !amount.IsValid() || !amount.IsAllPositive() {
 		return sdkerrors.ErrInvalidCoins.Wrap(amount.String())
-	}
-	return nil
-}
-
-func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypesv1beta1.MsgSubmitProposal) error {
-	switch c := msg.GetContent().(type) {
-	case *certtypes.CertifierUpdateProposal:
-		hasAlias, err := k.certKeeper.HasCertifierAlias(ctx, c.Alias)
-		if err != nil {
-			return err
-		}
-		if c.Alias != "" && hasAlias {
-			return certtypes.ErrRepeatedAlias
-		}
-	default:
-		return nil
 	}
 	return nil
 }

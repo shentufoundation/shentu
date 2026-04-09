@@ -5,11 +5,11 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/shentufoundation/shentu/v2/x/cert/types"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 type msgServer struct {
@@ -24,8 +24,47 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) ProposeCertifier(_ context.Context, _ *types.MsgProposeCertifier) (*types.MsgProposeCertifierResponse, error) {
-	return &types.MsgProposeCertifierResponse{}, nil
+func (k msgServer) UpdateCertifier(goCtx context.Context, msg *types.MsgUpdateCertifier) (*types.MsgUpdateCertifierResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if k.Keeper.authority != msg.Authority {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "invalid authority; expected %s, got %s", k.Keeper.authority, msg.Authority)
+	}
+
+	operation, err := types.AddOrRemoveFromString(msg.Operation)
+	if err != nil {
+		return nil, err
+	}
+
+	certifierAddr, err := sdk.AccAddressFromBech32(msg.Certifier)
+	if err != nil {
+		return nil, err
+	}
+
+	var proposerAddr sdk.AccAddress
+	if msg.Proposer != "" {
+		proposerAddr, err = sdk.AccAddressFromBech32(msg.Proposer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	certifier := types.NewCertifier(certifierAddr, proposerAddr, msg.Description)
+	if err := k.Keeper.UpdateCertifier(ctx, operation, certifier); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"update_certifier",
+			sdk.NewAttribute("operation", operation.String()),
+			sdk.NewAttribute("certifier", msg.Certifier),
+			sdk.NewAttribute("description", msg.Description),
+			sdk.NewAttribute("proposer", msg.Proposer),
+		),
+	)
+
+	return &types.MsgUpdateCertifierResponse{}, nil
 }
 
 func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCertificate) (*types.MsgIssueCertificateResponse, error) {

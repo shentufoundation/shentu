@@ -40,18 +40,14 @@ func GetCmdCertifier() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "certifier <address>",
 		Short: "Get certifier information",
-		Args:  cobra.RangeArgs(0, 1),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			var req types.QueryCertifierRequest
-			req.Alias = viper.GetString(FlagAlias)
-			if len(args) > 0 {
-				req.Address = args[0]
-			}
+			req := types.QueryCertifierRequest{Address: args[0]}
 
 			queryClient := types.NewQueryClient(cliCtx)
 			res, err := queryClient.Certifier(
@@ -66,7 +62,6 @@ func GetCmdCertifier() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagAlias, "", "use alias to query the certifier info")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

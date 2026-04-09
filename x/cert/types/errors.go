@@ -9,11 +9,9 @@ const (
 	errUnqualifiedCertifier uint32 = iota + 101
 	errCertifierAlreadyExists
 	errCertifierNotExists
-	errRepeatedAlias
 	errUnqualifiedProposer
 	errEmptyCertifier
 	errAddOrRemove
-	errInvalidCertifierAlias
 	errOnlyOneCertifier
 )
 
@@ -46,11 +44,9 @@ var (
 	ErrUnqualifiedCertifier   = errorsmod.Register(ModuleName, errUnqualifiedCertifier, "certifier not qualified")
 	ErrCertifierAlreadyExists = errorsmod.Register(ModuleName, errCertifierAlreadyExists, "certifier already added")
 	ErrCertifierNotExists     = errorsmod.Register(ModuleName, errCertifierNotExists, "certifier does not exist")
-	ErrRepeatedAlias          = errorsmod.Register(ModuleName, errRepeatedAlias, "the alias has been used by other certifiers")
 	ErrUnqualifiedProposer    = errorsmod.Register(ModuleName, errUnqualifiedProposer, "proposer not qualified")
 	ErrEmptyCertifier         = errorsmod.Register(ModuleName, errEmptyCertifier, "certifier address empty")
 	ErrAddOrRemove            = errorsmod.Register(ModuleName, errAddOrRemove, "must be `add` or `remove`")
-	ErrInvalidCertifierAlias  = errorsmod.Register(ModuleName, errInvalidCertifierAlias, "invalid certifier alias`")
 	ErrOnlyOneCertifier       = errorsmod.Register(ModuleName, errOnlyOneCertifier, "cannot remove only certifier")
 )
 

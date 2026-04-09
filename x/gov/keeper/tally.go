@@ -9,8 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 // Tally iterates over the votes and updates the tally of a proposal based on the voting power of the
@@ -116,15 +114,12 @@ func (k Keeper) Tally(ctx context.Context, proposal govtypesv1.Proposal) (passes
 	}
 
 	if len(proposalMsgs) == 1 {
-		if legacyMsg, ok := proposalMsgs[0].(*govtypesv1.MsgExecLegacyContent); ok {
-			// check that the content struct can be unmarshalled
-			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
-			if err != nil {
-				return false, false, govtypesv1.TallyResult{}, err
-			}
-			if content.ProposalType() == certtypes.ProposalTypeCertifierUpdate {
-				th.tallyParams = *customParams.CertifierUpdateStakeVoteTally
-			}
+		isCertifierUpdate, err := isCertifierUpdateProposalMsg(proposalMsgs[0])
+		if err != nil {
+			return false, false, govtypesv1.TallyResult{}, err
+		}
+		if isCertifierUpdate {
+			th.tallyParams = *customParams.CertifierUpdateStakeVoteTally
 		}
 	}
 
@@ -325,15 +320,9 @@ func SecurityTally(ctx context.Context, k Keeper, proposal govtypesv1.Proposal) 
 	// For other proposal types (SoftwareUpgrade, etc.): Only continue to stake
 	// round if security round passed (must pass both rounds).
 	if len(proposalMsgs) == 1 {
-		if legacyMsg, ok := proposalMsgs[0].(*govtypesv1.MsgExecLegacyContent); ok {
-			// check that the content struct can be unmarshalled
-			content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
-			if err != nil {
-				return false, false, govtypesv1.TallyResult{}
-			}
-			if content.ProposalType() == certtypes.ProposalTypeCertifierUpdate {
-				isCertifierUpdateProposal = true
-			}
+		isCertifierUpdateProposal, err = isCertifierUpdateProposalMsg(proposalMsgs[0])
+		if err != nil {
+			return false, false, govtypesv1.TallyResult{}
 		}
 	}
 

@@ -1,174 +1,163 @@
 # Cert
 
-The `cert` module handles most of the certifier-related logic, include adding and removing certifiers, certifying validators, and issuing certificates.
+The `cert` module is responsible for two domain concepts:
 
-Certifiers are chain users that are responsible for overseeing the chain's security. Shentu Chain has two governing bodies that make decisions for the chain. First, validators are chain users that stake tokens as part of Shentu Chain's Delegated Proof-of-Stake consensus protocol. A validator's voting is proportional to their amount staked. Second, certifiers are responsible for security-related votes. Each certifier gets one equally-weighted vote. That being said, many of the actions that certifiers are privileged to take (see [Messages](#messages) below) do not require a voting process.
+- `certifier`: a governance-controlled roster of privileged security reviewers
+- `certificate`: an on-chain record issued by a certifier
+
+This module no longer treats validator certification, platform certification, or library registration as first-class scope. The current refactor direction is to remove `platform` and `library`, keep `certifier` and `certificate`, and improve certificate storage/query performance before any deeper certificate model redesign.
+
+## Domain Boundary
+
+### Certifiers
+
+`Certifier` is a permission roster, not a parameter set.
+
+It exists as module state because:
+
+- other modules depend on `IsCertifier`
+- certifiers are governance-controlled actors, not runtime config
+- the roster may carry governance metadata and lifecycle checks
+
+The target certifier model is intentionally small:
+
+```go
+type Certifier struct {
+    Address     string `json:"address"`
+    Proposer    string `json:"proposer"`
+    Description string `json:"description"`
+}
+```
+
+Notes:
+
+- `alias` is being removed from the certifier model
+- certifier identity is address-based only
+- any human-friendly labeling should be handled off-chain or as optional non-indexed metadata later
+
+### Certificates
+
+`Certificate` remains the core business object of the module.
+
+At the current refactor stage, the chain keeps the existing certificate data model and focuses first on:
+
+- storage/index refactor
+- query refactor
+- runtime/API cleanup
+
+This means the current `Any`-based content model is still preserved during the architecture refactor, even though it may be simplified in a later follow-up.
 
 ## State
 
 ### Certificates
 
-A `Certificate` can be stored on-chain to signify that a smart contract has been audited or formally verified.
+Certificates remain stored by ID as the canonical primary record.
 
-- Certificate: `0x5 | LittleEndian(CertificateId) -> amino(certificate)`
+- Certificate: `0x5 | LittleEndian(CertificateId) -> certificate`
 - NextCertificateID: `0x8 -> NextCertificateID`
 
-```go
-type Certificate struct {
-    CertificateId      uint64               `json:"certificate_id"`
-    Content            *types.Any           `json:"content"`
-    CompilationContent *CompilationContent  `json:"compilation_content"`
-    Description        string               `json:"description"`
-    Certifier          string               `json:"certifier"`
-}
-```
+The architecture refactor adds secondary indexes so common reads no longer require full-store scans.
 
-There are currently seven types of supported certificates:
+Required index directions:
 
-- `Compilation`
-- `Auditing`
-- `Proof`
-- `OracleOperator`
-- `ShieldPoolCreator`
-- `Identity`
-- `General`
+- `certifier -> certificate ids`
+- `certificate type -> certificate ids`
+- `certifier + certificate type -> certificate ids`
+- `content hash -> certificate ids`
+- `certificate type + content hash -> certificate ids`
 
-In addition to `CertificateId`, all certificates can be looked up by their `Certifier` and `Content`. Certificate types are determined by parsing the content string, in which contents are assembled into `Content` struct instances of their respective types.
+These indexes support:
 
-```go
-// Content is the interface for all kinds of certificate content.
-type Content interface {
-    proto.Message
-
-    GetContent() string
-}
-```
-
-In addition to the source code, additional information, such as compiler version and optimization settings, needs to be provided by the certifier. `CompilationContent` contains the compilation info for a smart contract in need of certification.
-
-```go
-type CompilationContent struct {
-    Compiler        string
-    BytecodeHash    string
-}
-```
+- certificate list queries
+- `IsCertified`
+- `IsContentCertified`
+- `IsBountyAdmin`
 
 ### Certifiers
 
-`Certifier` objects keep track of a certifier's information, including the certifier's alias and who proposed to add the certifier.
+Certifiers remain stored as dedicated module state.
 
-- Certifier: `0x0 | Address -> amino(certifier)`
-- CertifierByAlias: `0x7 | Alias -> amino(certifier)`
+- Certifier: `0x0 | Address -> certifier`
 
-```go
-type Certifier struct {
-    Address     string  `json:"certifier"`
-    Alias       string  `json:"alias"`
-    Proposer    string  `json:"proposer"`
-    Description string  `json:"description"`
-}
-```
+The previous alias index is being removed as part of the certifier refactor.
 
-### Validators
+## Governance And Mutation Model
 
-A `Validator` is a validator node, which can be certified by an existing certifier. When de-certified, the validator will then be unbonded, which prevents it from signing blocks or earning rewards.
+### Certifier updates
 
-- Validator: `0x1 | Pubkey -> amino(validator)`
+Adding or removing certifiers should be governance-authorized and use a single execution path.
 
-```go
-type Validator struct {
-    Pubkey    *types.Any `json:"pubkey"`
-    Certifier string     `json:"certifier"`
-}
-```
+The refactor direction is:
 
-### Platforms
+- remove the ineffective `MsgProposeCertifier` flow
+- stop exposing a user-facing message that appears successful but performs no state transition
+- replace certifier mutation with an authority-controlled path executed by governance proposal messages
 
-`Platform` objects are validators' host platforms that can be certified.
+The preferred end state is an authority-gated message such as `MsgUpdateCertifier`, called only by the governance authority after proposal passage.
 
-- Platform: `0x2 | ValidatorPubkey -> amino(platform)`
+Target execution flow:
 
-```go
-type Platform struct {
-    ValidatorPubkey *types.Any  `json:"validator_pubkey"`
-    Description     string      `json:"description"`
-}
-```
+1. a user submits a governance proposal
+2. the proposal contains `MsgUpdateCertifier`
+3. governance passes the proposal
+4. the governance module executes `MsgUpdateCertifier` using module authority
+5. `cert` keeper applies the certifier roster change
 
-### Libraries
+That path should own:
 
-A `Library` object can be certified as well. It stores the library address and its publisher.
+- add certifier
+- remove certifier
+- validation of uniqueness and minimum-roster safety
 
-- Library: `0x6 | Address -> amino(library)`
+### Certificate updates
 
-```go
-type Library struct {
-    Address     string  `json:"address"`
-    Publisher   string  `json:"publisher"`
-}
-```
+Certificate mutation remains message-driven:
+
+- `MsgIssueCertificate`
+- `MsgRevokeCertificate`
+
+Revocation behavior is part of the storage/query refactor scope because current revocation semantics interact with indexed lookups.
+
+## Queries
+
+The module should expose:
+
+- query certifier by address
+- query all certifiers
+- query certificate by ID
+- query certificates with indexed filtering
+
+The previous certifier query-by-alias path is being removed together with `alias`.
+
+The previous platform query is being removed together with `platform`.
 
 ## Messages
 
-`MsgProposeCertifier` must be proposed by a current certifier. It is first handled by the governance module for voting.
+Current target public message surface after refactor:
 
-```go
-type MsgProposeCertifier struct {
-    Proposer    string  `json:"proposer" yaml:"proposer"`
-    Alias       string  `json:"alias" yaml:"alias"`
-    Certifier   string  `json:"certifier" yaml:"certifier"`
-    Description string  `json:"description" yaml:"description"`
-}
-```
+- governance-authorized certifier update message
+- `MsgIssueCertificate`
+- `MsgRevokeCertificate`
 
-`MsgCertifyValidator` and `MsgDecertifyValidator` certifies and de-certifies a validator, respectively.
+Messages planned for removal:
 
-```go
-type MsgCertifyValidator struct {
-    Certifier   string      `json:"certifier" yaml:"certifier"`
-    Pubkey      *types.Any  `json:"pubkey"`
-}
-```
+- `MsgProposeCertifier`
+- `MsgCertifyPlatform`
 
-```go
-type MsgDecertifyValidator struct {
-    Decertifier string      `json:"decertifier" yaml:"decertifier"`
-    Pubkey      *types.Any  `json:"pubkey"`
-}
-```
+## Refactor Direction
 
-`MsgIssueCertificate` issues a certificate. It fails when the given certifier does not exist.
+The current execution order is:
 
-```go
-type MsgIssueCertificate struct {
-    Content         *types.Any  `json:"content"`
-    Compiler        string      `json:"compiler" yaml:"compiler"`
-    BytecodeHash    string      `json:"bytecode_hash" yaml:"bytecodehash"`
-    Description     string      `json:"description" yaml:"description"`
-    Certifier       string      `json:"certifier" yaml:"certifier"`
-}
-```
-
-`MsgRevokeCertificate` removes a certificate from the store.
-
-```go
-type MsgRevokeCertificate struct {
-    Revoker     string  `json:"revoker" yaml:"revoker"`
-    Id          uint64  `json:"id" yaml:"id"`
-    Description string  `json:"description" yaml:"description"`
-}
-```
-
-`MsgCertifyPlatform` certifies a validator's host platform.
-
-```go
-type MsgCertifyPlatform struct {
-    Certifier       string     `json:"certifier" yaml:"certifier"`
-    ValidatorPubkey *types.Any `json:"validator_pubkey"`
-    Platform        string     `json:"platform" yaml:"platform"`
-}
-```
+1. shrink module scope to `certifier` and `certificate`
+2. remove `platform` and `library`
+3. refactor keeper structure by responsibility
+4. add certificate secondary indexes
+5. replace scan-based queries with indexed lookups
+6. migrate existing state and update tests/docs
+7. evaluate a later follow-up to simplify the certificate content model
 
 ## Parameters
 
 There are currently no parameters specific to the `cert` module.
+
+`certifier` must not be moved into params. It is governance-controlled state, not module configuration.

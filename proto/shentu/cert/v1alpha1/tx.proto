@@ -15,27 +15,28 @@ option go_package = "github.com/shentufoundation/shentu/x/cert/types";
 // Msg defines the shield Msg service.
 service Msg {
     option (cosmos.msg.v1.service) = true;
-    rpc ProposeCertifier(MsgProposeCertifier) returns (MsgProposeCertifierResponse);
+    rpc UpdateCertifier(MsgUpdateCertifier) returns (MsgUpdateCertifierResponse);
     rpc IssueCertificate(MsgIssueCertificate) returns (MsgIssueCertificateResponse);
     rpc RevokeCertificate(MsgRevokeCertificate) returns (MsgRevokeCertificateResponse);
     rpc CertifyPlatform(MsgCertifyPlatform) returns (MsgCertifyPlatformResponse);
 }
 
-// MsgProposeCertifier is the message for proposing new certifier.
-message MsgProposeCertifier {
-    option (cosmos.msg.v1.signer) = "proposer";
-    option (amino.name)           = "cert/ProposeCertifier";
+// MsgUpdateCertifier is the governance-authorized message for updating the certifier roster.
+message MsgUpdateCertifier {
+    option (cosmos.msg.v1.signer) = "authority";
+    option (amino.name)           = "cert/UpdateCertifier";
 
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    string proposer = 1 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
-    string alias = 2 [ (gogoproto.moretags) = "yaml:\"alias\"" ];
-    string certifier = 3 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString", (gogoproto.moretags) = "yaml:\"authority\"" ];
+    string certifier = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString", (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string operation = 4 [ (gogoproto.moretags) = "yaml:\"operation\"" ];
+    string proposer = 5 [ (cosmos_proto.scalar) = "cosmos.AddressString", (gogoproto.moretags) = "yaml:\"proposer\"" ];
 }
 
-message MsgProposeCertifierResponse {}
+message MsgUpdateCertifierResponse {}
 
 // MsgCertifyGeneral is the message for issuing a general certificate.
 message MsgIssueCertificate {

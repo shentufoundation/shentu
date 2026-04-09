@@ -15,9 +15,6 @@ const (
 	// QueryCertifiers is the query endpoint for all certifiers information.
 	QueryCertifiers = "certifiers"
 
-	// QueryCertifierByAlias
-	QueryCertifierByAlias = "certifieralias"
-
 	// QueryValidator is the query endpoint for validator node certification.
 	QueryCertifiedValidator = "validator"
 

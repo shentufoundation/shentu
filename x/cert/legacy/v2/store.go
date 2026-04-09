@@ -12,6 +12,8 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
+var legacyCertifierAliasStoreKeyPrefix = []byte{0x7}
+
 func migrateCertificate(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 	oldStore := prefix.NewStore(store, types.CertificatesStoreKey())
 
@@ -101,7 +103,7 @@ func migrateCertifier(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 }
 
 func migrateCertifierAlias(store storetypes.KVStore, cdc codec.BinaryCodec) error {
-	oldStore := prefix.NewStore(store, types.CertifierAliasesStoreKey())
+	oldStore := prefix.NewStore(store, legacyCertifierAliasStoreKeyPrefix)
 
 	iterator := oldStore.Iterator(nil, nil)
 	defer iterator.Close()
