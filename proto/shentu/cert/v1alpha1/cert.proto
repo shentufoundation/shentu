@@ -52,15 +52,6 @@ message Certificate {
     string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
-// Library is a type for certified libraries.
-message Library {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    
-    string address = 1;
-    string publisher = 2;
-}
-
 message Compilation {
     option (cosmos_proto.implements_interface) = "Content";
 
@@ -107,15 +98,6 @@ message BountyAdmin {
     option (cosmos_proto.implements_interface) = "Content";
 
     string content = 1;
-}
-
-// Platform is a genesis type for certified platform of a validator
-message Platform {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    
-    google.protobuf.Any validator_pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-    string description = 2;
 }
 
 // CertifierUpdateProposal adds or removes a certifier

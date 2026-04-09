@@ -122,7 +122,3 @@ func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevoke
 	return &types.MsgRevokeCertificateResponse{}, nil
 }
 
-// CertifyPlatform is a stub. Platform certification has been removed.
-func (k msgServer) CertifyPlatform(_ context.Context, _ *types.MsgCertifyPlatform) (*types.MsgCertifyPlatformResponse, error) {
-	return nil, errorsmod.Wrap(sdkerrors.ErrNotSupported, "platform certification has been removed")
-}

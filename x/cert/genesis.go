@@ -11,10 +11,7 @@ func InitDefaultGenesis(ctx sdk.Context, k keeper.Keeper) {
 	InitGenesis(ctx, k, *types.DefaultGenesisState())
 }
 
-// InitGenesis initialize default parameters and the keeper's address to pubkey map.
-// Platform and library fields in GenesisState are accepted but ignored; they have been
-// removed from the module's runtime state. The migration step handles deletion of any
-// existing on-chain platform/library entries.
+// InitGenesis initializes default parameters and the keeper's address to pubkey map.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	for _, certifier := range data.Certifiers {
 		if err := k.SetCertifier(ctx, certifier); err != nil {

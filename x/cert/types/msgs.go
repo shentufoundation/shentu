@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -20,7 +19,6 @@ const (
 	TypeMsgCertifyGeneral     = "certify_general"
 	TypeMsgRevokeCertificate  = "revoke_certificate"
 	TypeMsgCertifyCompilation = "certify_compilation"
-	TypeMsgCertifyPlatform    = "certify_platform"
 )
 
 // NewMsgUpdateCertifier returns a new governance-authorized certifier update message.
@@ -175,51 +173,3 @@ func (m MsgRevokeCertificate) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{revokerAddr}
 }
 
-// NewMsgCertifyPlatform is kept for amino codec compatibility but platform certification
-// has been removed. Sending this message will return ErrNotSupported.
-func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk cryptotypes.PubKey, platform string) (*MsgCertifyPlatform, error) {
-	var pkAny *codectypes.Any
-	if pk != nil {
-		var err error
-		if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
-			return nil, err
-		}
-	}
-	return &MsgCertifyPlatform{Certifier: certifier.String(), ValidatorPubkey: pkAny, Platform: platform}, nil
-}
-
-// Route returns the module name.
-func (m MsgCertifyPlatform) Route() string { return ModuleName }
-
-// Type returns the action name.
-func (m MsgCertifyPlatform) Type() string { return "certify_platform" }
-
-// ValidateBasic runs stateless checks on the message.
-func (m MsgCertifyPlatform) ValidateBasic() error {
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
-	if err != nil {
-		panic(err)
-	}
-	if certifierAddr.Empty() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
-	}
-	if m.ValidatorPubkey == nil {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
-	}
-	return nil
-}
-
-// GetSigners defines whose signature is required.
-func (m MsgCertifyPlatform) GetSigners() []sdk.AccAddress {
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{certifierAddr}
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (m MsgCertifyPlatform) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(m.ValidatorPubkey, &pubKey)
-}

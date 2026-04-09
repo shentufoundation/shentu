@@ -101,7 +101,7 @@ Work should be executed in this order:
 - [x] Remove platform genesis field handling (init/export no-op)
 - [x] Remove platform store key prefix from `types/keys.go`
 - [x] Remove stale sync/e2e references to platform commands (CLI removed)
-- [ ] Remove platform proto messages (deferred; requires protoc regeneration)
+- [x] Remove platform proto messages (Platform type, MsgCertifyPlatform RPC, QueryPlatform RPC)
 - [ ] Remove platform docs and swagger entries (deferred; requires swagger regen)
 
 ## Library Removal
@@ -110,7 +110,7 @@ Work should be executed in this order:
 - [x] Remove library genesis field handling (init/export no-op)
 - [x] Remove library store key prefix from `types/keys.go`
 - [x] Remove library-specific errors (`ErrLibraryNotExists`, `ErrLibraryAlreadyExists`)
-- [ ] Remove library proto message (deferred; requires protoc regeneration)
+- [x] Remove library proto message (Library type removed from cert.proto, genesis.proto)
 - [ ] Remove library legacy migration code if no longer needed (kept in legacy/v2 as no-op reference)
 
 ## Migration
@@ -146,5 +146,5 @@ Work should be executed in this order:
 - [x] Update `specs.md` to reflect completed state (index key layout, migration, removed prefixes, query behavior)
 - [x] Update `refactor-plan.md` with completion status for all phases
 - [ ] Refresh generated docs/swagger if required (deferred; requires tooling)
-- [ ] Review for dead code and unused imports after removal (minor; `MsgCertifyPlatform` methods retained for proto compatibility)
+- [x] Review for dead code and unused imports after removal (MsgCertifyPlatform, Platform, Library fully removed)
 - [ ] Prepare follow-up patch for deeper certificate model simplification if still desired

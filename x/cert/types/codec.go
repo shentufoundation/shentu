@@ -11,7 +11,6 @@ import (
 // RegisterLegacyAminoCodec registers concrete types on the LegacyAmino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgUpdateCertifier{}, "cert/UpdateCertifier", nil)
-	cdc.RegisterConcrete(MsgCertifyPlatform{}, "cert/CertifyPlatform", nil)
 	cdc.RegisterConcrete(MsgIssueCertificate{}, "cert/IssueCertificate", nil)
 	cdc.RegisterConcrete(CertifierUpdateProposal{}, "cert/CertifierUpdateProposal", nil)
 	cdc.RegisterConcrete(MsgRevokeCertificate{}, "cert/RevokeCertificate", nil)
@@ -31,7 +30,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgUpdateCertifier{},
-		&MsgCertifyPlatform{},
 		&MsgIssueCertificate{},
 		&MsgRevokeCertificate{},
 	)

@@ -50,11 +50,6 @@ func (q Querier) Certifiers(c context.Context, req *types.QueryCertifiersRequest
 	return &types.QueryCertifiersResponse{Certifiers: q.GetAllCertifiers(ctx)}, nil
 }
 
-// Platform is a stub that returns Unimplemented. Platform certification has been removed.
-func (q Querier) Platform(_ context.Context, _ *types.QueryPlatformRequest) (*types.QueryPlatformResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "platform certification has been removed")
-}
-
 func (q Querier) Certificate(c context.Context, req *types.QueryCertificateRequest) (*types.QueryCertificateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")

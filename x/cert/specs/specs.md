@@ -152,7 +152,7 @@ Public message surface:
 Removed messages:
 
 - `MsgProposeCertifier` (removed; was a no-op)
-- `MsgCertifyPlatform` (handler stubbed with `ErrNotSupported`; proto type retained for backward compatibility)
+- `MsgCertifyPlatform` (fully removed from proto service and generated code)
 
 ## Migration
 
@@ -176,6 +176,5 @@ There are no parameters specific to the `cert` module.
 
 ## Deferred Items
 
-- Remove platform and library proto messages (requires protoc regeneration)
 - Refresh generated docs/swagger (requires tooling)
 - Evaluate certificate content model simplification (follow-up patch)

@@ -12,13 +12,12 @@ import "shentu/cert/v1alpha1/cert.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/cert/types";
 
-// Msg defines the shield Msg service.
+// Msg defines the cert Msg service.
 service Msg {
     option (cosmos.msg.v1.service) = true;
     rpc UpdateCertifier(MsgUpdateCertifier) returns (MsgUpdateCertifierResponse);
     rpc IssueCertificate(MsgIssueCertificate) returns (MsgIssueCertificateResponse);
     rpc RevokeCertificate(MsgRevokeCertificate) returns (MsgRevokeCertificateResponse);
-    rpc CertifyPlatform(MsgCertifyPlatform) returns (MsgCertifyPlatformResponse);
 }
 
 // MsgUpdateCertifier is the governance-authorized message for updating the certifier roster.
@@ -70,17 +69,18 @@ message MsgRevokeCertificate {
 
 message MsgRevokeCertificateResponse {}
 
-// MsgCertifyPlatform is the message for certifying a validator's host platform.
+// MsgCertifyPlatform is deprecated. Platform certification has been removed.
+// Kept as reserved fields for wire compatibility.
 message MsgCertifyPlatform {
     option (cosmos.msg.v1.signer) = "certifier";
-    option (amino.name)           = "cert/CertifyPlatform";
 
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    string certifier = 1 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-    google.protobuf.Any validator_pubkey = 2 [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey" ];
-    string platform = 3 [ (gogoproto.moretags) = "yaml:\"platform\"" ];
+    string certifier = 1;
+    reserved 2;
+    reserved "validator_pubkey";
+    string platform = 3;
 }
 
 message MsgCertifyPlatformResponse {}
