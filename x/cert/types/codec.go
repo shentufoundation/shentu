@@ -22,6 +22,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&Identity{}, "cert/Identity", nil)
 	cdc.RegisterConcrete(&General{}, "cert/General", nil)
 	cdc.RegisterConcrete(&BountyAdmin{}, "cert/BountyAdmin", nil)
+	cdc.RegisterConcrete(&OpenMath{}, "cert/OpenMath", nil)
 
 	cdc.RegisterInterface((*Content)(nil), nil)
 }
@@ -49,6 +50,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&Identity{},
 		&General{},
 		&BountyAdmin{},
+		&OpenMath{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
