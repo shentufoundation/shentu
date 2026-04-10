@@ -18,6 +18,7 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/cert/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	certsimulation "github.com/shentufoundation/shentu/v2/x/cert/simulation"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
@@ -144,20 +145,20 @@ func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 // AppModuleSimulation functions
 
-func (am AppModule) GenerateGenesisState(_ *module.SimulationState) {
+func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
+	certsimulation.RandomizedGenState(simState)
 }
 
 // WeightedOperations returns cert operations for use in simulations.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
-	// return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.moduleKeeper)
-	return nil
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return certsimulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.moduleKeeper)
 }
 
-func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = certsimulation.NewDecodeStore(am.moduleKeeper.GetCodec())
 }
 
 // ProposalMsgs returns functions that generate gov proposals for the module
 func (am AppModule) ProposalMsgs(_ module.SimulationState) []simtypes.WeightedProposalMsg {
-	// return simulation.ProposalContents(am.moduleKeeper)
-	return nil
+	return certsimulation.ProposalMsgs(am.moduleKeeper)
 }

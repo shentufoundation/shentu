@@ -33,3 +33,6 @@ func NewKeeper(
 		authority:    authority,
 	}
 }
+
+// GetCodec returns the keeper's binary codec.
+func (k Keeper) GetCodec() codec.BinaryCodec { return k.cdc }
