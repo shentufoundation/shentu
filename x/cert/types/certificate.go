@@ -29,7 +29,7 @@ func CertificateTypeFromString(s string) CertificateType {
 		return CertificateTypeIdentity
 	case "GENERAL", "CERT_TYPE_GENERAL":
 		return CertificateTypeGeneral
-	case "BOUNTYADMIN", "CERT_TYPE_BOUNTYADMIN":
+	case "BOUNTYADMIN", "CERT_TYPE_BOUNTY_ADMIN", "CERT_TYPE_BOUNTYADMIN":
 		return CertificateTypeBountyAdmin
 	case "OPENMATH", "CERT_TYPE_OPENMATH":
 		return CertificateTypeOpenMath

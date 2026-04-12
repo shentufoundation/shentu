@@ -278,6 +278,87 @@ func TestMsgServerOpenMath_NonCertifierCannotIssue(t *testing.T) {
 	require.True(t, errorsmod.IsOf(err, types.ErrUnqualifiedCertifier))
 }
 
+// ---------------------------------------------------------------------------
+// Cross-certifier operations
+// ---------------------------------------------------------------------------
+
+func TestMsgServerRevokeCertificate_CrossCertifierRevoke(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
+	// Both are certifiers.
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
+
+	// addrs[0] issues a certificate.
+	content := types.AssembleContent("general", "cross-revoke-content")
+	msg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
+	_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+	require.NoError(t, err)
+
+	certs := app.CertKeeper.GetAllCertificates(ctx)
+	require.Len(t, certs, 1)
+
+	// addrs[1] (a different certifier) revokes it — should succeed.
+	revokeMsg := types.NewMsgRevokeCertificate(addrs[1], certs[0].CertificateId, "cross-revoke")
+	_, err = msgServer.RevokeCertificate(sdk.WrapSDKContext(ctx), revokeMsg)
+	require.NoError(t, err)
+
+	require.False(t, app.CertKeeper.IsContentCertified(ctx, "cross-revoke-content"))
+}
+
+func TestMsgServerIssueCertificate_DuplicateContent(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+
+	// Issue the same content twice — both should succeed (different certificate IDs).
+	for i := 0; i < 2; i++ {
+		content := types.AssembleContent("general", "duplicate-content")
+		msg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
+		_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+		require.NoError(t, err)
+	}
+
+	certs := app.CertKeeper.GetAllCertificates(ctx)
+	require.Len(t, certs, 2)
+	require.NotEqual(t, certs[0].CertificateId, certs[1].CertificateId)
+}
+
+func TestMsgServerIssueCertificate_WithCompilationContent(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+
+	content := types.AssembleContent("compilation", "source-hash")
+	msg := types.NewMsgIssueCertificate(content, "solc-0.8.0", "0xdeadbeef", "compilation cert", addrs[0])
+	_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+	require.NoError(t, err)
+
+	certs := app.CertKeeper.GetAllCertificates(ctx)
+	require.Len(t, certs, 1)
+	require.Equal(t, "solc-0.8.0", certs[0].CompilationContent.Compiler)
+	require.Equal(t, "0xdeadbeef", certs[0].CompilationContent.BytecodeHash)
+}
+
+func TestMsgServerUpdateCertifier_RemoveNonExistent(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
+	authority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
+
+	// Add one certifier so there's at least one.
+	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Add, nil))
+	require.NoError(t, err)
+
+	// Try to remove addrs[1] which was never added.
+	_, err = msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[1], "", types.Remove, nil))
+	require.Error(t, err)
+	require.True(t, errorsmod.IsOf(err, types.ErrCertifierNotExists))
+}
+
+// ---------------------------------------------------------------------------
+// OpenMath certificate — additional edge cases
+// ---------------------------------------------------------------------------
+
 func TestMsgServerOpenMath_DoesNotInterfereWithOtherTypes(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
