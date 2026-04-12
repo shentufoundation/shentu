@@ -127,7 +127,7 @@ func TestMsgServerIssueCertificate_MultipleCertTypes(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
-	for _, certType := range []string{"general", "auditing", "proof", "identity"} {
+	for _, certType := range []string{"general", "auditing", "proof", "identity", "openmath"} {
 		content := types.AssembleContent(certType, "content-"+certType)
 		msg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
 		_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
@@ -191,4 +191,122 @@ func TestMsgServerRevokeCertificate_NotFoundFails(t *testing.T) {
 	has, err := app.CertKeeper.HasCertificateByID(ctx, 99999)
 	require.NoError(t, err)
 	require.False(t, has)
+}
+
+// ---------------------------------------------------------------------------
+// OpenMath certificate
+// ---------------------------------------------------------------------------
+
+func TestMsgServerOpenMath_IssueAndQuery(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+
+	// Issue an openmath certificate for a prover (addrs[1]).
+	content := types.AssembleContent("openmath", addrs[1].String())
+	require.NotNil(t, content)
+	msg := types.NewMsgIssueCertificate(content, "", "", "openmath prover cert", addrs[0])
+	_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+	require.NoError(t, err)
+
+	// The prover's address should be certified under the openmath type.
+	require.True(t, app.CertKeeper.IsCertified(ctx, addrs[1].String(), "openmath"))
+	// But not under other types.
+	require.False(t, app.CertKeeper.IsCertified(ctx, addrs[1].String(), "general"))
+	// Content-level check should also find it.
+	require.True(t, app.CertKeeper.IsContentCertified(ctx, addrs[1].String()))
+}
+
+func TestMsgServerOpenMath_MultipleProvers(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 4, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+
+	// Certify addrs[1] and addrs[2] as openmath provers.
+	for _, prover := range []sdk.AccAddress{addrs[1], addrs[2]} {
+		content := types.AssembleContent("openmath", prover.String())
+		msg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
+		_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+		require.NoError(t, err)
+	}
+
+	require.True(t, app.CertKeeper.IsCertified(ctx, addrs[1].String(), "openmath"))
+	require.True(t, app.CertKeeper.IsCertified(ctx, addrs[2].String(), "openmath"))
+	// addrs[3] was not certified.
+	require.False(t, app.CertKeeper.IsCertified(ctx, addrs[3].String(), "openmath"))
+
+	// Query by type should return exactly 2 openmath certificates.
+	params := types.NewQueryCertificatesParams(1, 100, nil, types.CertificateTypeOpenMath)
+	total, certs, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
+	require.NoError(t, err)
+	require.Equal(t, uint64(2), total)
+	require.Len(t, certs, 2)
+}
+
+func TestMsgServerOpenMath_RevokeProverCert(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+
+	// Issue openmath cert.
+	content := types.AssembleContent("openmath", addrs[1].String())
+	msg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
+	_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+	require.NoError(t, err)
+	require.True(t, app.CertKeeper.IsCertified(ctx, addrs[1].String(), "openmath"))
+
+	// Revoke it.
+	certs := app.CertKeeper.GetAllCertificates(ctx)
+	require.Len(t, certs, 1)
+	revokeMsg := types.NewMsgRevokeCertificate(addrs[0], certs[0].CertificateId, "revoke prover")
+	_, err = msgServer.RevokeCertificate(sdk.WrapSDKContext(ctx), revokeMsg)
+	require.NoError(t, err)
+
+	// After revocation the prover is no longer certified.
+	require.False(t, app.CertKeeper.IsCertified(ctx, addrs[1].String(), "openmath"))
+	require.False(t, app.CertKeeper.IsContentCertified(ctx, addrs[1].String()))
+}
+
+func TestMsgServerOpenMath_NonCertifierCannotIssue(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
+	// addrs[0] is NOT a certifier.
+
+	content := types.AssembleContent("openmath", addrs[1].String())
+	msg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
+	_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+	require.True(t, errorsmod.IsOf(err, types.ErrUnqualifiedCertifier))
+}
+
+func TestMsgServerOpenMath_DoesNotInterfereWithOtherTypes(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+
+	// Issue both an openmath and a general cert with the same content string.
+	contentStr := addrs[1].String()
+	for _, certType := range []string{"openmath", "general"} {
+		content := types.AssembleContent(certType, contentStr)
+		msg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
+		_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+		require.NoError(t, err)
+	}
+
+	// Each type should be independently queryable.
+	require.True(t, app.CertKeeper.IsCertified(ctx, contentStr, "openmath"))
+	require.True(t, app.CertKeeper.IsCertified(ctx, contentStr, "general"))
+
+	// Revoke only the openmath cert.
+	params := types.NewQueryCertificatesParams(1, 100, nil, types.CertificateTypeOpenMath)
+	_, certs, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
+	require.NoError(t, err)
+	require.Len(t, certs, 1)
+
+	revokeMsg := types.NewMsgRevokeCertificate(addrs[0], certs[0].CertificateId, "")
+	_, err = msgServer.RevokeCertificate(sdk.WrapSDKContext(ctx), revokeMsg)
+	require.NoError(t, err)
+
+	// openmath is gone, general remains.
+	require.False(t, app.CertKeeper.IsCertified(ctx, contentStr, "openmath"))
+	require.True(t, app.CertKeeper.IsCertified(ctx, contentStr, "general"))
 }
