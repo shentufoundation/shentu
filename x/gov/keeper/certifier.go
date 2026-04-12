@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
@@ -110,20 +111,17 @@ func isCertifierUpdateProposalMsg(msg sdk.Msg) (bool, error) {
 		return true, nil
 	}
 
+	// Recognize legacy CertifierUpdateProposal wrapped in MsgExecLegacyContent
+	// so that tally and certifier-vote rules still apply to any in-flight
+	// legacy proposals that survive a chain upgrade.
 	legacyMsg, ok := msg.(*govtypesv1.MsgExecLegacyContent)
 	if !ok {
 		return false, nil
 	}
-
 	content, err := govtypesv1.LegacyContentFromMessage(legacyMsg)
 	if err != nil {
 		return false, err
 	}
-
-	switch content.(type) {
-	case *certtypes.CertifierUpdateProposal:
-		return true, nil
-	default:
-		return false, nil
-	}
+	_, isCertUpdate := content.(*certtypes.CertifierUpdateProposal)
+	return isCertUpdate, nil
 }

@@ -107,8 +107,11 @@ message OpenMath {
     string content = 1;
 }
 
-// CertifierUpdateProposal adds or removes a certifier
+// Deprecated: CertifierUpdateProposal is the legacy v1beta1 governance proposal.
+// Retained only so existing on-chain proposals can be deserialized.
+// New certifier updates use MsgUpdateCertifier.
 message CertifierUpdateProposal {
+    option deprecated = true;
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
     option (cosmos_proto.implements_interface) = "*github.com/cosmos/cosmos-sdk/x/gov/types.Content";

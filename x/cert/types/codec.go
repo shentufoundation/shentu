@@ -12,7 +12,6 @@ import (
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgUpdateCertifier{}, "cert/UpdateCertifier", nil)
 	cdc.RegisterConcrete(MsgIssueCertificate{}, "cert/IssueCertificate", nil)
-	cdc.RegisterConcrete(CertifierUpdateProposal{}, "cert/CertifierUpdateProposal", nil)
 	cdc.RegisterConcrete(MsgRevokeCertificate{}, "cert/RevokeCertificate", nil)
 	cdc.RegisterConcrete(&Compilation{}, "cert/Compilation", nil)
 	cdc.RegisterConcrete(&Auditing{}, "cert/Auditing", nil)
@@ -35,6 +34,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgRevokeCertificate{},
 	)
 
+	// Deprecated: kept so existing on-chain proposals can be deserialized.
 	registry.RegisterImplementations((*govtypesv1beta1.Content)(nil),
 		&CertifierUpdateProposal{},
 	)

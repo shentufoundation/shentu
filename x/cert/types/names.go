@@ -10,7 +10,4 @@ const (
 
 	// QuerierRoute is the querier route for the cert module
 	QuerierRoute = ModuleName
-
-	// RouterKey is the msg router key for the cert module
-	RouterKey = ModuleName
 )
