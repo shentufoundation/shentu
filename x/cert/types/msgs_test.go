@@ -43,7 +43,7 @@ func TestMsgUpdateCertifier_ValidateBasic(t *testing.T) {
 			&types.MsgUpdateCertifier{
 				Authority: "invalid",
 				Certifier: certifier.String(),
-				Operation: "add",
+				Operation: types.CertifierUpdateOperationAdd,
 			},
 			true,
 		},
@@ -52,21 +52,25 @@ func TestMsgUpdateCertifier_ValidateBasic(t *testing.T) {
 			&types.MsgUpdateCertifier{
 				Authority: authority.String(),
 				Certifier: "",
-				Operation: "add",
+				Operation: types.CertifierUpdateOperationAdd,
 			},
 			true,
 		},
 		{
 			"invalid operation",
-			types.NewMsgUpdateCertifier(authority, certifier, "", types.AddOrRemove(false), nil),
-			false, // "add" is valid
-		},
-		{
-			"bad operation string",
 			&types.MsgUpdateCertifier{
 				Authority: authority.String(),
 				Certifier: certifier.String(),
-				Operation: "invalid",
+				Operation: types.CertifierUpdateOperationUnspecified,
+			},
+			true,
+		},
+		{
+			"bad operation enum",
+			&types.MsgUpdateCertifier{
+				Authority: authority.String(),
+				Certifier: certifier.String(),
+				Operation: types.CertifierUpdateOperation(99),
 			},
 			true,
 		},
@@ -75,7 +79,7 @@ func TestMsgUpdateCertifier_ValidateBasic(t *testing.T) {
 			&types.MsgUpdateCertifier{
 				Authority: authority.String(),
 				Certifier: certifier.String(),
-				Operation: "add",
+				Operation: types.CertifierUpdateOperationAdd,
 				Proposer:  "invalid",
 			},
 			true,

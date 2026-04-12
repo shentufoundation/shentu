@@ -34,7 +34,7 @@ func NewMsgUpdateCertifier(
 		Authority:   authority.String(),
 		Certifier:   certifier.String(),
 		Description: description,
-		Operation:   operation.String(),
+		Operation:   operation.ToProto(),
 	}
 	if len(proposer) > 0 {
 		msg.Proposer = proposer.String()
@@ -66,7 +66,7 @@ func (m MsgUpdateCertifier) ValidateBasic() error {
 		return ErrEmptyCertifier
 	}
 
-	if _, err := AddOrRemoveFromString(m.Operation); err != nil {
+	if _, err := AddOrRemoveFromProto(m.Operation); err != nil {
 		return err
 	}
 

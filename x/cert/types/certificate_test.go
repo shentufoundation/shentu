@@ -127,6 +127,35 @@ func TestAddOrRemove_String(t *testing.T) {
 	require.Equal(t, "remove", types.Remove.String())
 }
 
+func TestAddOrRemove_ProtoConversions(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   types.CertifierUpdateOperation
+		want    types.AddOrRemove
+		wantErr bool
+	}{
+		{"add", types.CertifierUpdateOperationAdd, types.Add, false},
+		{"remove", types.CertifierUpdateOperationRemove, types.Remove, false},
+		{"unspecified", types.CertifierUpdateOperationUnspecified, types.Add, true},
+		{"invalid", types.CertifierUpdateOperation(99), types.Add, true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := types.AddOrRemoveFromProto(tc.input)
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.want, got)
+			}
+		})
+	}
+
+	require.Equal(t, types.CertifierUpdateOperationAdd, types.Add.ToProto())
+	require.Equal(t, types.CertifierUpdateOperationRemove, types.Remove.ToProto())
+}
+
 func TestAddOrRemove_MarshalJSON(t *testing.T) {
 	bz, err := types.Add.MarshalJSON()
 	require.NoError(t, err)

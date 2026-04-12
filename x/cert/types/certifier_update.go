@@ -54,3 +54,25 @@ func (aor *AddOrRemove) UnmarshalJSON(data []byte) error {
 	*aor = value
 	return nil
 }
+
+func (aor AddOrRemove) ToProto() CertifierUpdateOperation {
+	switch aor {
+	case Add:
+		return CertifierUpdateOperationAdd
+	case Remove:
+		return CertifierUpdateOperationRemove
+	default:
+		return CertifierUpdateOperationUnspecified
+	}
+}
+
+func AddOrRemoveFromProto(op CertifierUpdateOperation) (AddOrRemove, error) {
+	switch op {
+	case CertifierUpdateOperationAdd:
+		return Add, nil
+	case CertifierUpdateOperationRemove:
+		return Remove, nil
+	default:
+		return Add, ErrAddOrRemove
+	}
+}

@@ -30,7 +30,7 @@ func (k msgServer) UpdateCertifier(goCtx context.Context, msg *types.MsgUpdateCe
 		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "invalid authority; expected %s, got %s", k.Keeper.authority, msg.Authority)
 	}
 
-	operation, err := types.AddOrRemoveFromString(msg.Operation)
+	operation, err := types.AddOrRemoveFromProto(msg.Operation)
 	if err != nil {
 		return nil, err
 	}
@@ -121,4 +121,3 @@ func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevoke
 
 	return &types.MsgRevokeCertificateResponse{}, nil
 }
-
