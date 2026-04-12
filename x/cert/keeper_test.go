@@ -79,6 +79,19 @@ func Test_GetNewCertificateID(t *testing.T) {
 	})
 }
 
+func Test_CertificateNotFoundErrors(t *testing.T) {
+	t.Run("missing certificate returns not found errors", func(t *testing.T) {
+		app := shentuapp.Setup(t, false)
+		ctx := app.BaseApp.NewContext(false)
+
+		_, err := app.CertKeeper.GetCertificateByID(ctx, 99999)
+		require.ErrorIs(t, err, types.ErrCertificateNotExists)
+
+		err = app.CertKeeper.DeleteCertificate(ctx, types.Certificate{CertificateId: 99999})
+		require.ErrorIs(t, err, types.ErrCertificateNotExists)
+	})
+}
+
 func randomString(length int) string {
 	out := make([]byte, length)
 	rand.Read(out)

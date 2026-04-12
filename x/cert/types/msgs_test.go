@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -104,11 +105,75 @@ func TestMsgUpdateCertifier_GetSigners(t *testing.T) {
 }
 
 func TestMsgIssueCertificate_ValidateBasic(t *testing.T) {
-	// ValidateBasic currently returns nil unconditionally.
 	addr := validShentuAddr(t, "certifier")
-	content := types.AssembleContent("general", "some-content")
-	msg := types.NewMsgIssueCertificate(content, "", "", "desc", addr)
-	require.NoError(t, msg.ValidateBasic())
+	tests := []struct {
+		name    string
+		msg     *types.MsgIssueCertificate
+		wantErr bool
+	}{
+		{
+			name:    "valid general",
+			msg:     types.NewMsgIssueCertificate(types.AssembleContent("general", "some-content"), "", "", "desc", addr),
+			wantErr: false,
+		},
+		{
+			name:    "valid compilation",
+			msg:     types.NewMsgIssueCertificate(types.AssembleContent("compilation", "source-hash"), "solc", "0xdeadbeef", "desc", addr),
+			wantErr: false,
+		},
+		{
+			name: "invalid certifier",
+			msg: &types.MsgIssueCertificate{
+				Content:   mustAny(t, types.AssembleContent("general", "some-content")),
+				Certifier: "invalid",
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing content",
+			msg: &types.MsgIssueCertificate{
+				Certifier: addr.String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid content type",
+			msg: &types.MsgIssueCertificate{
+				Content:   &codectypes.Any{TypeUrl: "/shentu.cert.v1alpha1.NotAContent"},
+				Certifier: addr.String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "compilation missing compiler",
+			msg: &types.MsgIssueCertificate{
+				Content:      mustAny(t, types.AssembleContent("compilation", "source-hash")),
+				BytecodeHash: "0xdeadbeef",
+				Certifier:    addr.String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "compilation missing bytecode hash",
+			msg: &types.MsgIssueCertificate{
+				Content:   mustAny(t, types.AssembleContent("compilation", "source-hash")),
+				Compiler:  "solc",
+				Certifier: addr.String(),
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.msg.ValidateBasic()
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestMsgIssueCertificate_GetSigners(t *testing.T) {
@@ -123,8 +188,41 @@ func TestMsgIssueCertificate_GetSigners(t *testing.T) {
 
 func TestMsgRevokeCertificate_ValidateBasic(t *testing.T) {
 	addr := validShentuAddr(t, "revoker_addr____")
-	msg := types.NewMsgRevokeCertificate(addr, 1, "reason")
-	require.NoError(t, msg.ValidateBasic())
+	tests := []struct {
+		name    string
+		msg     *types.MsgRevokeCertificate
+		wantErr bool
+	}{
+		{
+			name:    "valid",
+			msg:     types.NewMsgRevokeCertificate(addr, 1, "reason"),
+			wantErr: false,
+		},
+		{
+			name: "invalid revoker",
+			msg: &types.MsgRevokeCertificate{
+				Revoker: "invalid",
+				Id:      1,
+			},
+			wantErr: true,
+		},
+		{
+			name:    "zero id",
+			msg:     types.NewMsgRevokeCertificate(addr, 0, "reason"),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.msg.ValidateBasic()
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestMsgRevokeCertificate_GetSigners(t *testing.T) {
@@ -157,4 +255,13 @@ func TestMsgRevokeCertificate_RouteAndType(t *testing.T) {
 	msg := types.NewMsgRevokeCertificate(addr, 1, "")
 	require.Equal(t, types.ModuleName, msg.Route())
 	require.Equal(t, "revoke_certificate", msg.Type())
+}
+
+func mustAny(t *testing.T, content types.Content) *codectypes.Any {
+	t.Helper()
+	require.NotNil(t, content)
+
+	any, err := codectypes.NewAnyWithValue(content)
+	require.NoError(t, err)
+	return any
 }

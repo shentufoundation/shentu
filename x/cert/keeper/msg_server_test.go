@@ -181,16 +181,14 @@ func TestMsgServerRevokeCertificate_NonCertifierFails(t *testing.T) {
 }
 
 func TestMsgServerRevokeCertificate_NotFoundFails(t *testing.T) {
-	app, ctx, _ := setupMsgServer(t)
+	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
-	// GetCertificateByID with a non-existent ID does not return an error
-	// (gogoproto MustUnmarshal on nil returns an empty struct). Verify that
-	// HasCertificateByID correctly reports absence.
-	has, err := app.CertKeeper.HasCertificateByID(ctx, 99999)
-	require.NoError(t, err)
-	require.False(t, has)
+	revokeMsg := types.NewMsgRevokeCertificate(addrs[0], 99999, "")
+	_, err := msgServer.RevokeCertificate(sdk.WrapSDKContext(ctx), revokeMsg)
+	require.Error(t, err)
+	require.True(t, errorsmod.IsOf(err, types.ErrCertificateNotExists))
 }
 
 // ---------------------------------------------------------------------------

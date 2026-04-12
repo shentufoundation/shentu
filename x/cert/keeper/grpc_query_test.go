@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	querytypes "github.com/cosmos/cosmos-sdk/types/query"
@@ -114,13 +115,13 @@ func TestQueryCertificate_Found(t *testing.T) {
 }
 
 func TestQueryCertificate_NotFound(t *testing.T) {
-	app, ctx, _ := setupQuerier(t)
+	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
-	has, err := app.CertKeeper.HasCertificateByID(ctx, 99999)
-	require.NoError(t, err)
-	require.False(t, has)
+	_, err := querier.Certificate(sdk.WrapSDKContext(ctx), &types.QueryCertificateRequest{CertificateId: 99999})
+	require.Error(t, err)
+	require.True(t, errorsmod.IsOf(err, types.ErrCertificateNotExists))
 }
 
 func TestQueryCertificate_NilRequest(t *testing.T) {

@@ -27,9 +27,12 @@ func (k Keeper) SetCertificate(ctx context.Context, certificate types.Certificat
 
 // DeleteCertificate deletes a certificate and removes all secondary index entries.
 func (k Keeper) DeleteCertificate(ctx context.Context, certificate types.Certificate) error {
-	_, err := k.HasCertificateByID(ctx, certificate.CertificateId)
+	has, err := k.HasCertificateByID(ctx, certificate.CertificateId)
 	if err != nil {
 		return err
+	}
+	if !has {
+		return types.ErrCertificateNotExists
 	}
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Delete(types.CertificateStoreKey(certificate.CertificateId)); err != nil {
@@ -96,6 +99,9 @@ func (k Keeper) GetCertificateByID(ctx context.Context, id uint64) (types.Certif
 	certificateData, err := store.Get(types.CertificateStoreKey(id))
 	if err != nil {
 		return types.Certificate{}, err
+	}
+	if certificateData == nil {
+		return types.Certificate{}, types.ErrCertificateNotExists
 	}
 	var cert types.Certificate
 	k.cdc.MustUnmarshal(certificateData, &cert)
@@ -361,13 +367,6 @@ func (k Keeper) loadCertificateForQuery(ctx context.Context, key, value []byte, 
 	}
 
 	id := types.CertIDFromIndexKey(key)
-	has, err := k.HasCertificateByID(ctx, id)
-	if err != nil {
-		return types.Certificate{}, err
-	}
-	if !has {
-		return types.Certificate{}, fmt.Errorf("certificate %d referenced by index not found", id)
-	}
 	return k.GetCertificateByID(ctx, id)
 }
 

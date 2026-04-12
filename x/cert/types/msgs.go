@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -119,6 +120,27 @@ func (m MsgIssueCertificate) Type() string { return "issue_certificate" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgIssueCertificate) ValidateBasic() error {
+	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
+	if err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Certifier)
+	}
+	if certifierAddr.Empty() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
+
+	certType, err := certificateTypeFromAny(m.Content)
+	if err != nil {
+		return err
+	}
+
+	if certType == CertificateTypeCompilation {
+		if m.Compiler == "" {
+			return ErrCompiler
+		}
+		if m.BytecodeHash == "" {
+			return ErrBytecodeHash
+		}
+	}
 	return nil
 }
 
@@ -150,10 +172,13 @@ func NewMsgRevokeCertificate(revoker sdk.AccAddress, id uint64, description stri
 func (m MsgRevokeCertificate) ValidateBasic() error {
 	revokerAddr, err := sdk.AccAddressFromBech32(m.Revoker)
 	if err != nil {
-		panic(err)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Revoker)
 	}
 	if revokerAddr.Empty() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, revokerAddr.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
+	if m.Id == 0 {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "certificate id must be positive")
 	}
 	return nil
 }
@@ -173,3 +198,59 @@ func (m MsgRevokeCertificate) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{revokerAddr}
 }
 
+func certificateTypeFromAny(contentAny *codectypes.Any) (CertificateType, error) {
+	if contentAny == nil || contentAny.TypeUrl == "" {
+		return CertificateTypeNil, ErrInvalidRequestContentType
+	}
+
+	if content, ok := contentAny.GetCachedValue().(Content); ok {
+		switch content.(type) {
+		case *Compilation:
+			return CertificateTypeCompilation, nil
+		case *Auditing:
+			return CertificateTypeAuditing, nil
+		case *Proof:
+			return CertificateTypeProof, nil
+		case *OracleOperator:
+			return CertificateTypeOracleOperator, nil
+		case *ShieldPoolCreator:
+			return CertificateTypeShieldPoolCreator, nil
+		case *Identity:
+			return CertificateTypeIdentity, nil
+		case *General:
+			return CertificateTypeGeneral, nil
+		case *BountyAdmin:
+			return CertificateTypeBountyAdmin, nil
+		case *OpenMath:
+			return CertificateTypeOpenMath, nil
+		}
+	}
+
+	typeName := contentAny.TypeUrl
+	if idx := strings.LastIndex(typeName, "/"); idx >= 0 {
+		typeName = typeName[idx+1:]
+	}
+
+	switch typeName {
+	case "shentu.cert.v1alpha1.Compilation", "Compilation":
+		return CertificateTypeCompilation, nil
+	case "shentu.cert.v1alpha1.Auditing", "Auditing":
+		return CertificateTypeAuditing, nil
+	case "shentu.cert.v1alpha1.Proof", "Proof":
+		return CertificateTypeProof, nil
+	case "shentu.cert.v1alpha1.OracleOperator", "OracleOperator":
+		return CertificateTypeOracleOperator, nil
+	case "shentu.cert.v1alpha1.ShieldPoolCreator", "ShieldPoolCreator":
+		return CertificateTypeShieldPoolCreator, nil
+	case "shentu.cert.v1alpha1.Identity", "Identity":
+		return CertificateTypeIdentity, nil
+	case "shentu.cert.v1alpha1.General", "General":
+		return CertificateTypeGeneral, nil
+	case "shentu.cert.v1alpha1.BountyAdmin", "BountyAdmin":
+		return CertificateTypeBountyAdmin, nil
+	case "shentu.cert.v1alpha1.OpenMath", "OpenMath":
+		return CertificateTypeOpenMath, nil
+	default:
+		return CertificateTypeNil, ErrInvalidRequestContentType
+	}
+}
