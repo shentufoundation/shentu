@@ -21,6 +21,7 @@ const (
 	FlagBytecodeHash = "bytecode-hash"
 	FlagDescription  = "description"
 	FlagCertifier    = "certifier"
+	FlagContent      = "content"
 	FlagPage         = "page"
 	FlagLimit        = "limit"
 )

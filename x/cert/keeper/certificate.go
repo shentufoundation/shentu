@@ -3,11 +3,14 @@ package keeper
 import (
 	"context"
 	"encoding/binary"
+	"fmt"
 
+	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
@@ -215,78 +218,186 @@ func (k Keeper) loadCertsFromIndexPrefix(ctx context.Context, prefix []byte) []t
 	return certs
 }
 
-// GetCertificatesFiltered gets certificates filtered by certifier and/or type.
-// Chooses the narrowest index for the given filter combination and paginates directly
-// on the index prefix iterator, avoiding full-store scans.
-// Returns the true total count of matching certificates and the requested page.
-func (k Keeper) GetCertificatesFiltered(ctx context.Context, params types.QueryCertificatesParams) (uint64, []types.Certificate, error) {
-	limit := params.Limit
-	if limit <= 0 {
-		limit = 100
+// GetCertificatesFiltered gets certificates filtered by certifier, type, and/or content.
+// It chooses the narrowest available index prefix for the requested filters and
+// applies standard Cosmos SDK pagination semantics.
+func (k Keeper) GetCertificatesFiltered(ctx context.Context, params types.QueryCertificatesParams) ([]types.Certificate, *qtypes.PageResponse, error) {
+	if !types.IsValidCertificateType(params.CertificateType) {
+		return nil, nil, fmt.Errorf("invalid certificate type: %d", params.CertificateType)
 	}
-	skip := 0
-	if params.Page > 1 {
-		skip = (params.Page - 1) * limit
+
+	store, loadFromIndex := k.selectCertificateQueryStore(ctx, params)
+	pageReq := params.Pagination
+	if pageReq == nil {
+		pageReq = &qtypes.PageRequest{}
 	}
+
+	offset := pageReq.Offset
+	key := pageReq.Key
+	limit := pageReq.Limit
+	countTotal := pageReq.CountTotal
+	reverse := pageReq.Reverse
+
+	if offset > 0 && key != nil {
+		return nil, nil, fmt.Errorf("invalid request, either offset or key is expected, got both")
+	}
+
+	if limit == 0 {
+		limit = qtypes.DefaultLimit
+		countTotal = true
+	}
+
+	certs := make([]types.Certificate, 0)
+	appendMatch := func(key, value []byte) (bool, error) {
+		cert, err := k.loadCertificateForQuery(ctx, key, value, loadFromIndex)
+		if err != nil {
+			return false, err
+		}
+		if !matchesCertificateQuery(cert, params) {
+			return false, nil
+		}
+		certs = append(certs, cert)
+		return true, nil
+	}
+
+	if len(key) != 0 {
+		iterator := certificateQueryIterator(store, key, reverse)
+		defer iterator.Close()
+
+		var returned uint64
+		var nextKey []byte
+
+		for ; iterator.Valid(); iterator.Next() {
+			if iterator.Error() != nil {
+				return nil, nil, iterator.Error()
+			}
+			if returned == limit {
+				nextKey = iterator.Key()
+				break
+			}
+			matched, err := appendMatch(iterator.Key(), iterator.Value())
+			if err != nil {
+				return nil, nil, err
+			}
+			if matched {
+				returned++
+			}
+		}
+
+		return certs, &qtypes.PageResponse{NextKey: nextKey}, nil
+	}
+
+	iterator := certificateQueryIterator(store, nil, reverse)
+	defer iterator.Close()
+
+	end := offset + limit
+	var matchedCount uint64
+	var nextKey []byte
+
+	for ; iterator.Valid(); iterator.Next() {
+		if iterator.Error() != nil {
+			return nil, nil, iterator.Error()
+		}
+
+		cert, err := k.loadCertificateForQuery(ctx, iterator.Key(), iterator.Value(), loadFromIndex)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !matchesCertificateQuery(cert, params) {
+			continue
+		}
+
+		matchedCount++
+		if matchedCount <= offset {
+			continue
+		}
+		if matchedCount <= end {
+			certs = append(certs, cert)
+			continue
+		}
+		if matchedCount == end+1 {
+			nextKey = iterator.Key()
+			if !countTotal {
+				break
+			}
+		}
+	}
+
+	pageRes := &qtypes.PageResponse{NextKey: nextKey}
+	if countTotal {
+		pageRes.Total = matchedCount
+	}
+	return certs, pageRes, nil
+}
+
+func (k Keeper) selectCertificateQueryStore(ctx context.Context, params types.QueryCertificatesParams) (storetypes.KVStore, bool) {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
 	hasCertifier := len(params.Certifier) > 0
 	hasType := params.CertificateType != types.CertificateTypeNil
+	hasContent := params.Content != ""
 
-	// Choose the narrowest matching index prefix.
-	if hasCertifier && hasType {
-		return k.paginateIndex(ctx, types.CertifierTypeIndexPrefix(params.Certifier, params.CertificateType), skip, limit)
+	switch {
+	case hasType && hasContent:
+		return prefix.NewStore(store, types.TypeContentIndexPrefix(params.CertificateType, params.Content)), true
+	case hasCertifier && hasType:
+		return prefix.NewStore(store, types.CertifierTypeIndexPrefix(params.Certifier, params.CertificateType)), true
+	case hasContent:
+		return prefix.NewStore(store, types.ContentIndexPrefix(params.Content)), true
+	case hasCertifier:
+		return prefix.NewStore(store, types.CertifierIndexPrefix(params.Certifier)), true
+	case hasType:
+		return prefix.NewStore(store, types.TypeIndexPrefix(params.CertificateType)), true
+	default:
+		return prefix.NewStore(store, types.CertificatesStoreKey()), false
 	}
-	if hasCertifier {
-		return k.paginateIndex(ctx, types.CertifierIndexPrefix(params.Certifier), skip, limit)
-	}
-	if hasType {
-		return k.paginateIndex(ctx, types.TypeIndexPrefix(params.CertificateType), skip, limit)
-	}
-
-	// No filter: iterate the primary certificate store directly.
-	return k.paginatePrimary(ctx, skip, limit)
 }
 
-// paginateIndex iterates an index prefix, counts total matching entries, and loads
-// the page of certificate objects from the primary store.
-func (k Keeper) paginateIndex(ctx context.Context, prefix []byte, skip, limit int) (uint64, []types.Certificate, error) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	iterator := storetypes.KVStorePrefixIterator(store, prefix)
-	defer iterator.Close()
+func (k Keeper) loadCertificateForQuery(ctx context.Context, key, value []byte, loadFromIndex bool) (types.Certificate, error) {
+	if !loadFromIndex {
+		var cert types.Certificate
+		k.cdc.MustUnmarshal(value, &cert)
+		return cert, nil
+	}
 
-	var total uint64
-	var certs []types.Certificate
-	for ; iterator.Valid(); iterator.Next() {
-		total++
-		if int(total) > skip && len(certs) < limit {
-			id := types.CertIDFromIndexKey(iterator.Key())
-			cert, err := k.GetCertificateByID(ctx, id)
-			if err != nil {
-				continue
+	id := types.CertIDFromIndexKey(key)
+	has, err := k.HasCertificateByID(ctx, id)
+	if err != nil {
+		return types.Certificate{}, err
+	}
+	if !has {
+		return types.Certificate{}, fmt.Errorf("certificate %d referenced by index not found", id)
+	}
+	return k.GetCertificateByID(ctx, id)
+}
+
+func matchesCertificateQuery(cert types.Certificate, params types.QueryCertificatesParams) bool {
+	if len(params.Certifier) > 0 && !cert.GetCertifier().Equals(params.Certifier) {
+		return false
+	}
+	if params.CertificateType != types.CertificateTypeNil && types.TranslateCertificateType(cert) != params.CertificateType {
+		return false
+	}
+	if params.Content != "" && cert.GetContentString() != params.Content {
+		return false
+	}
+	return true
+}
+
+func certificateQueryIterator(store storetypes.KVStore, start []byte, reverse bool) storetypes.Iterator {
+	if reverse {
+		var end []byte
+		if start != nil {
+			iterator := store.Iterator(start, nil)
+			defer iterator.Close()
+			if iterator.Valid() {
+				iterator.Next()
+				end = iterator.Key()
 			}
-			certs = append(certs, cert)
 		}
+		return store.ReverseIterator(nil, end)
 	}
-	return total, certs, nil
-}
-
-// paginatePrimary iterates the primary certificate store for the no-filter case.
-func (k Keeper) paginatePrimary(ctx context.Context, skip, limit int) (uint64, []types.Certificate, error) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	iterator := storetypes.KVStorePrefixIterator(store, types.CertificatesStoreKey())
-	defer iterator.Close()
-
-	var total uint64
-	var certs []types.Certificate
-	for ; iterator.Valid(); iterator.Next() {
-		total++
-		if int(total) > skip && len(certs) < limit {
-			var cert types.Certificate
-			k.cdc.MustUnmarshal(iterator.Value(), &cert)
-			certs = append(certs, cert)
-		}
-	}
-	return total, certs, nil
+	return store.Iterator(start, nil)
 }
 
 // RevokeCertificate revokes a certificate.

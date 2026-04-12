@@ -146,27 +146,21 @@ func queryCertificate(grpcEndpoint, content, certificate string) (bool, error) {
 	defer conn.Close()
 
 	client := certtypes.NewQueryClient(conn)
+	certificateType, err := certtypes.ParseCertificateType(certificate)
+	if err != nil {
+		return false, err
+	}
 	res, err := client.Certificates(context.Background(), &certtypes.QueryCertificatesRequest{
-		CertificateType: certificate,
+		CertificateType: certificateType,
+		Content:         content,
 		Pagination: &querytypes.PageRequest{
-			Limit:  5000,
-			Offset: 0,
+			Limit: 1,
 		},
 	})
 	if err != nil {
 		return false, err
 	}
-	for _, item := range res.Certificates {
-		tmp := certtypes.AssembleContent(certificate, "")
-		err := cdc.UnpackAny(item.Certificate.Content, &tmp)
-		if err != nil {
-			return false, err
-		}
-		if tmp.GetContent() == content {
-			return true, nil
-		}
-	}
-	return false, nil
+	return len(res.Certificates) > 0, nil
 }
 
 func queryCertVoted(grpcEndpoint string, proposalID uint64) (bool, error) {

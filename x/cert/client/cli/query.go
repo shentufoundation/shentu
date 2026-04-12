@@ -137,11 +137,17 @@ func GetCmdCertificates() *cobra.Command {
 				return err
 			}
 
+			certificateType, err := types.ParseCertificateType(viper.GetString(FlagCertType))
+			if err != nil {
+				return err
+			}
+
 			res, err := queryClient.Certificates(
 				cmd.Context(),
 				&types.QueryCertificatesRequest{
 					Certifier:       viper.GetString(FlagCertifier),
-					CertificateType: viper.GetString(FlagCertType),
+					CertificateType: certificateType,
+					Content:         viper.GetString(FlagContent),
 					Pagination:      pageReq,
 				})
 			if err != nil {
@@ -154,6 +160,7 @@ func GetCmdCertificates() *cobra.Command {
 
 	cmd.Flags().String(FlagCertifier, "", "certificates issued by certifier")
 	cmd.Flags().String(FlagCertType, "", "certificates by type")
+	cmd.Flags().String(FlagContent, "", "certificates by content")
 	flags.AddPaginationFlagsToCmd(cmd, "certificates")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd

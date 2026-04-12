@@ -2,14 +2,13 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
@@ -81,39 +80,24 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		}
 	}
 
-	page, limit, err := qtypes.ParsePagination(req.Pagination)
-	if err != nil {
-		return nil, err
+	if !types.IsValidCertificateType(req.CertificateType) {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid certificate type: %d", req.CertificateType))
 	}
+
 	params := types.QueryCertificatesParams{
-		Page:            page,
-		Limit:           limit,
+		Pagination:      req.Pagination,
 		Certifier:       certifierAddr,
-		CertificateType: types.CertificateTypeFromString(req.CertificateType),
+		CertificateType: req.CertificateType,
+		Content:         req.Content,
 	}
 
-	total, certificates, err := q.GetCertificatesFiltered(ctx, params)
+	certificates, pagination, err := q.GetCertificatesFiltered(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
-	results := make([]types.QueryCertificateResponse, len(certificates))
-	for i, certificate := range certificates {
-		results[i] = types.QueryCertificateResponse{
-			Certificate: certificate,
-		}
-	}
-
-	return &types.QueryCertificatesResponse{Total: total, Certificates: results}, nil
-}
-
-func (q Querier) AddrConversion(_ context.Context, req *types.ConversionToShentuAddrRequest) (*types.ConversionToShentuAddrResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	shentuAddr, err := common.PrefixToShentu(req.Address)
-	if err != nil {
-		return nil, err
-	}
-	return &types.ConversionToShentuAddrResponse{Address: shentuAddr}, nil
+	return &types.QueryCertificatesResponse{
+		Certificates: certificates,
+		Pagination:   pagination,
+	}, nil
 }

@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	querytypes "github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/require"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
@@ -18,6 +20,17 @@ func setupQuerier(t *testing.T) (*shentuapp.ShentuApp, sdk.Context, keeper.Queri
 	ctx := app.BaseApp.NewContext(false)
 	querier := keeper.Querier{Keeper: app.CertKeeper}
 	return app, ctx, querier
+}
+
+func issueCert(t *testing.T, app *shentuapp.ShentuApp, ctx sdk.Context, certifier sdk.AccAddress, certType, content string) types.Certificate {
+	t.Helper()
+	cert, err := types.NewCertificate(certType, content, "", "", "", certifier)
+	require.NoError(t, err)
+	id, err := app.CertKeeper.IssueCertificate(ctx, cert)
+	require.NoError(t, err)
+	issued, err := app.CertKeeper.GetCertificateByID(ctx, id)
+	require.NoError(t, err)
+	return issued
 }
 
 // ---------------------------------------------------------------------------
@@ -75,6 +88,12 @@ func TestQueryCertifiers_Empty(t *testing.T) {
 	require.Empty(t, resp.Certifiers)
 }
 
+func TestQueryCertifiers_NilRequest(t *testing.T) {
+	_, ctx, querier := setupQuerier(t)
+	_, err := querier.Certifiers(sdk.WrapSDKContext(ctx), nil)
+	require.Error(t, err)
+}
+
 // ---------------------------------------------------------------------------
 // Certificate
 // ---------------------------------------------------------------------------
@@ -99,14 +118,15 @@ func TestQueryCertificate_NotFound(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
-	// HasCertificateByID correctly reports absence.
 	has, err := app.CertKeeper.HasCertificateByID(ctx, 99999)
 	require.NoError(t, err)
 	require.False(t, has)
+}
 
-	// NOTE: GetCertificateByID does not return an error for missing keys
-	// (gogoproto MustUnmarshal on nil returns an empty struct). This is a
-	// known limitation — callers should use HasCertificateByID first.
+func TestQueryCertificate_NilRequest(t *testing.T) {
+	_, ctx, querier := setupQuerier(t)
+	_, err := querier.Certificate(sdk.WrapSDKContext(ctx), nil)
+	require.Error(t, err)
 }
 
 // ---------------------------------------------------------------------------
@@ -119,16 +139,14 @@ func TestQueryCertificates_All(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
 	for i := 0; i < 5; i++ {
-		cert, err := types.NewCertificate("general", "cert-all-"+string(rune('A'+i)), "", "", "", addrs[0])
-		require.NoError(t, err)
-		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
-		require.NoError(t, err)
+		issueCert(t, app, ctx, addrs[0], "general", fmt.Sprintf("cert-all-%d", i))
 	}
 
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{})
 	require.NoError(t, err)
-	require.Equal(t, uint64(5), resp.Total)
 	require.Len(t, resp.Certificates, 5)
+	require.NotNil(t, resp.Pagination)
+	require.Equal(t, uint64(5), resp.Pagination.Total)
 }
 
 func TestQueryCertificates_ByCertifier(t *testing.T) {
@@ -138,19 +156,14 @@ func TestQueryCertificates_ByCertifier(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
 
 	for i := 0; i < 3; i++ {
-		cert, err := types.NewCertificate("general", "addr0-"+string(rune('A'+i)), "", "", "", addrs[0])
-		require.NoError(t, err)
-		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
-		require.NoError(t, err)
+		issueCert(t, app, ctx, addrs[0], "general", fmt.Sprintf("addr0-%d", i))
 	}
-	cert, err := types.NewCertificate("general", "addr1-A", "", "", "", addrs[1])
-	require.NoError(t, err)
-	_, err = app.CertKeeper.IssueCertificate(ctx, cert)
-	require.NoError(t, err)
+	issueCert(t, app, ctx, addrs[1], "general", "addr1-0")
 
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{Certifier: addrs[0].String()})
 	require.NoError(t, err)
-	require.Equal(t, uint64(3), resp.Total)
+	require.Equal(t, uint64(3), resp.Pagination.Total)
+	require.Len(t, resp.Certificates, 3)
 }
 
 func TestQueryCertificates_ByType(t *testing.T) {
@@ -158,111 +171,54 @@ func TestQueryCertificates_ByType(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
-	cert1, err := types.NewCertificate("auditing", "audit-content", "", "", "", addrs[0])
-	require.NoError(t, err)
-	_, err = app.CertKeeper.IssueCertificate(ctx, cert1)
-	require.NoError(t, err)
+	issueCert(t, app, ctx, addrs[0], "auditing", "audit-content")
+	issueCert(t, app, ctx, addrs[0], "general", "general-content")
 
-	cert2, err := types.NewCertificate("general", "general-content", "", "", "", addrs[0])
+	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{CertificateType: types.CertificateTypeAuditing})
 	require.NoError(t, err)
-	_, err = app.CertKeeper.IssueCertificate(ctx, cert2)
-	require.NoError(t, err)
-
-	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{CertificateType: "auditing"})
-	require.NoError(t, err)
-	require.Equal(t, uint64(1), resp.Total)
+	require.Equal(t, uint64(1), resp.Pagination.Total)
+	require.Len(t, resp.Certificates, 1)
+	require.Equal(t, types.CertificateTypeAuditing, types.TranslateCertificateType(resp.Certificates[0]))
 }
 
-// ---------------------------------------------------------------------------
-// AddrConversion
-// ---------------------------------------------------------------------------
+func TestQueryCertificates_ByContent(t *testing.T) {
+	app, ctx, querier := setupQuerier(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
 
-func TestQueryAddrConversion_ShentuAddr(t *testing.T) {
-	_, ctx, querier := setupQuerier(t)
-	// Build a shentu-prefixed address from known bytes.
-	addrBytes := sdk.AccAddress([]byte("test_addr_for_conv__"))
-	addr, err := sdk.Bech32ifyAddressBytes("shentu", addrBytes)
+	issueCert(t, app, ctx, addrs[0], "general", "shared-content")
+	issueCert(t, app, ctx, addrs[1], "openmath", "shared-content")
+	issueCert(t, app, ctx, addrs[0], "general", "other-content")
+
+	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{Content: "shared-content"})
 	require.NoError(t, err)
-
-	resp, err := querier.AddrConversion(sdk.WrapSDKContext(ctx), &types.ConversionToShentuAddrRequest{Address: addr})
-	require.NoError(t, err)
-	require.Equal(t, addr, resp.Address)
+	require.Equal(t, uint64(2), resp.Pagination.Total)
+	require.Len(t, resp.Certificates, 2)
 }
-
-func TestQueryAddrConversion_InvalidAddr(t *testing.T) {
-	_, ctx, querier := setupQuerier(t)
-	_, err := querier.AddrConversion(sdk.WrapSDKContext(ctx), &types.ConversionToShentuAddrRequest{Address: "invalid"})
-	require.Error(t, err)
-}
-
-// ---------------------------------------------------------------------------
-// Nil request handling
-// ---------------------------------------------------------------------------
-
-func TestQueryCertificate_NilRequest(t *testing.T) {
-	_, ctx, querier := setupQuerier(t)
-	_, err := querier.Certificate(sdk.WrapSDKContext(ctx), nil)
-	require.Error(t, err)
-}
-
-func TestQueryCertificates_NilRequest(t *testing.T) {
-	_, ctx, querier := setupQuerier(t)
-	_, err := querier.Certificates(sdk.WrapSDKContext(ctx), nil)
-	require.Error(t, err)
-}
-
-func TestQueryCertifiers_NilRequest(t *testing.T) {
-	_, ctx, querier := setupQuerier(t)
-	_, err := querier.Certifiers(sdk.WrapSDKContext(ctx), nil)
-	require.Error(t, err)
-}
-
-func TestQueryAddrConversion_NilRequest(t *testing.T) {
-	_, ctx, querier := setupQuerier(t)
-	_, err := querier.AddrConversion(sdk.WrapSDKContext(ctx), nil)
-	require.Error(t, err)
-}
-
-// ---------------------------------------------------------------------------
-// Certificate queries — OpenMath type filtering
-// ---------------------------------------------------------------------------
 
 func TestQueryCertificates_ByOpenMathType(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, math.NewInt(10000))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
-	// Issue 2 openmath and 1 general cert.
 	for _, prover := range []sdk.AccAddress{addrs[1], addrs[2]} {
-		cert, err := types.NewCertificate("openmath", prover.String(), "", "", "", addrs[0])
-		require.NoError(t, err)
-		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
-		require.NoError(t, err)
+		issueCert(t, app, ctx, addrs[0], "openmath", prover.String())
 	}
-	cert, err := types.NewCertificate("general", "some-content", "", "", "", addrs[0])
-	require.NoError(t, err)
-	_, err = app.CertKeeper.IssueCertificate(ctx, cert)
-	require.NoError(t, err)
+	issueCert(t, app, ctx, addrs[0], "general", "some-content")
 
-	// Filter by openmath — should return only 2.
-	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{CertificateType: "openmath"})
+	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{CertificateType: types.CertificateTypeOpenMath})
 	require.NoError(t, err)
-	require.Equal(t, uint64(2), resp.Total)
+	require.Equal(t, uint64(2), resp.Pagination.Total)
 
-	// Filter by general — should return only 1.
-	resp, err = querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{CertificateType: "general"})
+	resp, err = querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{CertificateType: types.CertificateTypeGeneral})
 	require.NoError(t, err)
-	require.Equal(t, uint64(1), resp.Total)
+	require.Equal(t, uint64(1), resp.Pagination.Total)
 
-	// No filter — should return all 3.
 	resp, err = querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{})
 	require.NoError(t, err)
-	require.Equal(t, uint64(3), resp.Total)
+	require.Equal(t, uint64(3), resp.Pagination.Total)
 }
-
-// ---------------------------------------------------------------------------
-// Certificate queries — combined certifier + type filter
-// ---------------------------------------------------------------------------
 
 func TestQueryCertificates_ByCertifierAndType(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
@@ -270,58 +226,86 @@ func TestQueryCertificates_ByCertifierAndType(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
 
-	// addrs[0] issues 2 general + 1 openmath.
 	for _, content := range []string{"a", "b"} {
-		cert, err := types.NewCertificate("general", content, "", "", "", addrs[0])
-		require.NoError(t, err)
-		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
-		require.NoError(t, err)
+		issueCert(t, app, ctx, addrs[0], "general", content)
 	}
-	cert, err := types.NewCertificate("openmath", addrs[2].String(), "", "", "", addrs[0])
-	require.NoError(t, err)
-	_, err = app.CertKeeper.IssueCertificate(ctx, cert)
-	require.NoError(t, err)
+	issueCert(t, app, ctx, addrs[0], "openmath", addrs[2].String())
+	issueCert(t, app, ctx, addrs[1], "general", "c")
 
-	// addrs[1] issues 1 general.
-	cert, err = types.NewCertificate("general", "c", "", "", "", addrs[1])
-	require.NoError(t, err)
-	_, err = app.CertKeeper.IssueCertificate(ctx, cert)
-	require.NoError(t, err)
-
-	// Filter: addrs[0] + general → 2
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{
 		Certifier:       addrs[0].String(),
-		CertificateType: "general",
+		CertificateType: types.CertificateTypeGeneral,
 	})
 	require.NoError(t, err)
-	require.Equal(t, uint64(2), resp.Total)
+	require.Equal(t, uint64(2), resp.Pagination.Total)
 
-	// Filter: addrs[0] + openmath → 1
 	resp, err = querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{
 		Certifier:       addrs[0].String(),
-		CertificateType: "openmath",
+		CertificateType: types.CertificateTypeOpenMath,
 	})
 	require.NoError(t, err)
-	require.Equal(t, uint64(1), resp.Total)
+	require.Equal(t, uint64(1), resp.Pagination.Total)
 
-	// Filter: addrs[1] + openmath → 0
 	resp, err = querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{
 		Certifier:       addrs[1].String(),
-		CertificateType: "openmath",
+		CertificateType: types.CertificateTypeOpenMath,
 	})
 	require.NoError(t, err)
-	require.Equal(t, uint64(0), resp.Total)
+	require.Equal(t, uint64(0), resp.Pagination.Total)
 }
 
-// ---------------------------------------------------------------------------
-// Certificates query — empty store
-// ---------------------------------------------------------------------------
+func TestQueryCertificates_Pagination(t *testing.T) {
+	app, ctx, querier := setupQuerier(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+
+	for i := 0; i < 5; i++ {
+		issueCert(t, app, ctx, addrs[0], "general", fmt.Sprintf("paged-%d", i))
+	}
+
+	firstPage, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{
+		Pagination: &querytypes.PageRequest{Limit: 2, CountTotal: true},
+	})
+	require.NoError(t, err)
+	require.Len(t, firstPage.Certificates, 2)
+	require.Equal(t, uint64(5), firstPage.Pagination.Total)
+	require.NotEmpty(t, firstPage.Pagination.NextKey)
+
+	secondPage, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{
+		Pagination: &querytypes.PageRequest{Key: firstPage.Pagination.NextKey, Limit: 2},
+	})
+	require.NoError(t, err)
+	require.Len(t, secondPage.Certificates, 2)
+	require.NotEmpty(t, secondPage.Pagination.NextKey)
+	for _, cert := range secondPage.Certificates {
+		require.NotZero(t, cert.CertificateId)
+	}
+
+	lastPage, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{
+		Pagination: &querytypes.PageRequest{Key: secondPage.Pagination.NextKey, Limit: 2},
+	})
+	require.NoError(t, err)
+	require.Len(t, lastPage.Certificates, 1)
+	require.Empty(t, lastPage.Pagination.NextKey)
+}
+
+func TestQueryCertificates_InvalidType(t *testing.T) {
+	_, ctx, querier := setupQuerier(t)
+	_, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{CertificateType: types.CertificateType(99)})
+	require.Error(t, err)
+}
 
 func TestQueryCertificates_Empty(t *testing.T) {
 	_, ctx, querier := setupQuerier(t)
 
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{})
 	require.NoError(t, err)
-	require.Equal(t, uint64(0), resp.Total)
+	require.Equal(t, uint64(0), resp.Pagination.Total)
 	require.Empty(t, resp.Certificates)
+}
+
+func TestQueryCertificates_NilRequest(t *testing.T) {
+	_, ctx, querier := setupQuerier(t)
+	_, err := querier.Certificates(sdk.WrapSDKContext(ctx), nil)
+	require.Error(t, err)
 }

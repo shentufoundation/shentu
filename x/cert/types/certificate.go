@@ -12,6 +12,12 @@ import (
 // Certificate types implement UnpackInterfaceMessages to unpack Content field.
 var _ codecTypes.UnpackInterfacesMessage = Certificate{}
 
+// IsValidCertificateType reports whether the enum value is a declared certificate type.
+func IsValidCertificateType(certType CertificateType) bool {
+	_, ok := CertificateType_name[int32(certType)]
+	return ok
+}
+
 // CertificateTypeFromString returns a certificate type by parsing a string.
 func CertificateTypeFromString(s string) CertificateType {
 	switch strings.ToUpper(s) {
@@ -36,6 +42,15 @@ func CertificateTypeFromString(s string) CertificateType {
 	default:
 		return CertificateTypeNil
 	}
+}
+
+// ParseCertificateType parses a string and rejects unknown values.
+func ParseCertificateType(s string) (CertificateType, error) {
+	certType := CertificateTypeFromString(s)
+	if certType == CertificateTypeNil && s != "" {
+		return CertificateTypeNil, fmt.Errorf("invalid certificate type: %s", s)
+	}
+	return certType, nil
 }
 
 // TranslateCertificateType determines certificate type based on content interface type switch.

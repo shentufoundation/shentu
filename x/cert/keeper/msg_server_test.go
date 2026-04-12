@@ -237,9 +237,9 @@ func TestMsgServerOpenMath_MultipleProvers(t *testing.T) {
 
 	// Query by type should return exactly 2 openmath certificates.
 	params := types.NewQueryCertificatesParams(1, 100, nil, types.CertificateTypeOpenMath)
-	total, certs, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
+	certs, pagination, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
 	require.NoError(t, err)
-	require.Equal(t, uint64(2), total)
+	require.Equal(t, uint64(2), pagination.Total)
 	require.Len(t, certs, 2)
 }
 
@@ -379,7 +379,7 @@ func TestMsgServerOpenMath_DoesNotInterfereWithOtherTypes(t *testing.T) {
 
 	// Revoke only the openmath cert.
 	params := types.NewQueryCertificatesParams(1, 100, nil, types.CertificateTypeOpenMath)
-	_, certs, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
+	certs, _, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
 	require.NoError(t, err)
 	require.Len(t, certs, 1)
 

@@ -44,16 +44,16 @@ func Test_CertificateIndexWrites(t *testing.T) {
 
 		// Type index: GetCertificatesFiltered with type-only filter must find it.
 		params := types.NewQueryCertificatesParams(1, 100, nil, types.CertificateTypeAuditing)
-		total, filtered, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
+		filtered, pagination, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
 		require.NoError(t, err)
-		require.Equal(t, uint64(1), total)
+		require.Equal(t, uint64(1), pagination.Total)
 		require.Len(t, filtered, 1)
 
 		// Certifier+type index: combination filter must also find it.
 		params2 := types.NewQueryCertificatesParams(1, 100, addrs[0], types.CertificateTypeAuditing)
-		total2, filtered2, err := app.CertKeeper.GetCertificatesFiltered(ctx, params2)
+		filtered2, pagination2, err := app.CertKeeper.GetCertificatesFiltered(ctx, params2)
 		require.NoError(t, err)
-		require.Equal(t, uint64(1), total2)
+		require.Equal(t, uint64(1), pagination2.Total)
 		require.Len(t, filtered2, 1)
 	})
 }
@@ -90,9 +90,9 @@ func Test_CertificateIndexDeletes(t *testing.T) {
 		require.Empty(t, certs)
 
 		params := types.NewQueryCertificatesParams(1, 100, addrs[0], types.CertificateTypeNil)
-		total, filtered, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
+		filtered, pagination, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
 		require.NoError(t, err)
-		require.Equal(t, uint64(0), total)
+		require.Equal(t, uint64(0), pagination.Total)
 		require.Empty(t, filtered)
 	})
 }
@@ -193,9 +193,9 @@ func Test_Migrate2to3IndexRebuild(t *testing.T) {
 
 		// Filtered query must also work.
 		params := types.NewQueryCertificatesParams(1, 100, addrs[0], types.CertificateTypeAuditing)
-		total, filtered, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
+		filtered, pagination, err := app.CertKeeper.GetCertificatesFiltered(ctx, params)
 		require.NoError(t, err)
-		require.Equal(t, uint64(1), total)
+		require.Equal(t, uint64(1), pagination.Total)
 		require.Len(t, filtered, 1)
 	})
 }

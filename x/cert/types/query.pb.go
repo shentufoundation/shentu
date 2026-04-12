@@ -287,8 +287,9 @@ func (m *QueryCertificateResponse) GetCertificate() Certificate {
 }
 
 type QueryCertificatesRequest struct {
-	Certifier       string `protobuf:"bytes,1,opt,name=certifier,proto3" json:"certifier,omitempty"`
-	CertificateType string `protobuf:"bytes,2,opt,name=certificate_type,json=certificateType,proto3" json:"certificate_type,omitempty"`
+	Certifier       string          `protobuf:"bytes,1,opt,name=certifier,proto3" json:"certifier,omitempty"`
+	CertificateType CertificateType `protobuf:"varint,2,opt,name=certificate_type,json=certificateType,proto3,enum=shentu.cert.v1alpha1.CertificateType" json:"certificate_type,omitempty"`
+	Content         string          `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	// pagination defines an optional pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
@@ -333,9 +334,16 @@ func (m *QueryCertificatesRequest) GetCertifier() string {
 	return ""
 }
 
-func (m *QueryCertificatesRequest) GetCertificateType() string {
+func (m *QueryCertificatesRequest) GetCertificateType() CertificateType {
 	if m != nil {
 		return m.CertificateType
+	}
+	return CertificateTypeNil
+}
+
+func (m *QueryCertificatesRequest) GetContent() string {
+	if m != nil {
+		return m.Content
 	}
 	return ""
 }
@@ -348,8 +356,9 @@ func (m *QueryCertificatesRequest) GetPagination() *query.PageRequest {
 }
 
 type QueryCertificatesResponse struct {
-	Total        uint64                     `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	Certificates []QueryCertificateResponse `protobuf:"bytes,2,rep,name=certificates,proto3" json:"certificates"`
+	Certificates []Certificate `protobuf:"bytes,1,rep,name=certificates,proto3" json:"certificates"`
+	// pagination defines the pagination in the response.
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryCertificatesResponse) Reset()         { *m = QueryCertificatesResponse{} }
@@ -385,106 +394,18 @@ func (m *QueryCertificatesResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryCertificatesResponse proto.InternalMessageInfo
 
-func (m *QueryCertificatesResponse) GetTotal() uint64 {
-	if m != nil {
-		return m.Total
-	}
-	return 0
-}
-
-func (m *QueryCertificatesResponse) GetCertificates() []QueryCertificateResponse {
+func (m *QueryCertificatesResponse) GetCertificates() []Certificate {
 	if m != nil {
 		return m.Certificates
 	}
 	return nil
 }
 
-type ConversionToShentuAddrRequest struct {
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-}
-
-func (m *ConversionToShentuAddrRequest) Reset()         { *m = ConversionToShentuAddrRequest{} }
-func (m *ConversionToShentuAddrRequest) String() string { return proto.CompactTextString(m) }
-func (*ConversionToShentuAddrRequest) ProtoMessage()    {}
-func (*ConversionToShentuAddrRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{8}
-}
-func (m *ConversionToShentuAddrRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ConversionToShentuAddrRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ConversionToShentuAddrRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ConversionToShentuAddrRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConversionToShentuAddrRequest.Merge(m, src)
-}
-func (m *ConversionToShentuAddrRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *ConversionToShentuAddrRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConversionToShentuAddrRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ConversionToShentuAddrRequest proto.InternalMessageInfo
-
-func (m *ConversionToShentuAddrRequest) GetAddress() string {
+func (m *QueryCertificatesResponse) GetPagination() *query.PageResponse {
 	if m != nil {
-		return m.Address
+		return m.Pagination
 	}
-	return ""
-}
-
-type ConversionToShentuAddrResponse struct {
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-}
-
-func (m *ConversionToShentuAddrResponse) Reset()         { *m = ConversionToShentuAddrResponse{} }
-func (m *ConversionToShentuAddrResponse) String() string { return proto.CompactTextString(m) }
-func (*ConversionToShentuAddrResponse) ProtoMessage()    {}
-func (*ConversionToShentuAddrResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{9}
-}
-func (m *ConversionToShentuAddrResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ConversionToShentuAddrResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ConversionToShentuAddrResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ConversionToShentuAddrResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConversionToShentuAddrResponse.Merge(m, src)
-}
-func (m *ConversionToShentuAddrResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *ConversionToShentuAddrResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConversionToShentuAddrResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ConversionToShentuAddrResponse proto.InternalMessageInfo
-
-func (m *ConversionToShentuAddrResponse) GetAddress() string {
-	if m != nil {
-		return m.Address
-	}
-	return ""
+	return nil
 }
 
 func init() {
@@ -496,58 +417,52 @@ func init() {
 	proto.RegisterType((*QueryCertificateResponse)(nil), "shentu.cert.v1alpha1.QueryCertificateResponse")
 	proto.RegisterType((*QueryCertificatesRequest)(nil), "shentu.cert.v1alpha1.QueryCertificatesRequest")
 	proto.RegisterType((*QueryCertificatesResponse)(nil), "shentu.cert.v1alpha1.QueryCertificatesResponse")
-	proto.RegisterType((*ConversionToShentuAddrRequest)(nil), "shentu.cert.v1alpha1.ConversionToShentuAddrRequest")
-	proto.RegisterType((*ConversionToShentuAddrResponse)(nil), "shentu.cert.v1alpha1.ConversionToShentuAddrResponse")
 }
 
 func init() { proto.RegisterFile("shentu/cert/v1alpha1/query.proto", fileDescriptor_d0446c22ac299371) }
 
 var fileDescriptor_d0446c22ac299371 = []byte{
-	// 700 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x95, 0x4f, 0x4f, 0xd4, 0x40,
-	0x18, 0xc6, 0xb7, 0xcb, 0x82, 0xee, 0x0b, 0x22, 0x99, 0xa0, 0xd6, 0x0d, 0x16, 0x9c, 0x28, 0xe1,
-	0x8f, 0x74, 0xb2, 0xc0, 0x45, 0x0e, 0x46, 0x21, 0x9a, 0xe0, 0x49, 0x57, 0x0e, 0xc6, 0xc4, 0xe8,
-	0xec, 0x76, 0x28, 0x4d, 0x96, 0x4e, 0xe9, 0xcc, 0x12, 0x09, 0xe1, 0xe2, 0xd5, 0x8b, 0x09, 0x27,
-	0xe3, 0x17, 0x30, 0xe1, 0xe2, 0xc7, 0xe0, 0x48, 0xe2, 0xc5, 0x93, 0x31, 0xe0, 0x07, 0x31, 0x9d,
-	0x4e, 0xbb, 0x05, 0xf6, 0x4f, 0xb9, 0x6d, 0xa7, 0xcf, 0xfb, 0xbe, 0xbf, 0x79, 0xfa, 0xcc, 0x2c,
-	0x4c, 0x89, 0x2d, 0xe6, 0xcb, 0x16, 0x69, 0xb0, 0x50, 0x92, 0xdd, 0x2a, 0x6d, 0x06, 0x5b, 0xb4,
-	0x4a, 0x76, 0x5a, 0x2c, 0xdc, 0xb3, 0x83, 0x90, 0x4b, 0x8e, 0xc6, 0x63, 0x85, 0x1d, 0x29, 0xec,
-	0x44, 0x51, 0x19, 0x77, 0xb9, 0xcb, 0x95, 0x80, 0x44, 0xbf, 0x62, 0x6d, 0x65, 0xae, 0xc1, 0xc5,
-	0x36, 0x17, 0xa4, 0x4e, 0x05, 0x8b, 0x9b, 0x90, 0xdd, 0x6a, 0x9d, 0x49, 0x5a, 0x25, 0x01, 0x75,
-	0x3d, 0x9f, 0x4a, 0x8f, 0xfb, 0x5a, 0x3b, 0xe1, 0x72, 0xee, 0x36, 0x19, 0xa1, 0x81, 0x47, 0xa8,
-	0xef, 0x73, 0xa9, 0x5e, 0x0a, 0xfd, 0x76, 0xb2, 0x23, 0x97, 0x62, 0x88, 0x05, 0xb8, 0xa3, 0xc0,
-	0x65, 0x3e, 0x13, 0x9e, 0x6e, 0x82, 0x9f, 0xc0, 0xad, 0xd7, 0x11, 0xc4, 0x1a, 0x0b, 0xa5, 0xb7,
-	0xe9, 0xb1, 0xb0, 0xc6, 0x76, 0x5a, 0x4c, 0x48, 0x64, 0xc2, 0x35, 0xea, 0x38, 0x21, 0x13, 0xc2,
-	0x34, 0xa6, 0x8c, 0x99, 0x72, 0x2d, 0x79, 0x7c, 0x59, 0xba, 0x5e, 0x1c, 0x1b, 0xa8, 0x0d, 0xd2,
-	0xa6, 0x47, 0x05, 0x7e, 0x0f, 0xb7, 0x2f, 0xd6, 0x8b, 0x80, 0xfb, 0x82, 0xa1, 0x35, 0x28, 0x37,
-	0x92, 0x45, 0xd5, 0x62, 0x78, 0x71, 0xd2, 0xee, 0x64, 0x94, 0x9d, 0xd6, 0xae, 0x96, 0x8e, 0xff,
-	0x4c, 0x16, 0x6a, 0xed, 0x3a, 0x6c, 0x5e, 0x6c, 0x2f, 0x34, 0x1f, 0xfe, 0x08, 0x77, 0x2e, 0xbd,
-	0xd1, 0x93, 0x9f, 0x03, 0xa4, 0x1d, 0x22, 0xfa, 0x81, 0xfc, 0xa3, 0x33, 0x85, 0xf8, 0xe9, 0xf9,
-	0x09, 0x0d, 0x2a, 0x59, 0x62, 0xce, 0x43, 0x18, 0x6d, 0xb4, 0x57, 0x3f, 0x78, 0x8e, 0xda, 0x60,
-	0xa9, 0x76, 0x23, 0xb3, 0xba, 0xee, 0x60, 0x06, 0xe6, 0xe5, 0x0e, 0x1a, 0x72, 0x1d, 0x86, 0x33,
-	0x62, 0x6d, 0xd0, 0xfd, 0x9e, 0x94, 0x91, 0x50, 0x73, 0x66, 0x6b, 0xf1, 0x91, 0x71, 0x79, 0x4e,
-	0xe2, 0x13, 0x9a, 0xb8, 0xf8, 0x19, 0xca, 0x19, 0x7f, 0xd1, 0x2c, 0x8c, 0x65, 0x37, 0x22, 0xf7,
-	0x02, 0x66, 0x16, 0x95, 0xe8, 0x66, 0x66, 0x7d, 0x63, 0x2f, 0x60, 0xe8, 0x05, 0x40, 0x3b, 0xa0,
-	0x66, 0x49, 0xf1, 0x4e, 0xdb, 0x71, 0x9a, 0xed, 0x28, 0xcd, 0x76, 0x7c, 0x24, 0x74, 0x9a, 0xed,
-	0x57, 0xd4, 0x4d, 0xfc, 0xaa, 0x65, 0x2a, 0xf1, 0x17, 0x03, 0xee, 0x76, 0xa0, 0xd5, 0xb6, 0x8c,
-	0xc3, 0xa0, 0xe4, 0x92, 0x36, 0xb5, 0xa1, 0xf1, 0x03, 0x7a, 0x0b, 0x23, 0x19, 0x1c, 0x61, 0x16,
-	0xd5, 0x37, 0xb5, 0x3b, 0xbb, 0xd5, 0xcd, 0x72, 0x6d, 0xdd, 0xb9, 0x4e, 0xf8, 0x31, 0xdc, 0x5b,
-	0xe3, 0xfe, 0x2e, 0x0b, 0x85, 0xc7, 0xfd, 0x0d, 0xfe, 0x46, 0x35, 0x7c, 0xe6, 0x38, 0xfd, 0xcf,
-	0x01, 0x5e, 0x01, 0xab, 0x5b, 0xa9, 0xde, 0x4c, 0xd7, 0xda, 0xc5, 0x9f, 0x43, 0x30, 0xa8, 0x38,
-	0xd1, 0x37, 0x03, 0xca, 0x69, 0x0a, 0xd1, 0x7c, 0xff, 0x2d, 0xa5, 0x47, 0xb4, 0xf2, 0x28, 0x9f,
-	0x38, 0x86, 0xc1, 0xd5, 0xcf, 0xbf, 0xfe, 0x1d, 0x16, 0xe7, 0xd1, 0x2c, 0xe9, 0x7a, 0x6f, 0xa8,
-	0x02, 0xb2, 0xaf, 0x21, 0x0f, 0xd0, 0xa1, 0x01, 0xd0, 0x3e, 0x5f, 0x28, 0xd7, 0xbc, 0x24, 0x78,
-	0x95, 0x85, 0x9c, 0x6a, 0x8d, 0x37, 0xa3, 0xf0, 0x30, 0x9a, 0xea, 0x83, 0x27, 0xd0, 0x0f, 0x03,
-	0x86, 0x33, 0x9f, 0x17, 0x2d, 0xe4, 0x8d, 0x41, 0xcc, 0x75, 0xc5, 0xd4, 0xe0, 0x15, 0x05, 0xb6,
-	0x8c, 0x16, 0x7b, 0x82, 0x45, 0x25, 0x64, 0xff, 0xfc, 0xa5, 0x70, 0x80, 0xbe, 0x1b, 0x30, 0x92,
-	0x8d, 0x39, 0xca, 0x39, 0x3c, 0x35, 0x91, 0xe4, 0xd6, 0x6b, 0xda, 0x39, 0x45, 0xfb, 0x00, 0xe1,
-	0xbe, 0xb4, 0x02, 0x1d, 0x19, 0x30, 0x1a, 0xe5, 0xb5, 0x9d, 0x62, 0xb4, 0xd4, 0xe5, 0x02, 0xea,
-	0x75, 0x44, 0x2a, 0xcb, 0x57, 0x2b, 0xd2, 0xa4, 0xb6, 0x22, 0x9d, 0x41, 0xd3, 0x29, 0x69, 0xaa,
-	0x27, 0x92, 0x2f, 0xe8, 0xc5, 0x34, 0x8c, 0xab, 0xeb, 0xc7, 0xa7, 0x96, 0x71, 0x72, 0x6a, 0x19,
-	0x7f, 0x4f, 0x2d, 0xe3, 0xeb, 0x99, 0x55, 0x38, 0x39, 0xb3, 0x0a, 0xbf, 0xcf, 0xac, 0xc2, 0x3b,
-	0xe2, 0x7a, 0x72, 0xab, 0x55, 0xb7, 0x1b, 0x7c, 0x5b, 0xf7, 0xda, 0xe4, 0x2d, 0xdf, 0x51, 0xd7,
-	0x4d, 0xd2, 0xfc, 0x53, 0x6c, 0x44, 0x74, 0xc1, 0x89, 0xfa, 0x90, 0xfa, 0xef, 0x5b, 0xfa, 0x1f,
-	0x00, 0x00, 0xff, 0xff, 0x55, 0xce, 0xc3, 0x68, 0xda, 0x07, 0x00, 0x00,
+	// 627 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x95, 0xcf, 0x6e, 0xd3, 0x40,
+	0x10, 0xc6, 0xb3, 0x69, 0x0a, 0xca, 0xa6, 0x14, 0xb4, 0x2a, 0x60, 0xa2, 0xca, 0x09, 0x16, 0x85,
+	0xd0, 0x82, 0x57, 0x0e, 0x9c, 0x38, 0xa1, 0x56, 0x80, 0x22, 0x2e, 0xc5, 0xe2, 0x84, 0x84, 0x60,
+	0xe3, 0x6c, 0x1d, 0x4b, 0xad, 0xd7, 0xf5, 0x6e, 0x2a, 0xa2, 0xaa, 0x97, 0x3e, 0x01, 0x52, 0x4f,
+	0x88, 0x17, 0xe0, 0xca, 0x5b, 0xf4, 0x58, 0x89, 0x0b, 0x27, 0x84, 0x12, 0x8e, 0x3c, 0x04, 0xf2,
+	0x7a, 0x9d, 0x6c, 0xfe, 0xd0, 0xf8, 0x16, 0xaf, 0xbf, 0x99, 0xf9, 0xcd, 0xec, 0x37, 0x0e, 0xac,
+	0xf3, 0x2e, 0x0d, 0x45, 0x0f, 0x7b, 0x34, 0x16, 0xf8, 0xc8, 0x21, 0xfb, 0x51, 0x97, 0x38, 0xf8,
+	0xb0, 0x47, 0xe3, 0xbe, 0x1d, 0xc5, 0x4c, 0x30, 0xb4, 0x96, 0x2a, 0xec, 0x44, 0x61, 0x67, 0x8a,
+	0xea, 0x9a, 0xcf, 0x7c, 0x26, 0x05, 0x38, 0xf9, 0x95, 0x6a, 0xab, 0x9b, 0x1e, 0xe3, 0x07, 0x8c,
+	0xe3, 0x36, 0xe1, 0x34, 0x4d, 0x82, 0x8f, 0x9c, 0x36, 0x15, 0xc4, 0xc1, 0x11, 0xf1, 0x83, 0x90,
+	0x88, 0x80, 0x85, 0x4a, 0xbb, 0xee, 0x33, 0xe6, 0xef, 0x53, 0x4c, 0xa2, 0x00, 0x93, 0x30, 0x64,
+	0x42, 0xbe, 0xe4, 0xea, 0x6d, 0x6d, 0x2e, 0x97, 0x64, 0x90, 0x02, 0xcb, 0x81, 0x37, 0xdf, 0x24,
+	0x05, 0x76, 0x68, 0x2c, 0x82, 0xbd, 0x80, 0xc6, 0x2e, 0x3d, 0xec, 0x51, 0x2e, 0x90, 0x01, 0xaf,
+	0x92, 0x4e, 0x27, 0xa6, 0x9c, 0x1b, 0xa0, 0x0e, 0x1a, 0x65, 0x37, 0x7b, 0xb4, 0xde, 0xc3, 0x5b,
+	0xd3, 0x21, 0x3c, 0x62, 0x21, 0xa7, 0x68, 0x07, 0x96, 0xbd, 0xec, 0x50, 0x46, 0x55, 0x9a, 0x35,
+	0x7b, 0x5e, 0xdf, 0xf6, 0x28, 0x76, 0xbb, 0x74, 0xfe, 0xab, 0x56, 0x70, 0xc7, 0x71, 0x96, 0x31,
+	0x9d, 0x9e, 0x2b, 0x24, 0xeb, 0x23, 0xbc, 0x3d, 0xf3, 0x46, 0x55, 0x7e, 0x01, 0xe1, 0x28, 0x43,
+	0x02, 0xbc, 0x94, 0xbf, 0xb4, 0x16, 0x68, 0x3d, 0x9f, 0xac, 0xe0, 0x11, 0x41, 0xb3, 0x79, 0x6c,
+	0xc0, 0x55, 0x6f, 0x7c, 0xfa, 0x21, 0xe8, 0xc8, 0x06, 0x4b, 0xee, 0x35, 0xed, 0xb4, 0xd5, 0xb1,
+	0x28, 0x34, 0x66, 0x33, 0x28, 0xc8, 0x16, 0xac, 0x68, 0x62, 0x35, 0xa0, 0xbb, 0x97, 0x52, 0x26,
+	0x42, 0xc5, 0xa9, 0xc7, 0x5a, 0x7f, 0xc1, 0x6c, 0x9d, 0x6c, 0x4e, 0x68, 0x7d, 0xfa, 0x1a, 0xca,
+	0xda, 0x7c, 0xd1, 0x2e, 0xbc, 0xa1, 0x37, 0x22, 0xfa, 0x11, 0x35, 0x8a, 0x75, 0xd0, 0x58, 0x6d,
+	0x6e, 0x2c, 0x44, 0x79, 0xdb, 0x8f, 0xa8, 0x7b, 0xdd, 0x9b, 0x3c, 0x48, 0xac, 0xe2, 0xb1, 0x50,
+	0xd0, 0x50, 0x18, 0x4b, 0xa9, 0x55, 0xd4, 0x23, 0x7a, 0x09, 0xe1, 0xd8, 0xb0, 0x46, 0x49, 0x36,
+	0x7c, 0xdf, 0x4e, 0xdd, 0x6d, 0x27, 0xee, 0xb6, 0xd3, 0x15, 0x51, 0xee, 0xb6, 0x77, 0x89, 0x9f,
+	0x0d, 0xdc, 0xd5, 0x22, 0xad, 0xef, 0x00, 0xde, 0x99, 0xd3, 0xae, 0x9a, 0xeb, 0x6b, 0xb8, 0xa2,
+	0x21, 0x65, 0xd7, 0x9f, 0x7b, 0xb0, 0x13, 0xc1, 0xe8, 0xd5, 0x04, 0x72, 0x51, 0x22, 0x3f, 0x58,
+	0x88, 0x9c, 0x92, 0xe8, 0xcc, 0xcd, 0xd3, 0x65, 0xb8, 0x2c, 0x99, 0xd1, 0x17, 0x00, 0xcb, 0x23,
+	0xd7, 0xa1, 0xad, 0xf9, 0x5c, 0x73, 0xb7, 0xb0, 0xfa, 0x28, 0x9f, 0x38, 0x2d, 0x6f, 0x39, 0xa7,
+	0x3f, 0xfe, 0x9c, 0x15, 0xb7, 0xd0, 0x43, 0xfc, 0xdf, 0xb5, 0x97, 0x01, 0xf8, 0x58, 0xed, 0xf2,
+	0x09, 0x3a, 0x03, 0x10, 0x8e, 0xf7, 0x09, 0xe5, 0xaa, 0x97, 0x19, 0xad, 0xfa, 0x38, 0xa7, 0x5a,
+	0xe1, 0x35, 0x24, 0x9e, 0x85, 0xea, 0x0b, 0xf0, 0x38, 0xfa, 0x06, 0x60, 0x45, 0xbb, 0x28, 0x94,
+	0xa3, 0x90, 0xb6, 0xab, 0x55, 0x3b, 0xaf, 0x5c, 0x81, 0x3d, 0x93, 0x60, 0x4f, 0x51, 0xf3, 0x52,
+	0xb0, 0x24, 0x04, 0x1f, 0x4f, 0x7e, 0x04, 0x4e, 0xd0, 0x57, 0x00, 0x57, 0x74, 0x57, 0xa2, 0x9c,
+	0xc5, 0x47, 0x43, 0xc4, 0xb9, 0xf5, 0x8a, 0x76, 0x53, 0xd2, 0xde, 0x43, 0xd6, 0x42, 0x5a, 0xbe,
+	0xdd, 0x3a, 0x1f, 0x98, 0xe0, 0x62, 0x60, 0x82, 0xdf, 0x03, 0x13, 0x7c, 0x1e, 0x9a, 0x85, 0x8b,
+	0xa1, 0x59, 0xf8, 0x39, 0x34, 0x0b, 0xef, 0xb0, 0x1f, 0x88, 0x6e, 0xaf, 0x6d, 0x7b, 0xec, 0x40,
+	0xe5, 0xd9, 0x63, 0xbd, 0xb0, 0x23, 0xbd, 0x9b, 0x25, 0xfe, 0x94, 0xa6, 0x4e, 0x3e, 0x11, 0xbc,
+	0x7d, 0x45, 0xfe, 0x61, 0x3c, 0xf9, 0x17, 0x00, 0x00, 0xff, 0xff, 0x6b, 0x68, 0xa2, 0x1d, 0xeb,
+	0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -566,7 +481,6 @@ type QueryClient interface {
 	Certifiers(ctx context.Context, in *QueryCertifiersRequest, opts ...grpc.CallOption) (*QueryCertifiersResponse, error)
 	Certificate(ctx context.Context, in *QueryCertificateRequest, opts ...grpc.CallOption) (*QueryCertificateResponse, error)
 	Certificates(ctx context.Context, in *QueryCertificatesRequest, opts ...grpc.CallOption) (*QueryCertificatesResponse, error)
-	AddrConversion(ctx context.Context, in *ConversionToShentuAddrRequest, opts ...grpc.CallOption) (*ConversionToShentuAddrResponse, error)
 }
 
 type queryClient struct {
@@ -613,22 +527,12 @@ func (c *queryClient) Certificates(ctx context.Context, in *QueryCertificatesReq
 	return out, nil
 }
 
-func (c *queryClient) AddrConversion(ctx context.Context, in *ConversionToShentuAddrRequest, opts ...grpc.CallOption) (*ConversionToShentuAddrResponse, error) {
-	out := new(ConversionToShentuAddrResponse)
-	err := c.cc.Invoke(ctx, "/shentu.cert.v1alpha1.Query/AddrConversion", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	Certifier(context.Context, *QueryCertifierRequest) (*QueryCertifierResponse, error)
 	Certifiers(context.Context, *QueryCertifiersRequest) (*QueryCertifiersResponse, error)
 	Certificate(context.Context, *QueryCertificateRequest) (*QueryCertificateResponse, error)
 	Certificates(context.Context, *QueryCertificatesRequest) (*QueryCertificatesResponse, error)
-	AddrConversion(context.Context, *ConversionToShentuAddrRequest) (*ConversionToShentuAddrResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -646,9 +550,6 @@ func (*UnimplementedQueryServer) Certificate(ctx context.Context, req *QueryCert
 }
 func (*UnimplementedQueryServer) Certificates(ctx context.Context, req *QueryCertificatesRequest) (*QueryCertificatesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Certificates not implemented")
-}
-func (*UnimplementedQueryServer) AddrConversion(ctx context.Context, req *ConversionToShentuAddrRequest) (*ConversionToShentuAddrResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddrConversion not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -727,24 +628,7 @@ func _Query_Certificates_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_AddrConversion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConversionToShentuAddrRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).AddrConversion(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.cert.v1alpha1.Query/AddrConversion",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).AddrConversion(ctx, req.(*ConversionToShentuAddrRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
+var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "shentu.cert.v1alpha1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -764,10 +648,6 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Certificates",
 			Handler:    _Query_Certificates_Handler,
-		},
-		{
-			MethodName: "AddrConversion",
-			Handler:    _Query_AddrConversion_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -990,12 +870,17 @@ func (m *QueryCertificatesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i--
 		dAtA[i] = 0x22
 	}
-	if len(m.CertificateType) > 0 {
-		i -= len(m.CertificateType)
-		copy(dAtA[i:], m.CertificateType)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.CertificateType)))
+	if len(m.Content) > 0 {
+		i -= len(m.Content)
+		copy(dAtA[i:], m.Content)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Content)))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
+	}
+	if m.CertificateType != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.CertificateType))
+		i--
+		dAtA[i] = 0x10
 	}
 	if len(m.Certifier) > 0 {
 		i -= len(m.Certifier)
@@ -1027,6 +912,18 @@ func (m *QueryCertificatesResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.Certificates) > 0 {
 		for iNdEx := len(m.Certificates) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1038,73 +935,8 @@ func (m *QueryCertificatesResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 				i = encodeVarintQuery(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x12
+			dAtA[i] = 0xa
 		}
-	}
-	if m.Total != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.Total))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ConversionToShentuAddrRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ConversionToShentuAddrRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ConversionToShentuAddrRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Address)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ConversionToShentuAddrResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ConversionToShentuAddrResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ConversionToShentuAddrResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Address)))
-		i--
-		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1201,7 +1033,10 @@ func (m *QueryCertificatesRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
-	l = len(m.CertificateType)
+	if m.CertificateType != 0 {
+		n += 1 + sovQuery(uint64(m.CertificateType))
+	}
+	l = len(m.Content)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
@@ -1218,39 +1053,14 @@ func (m *QueryCertificatesResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Total != 0 {
-		n += 1 + sovQuery(uint64(m.Total))
-	}
 	if len(m.Certificates) > 0 {
 		for _, e := range m.Certificates {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
 	}
-	return n
-}
-
-func (m *ConversionToShentuAddrRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Address)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *ConversionToShentuAddrResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Address)
-	if l > 0 {
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
@@ -1775,8 +1585,27 @@ func (m *QueryCertificatesRequest) Unmarshal(dAtA []byte) error {
 			m.Certifier = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CertificateType", wireType)
+			}
+			m.CertificateType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CertificateType |= CertificateType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1804,7 +1633,7 @@ func (m *QueryCertificatesRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CertificateType = string(dAtA[iNdEx:postIndex])
+			m.Content = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -1893,25 +1722,6 @@ func (m *QueryCertificatesResponse) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Total", wireType)
-			}
-			m.Total = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Total |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Certificates", wireType)
 			}
@@ -1940,66 +1750,16 @@ func (m *QueryCertificatesResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Certificates = append(m.Certificates, QueryCertificateResponse{})
+			m.Certificates = append(m.Certificates, Certificate{})
 			if err := m.Certificates[len(m.Certificates)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ConversionToShentuAddrRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ConversionToShentuAddrRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ConversionToShentuAddrRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
+		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowQuery
@@ -2009,105 +1769,27 @@ func (m *ConversionToShentuAddrRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthQuery
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthQuery
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Address = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ConversionToShentuAddrResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ConversionToShentuAddrResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ConversionToShentuAddrResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
