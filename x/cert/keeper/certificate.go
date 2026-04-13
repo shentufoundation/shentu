@@ -408,21 +408,22 @@ func (k Keeper) GetNextCertificateID(ctx context.Context) (uint64, error) {
 	return k.NextCertificateID.Peek(ctx)
 }
 
-// IsBountyAdmin checks if an address is a bounty admin.
-// Uses the type+content secondary index for efficient lookup.
-func (k Keeper) IsBountyAdmin(ctx context.Context, address sdk.AccAddress) bool {
-	prefix := types.TypeContentIndexPrefix(types.CertificateTypeBountyAdmin, address.String())
+// hasTypedCertForAddr reports whether any certificate of the given type exists
+// whose content is the given address. Uses the type+content secondary index.
+func (k Keeper) hasTypedCertForAddr(ctx context.Context, certType types.CertificateType, address sdk.AccAddress) bool {
+	prefix := types.TypeContentIndexPrefix(certType, address.String())
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, prefix)
 	defer iterator.Close()
 	return iterator.Valid()
 }
 
+// IsBountyAdmin checks if an address is a bounty admin.
+func (k Keeper) IsBountyAdmin(ctx context.Context, address sdk.AccAddress) bool {
+	return k.hasTypedCertForAddr(ctx, types.CertificateTypeBountyAdmin, address)
+}
+
 // IsOpenMathCertified checks if an address holds an OpenMath certificate.
 func (k Keeper) IsOpenMathCertified(ctx context.Context, address sdk.AccAddress) bool {
-	prefix := types.TypeContentIndexPrefix(types.CertificateTypeOpenMath, address.String())
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	iterator := storetypes.KVStorePrefixIterator(store, prefix)
-	defer iterator.Close()
-	return iterator.Valid()
+	return k.hasTypedCertForAddr(ctx, types.CertificateTypeOpenMath, address)
 }

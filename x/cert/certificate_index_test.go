@@ -2,6 +2,7 @@ package cert_test
 
 import (
 	"encoding/binary"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -205,6 +206,55 @@ func Test_Migrate2to3IndexRebuild(t *testing.T) {
 		require.Equal(t, uint64(1), pagination.Total)
 		require.Len(t, filtered, 1)
 	})
+}
+
+// Test_Migrate2to3LargeBatch seeds enough certificates to exercise multiple
+// passes of the streaming batch loop in migrateCertificatesToCollections
+// (batch size = 256), and verifies every record survives with its original ID.
+func Test_Migrate2to3LargeBatch(t *testing.T) {
+	app := shentuapp.Setup(t, false)
+	ctx := app.BaseApp.NewContext(false)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
+
+	storeKey := app.GetKey(types.StoreKey)
+	rawStore := ctx.KVStore(storeKey)
+	cdc := app.AppCodec()
+
+	// Pre-v3 certifier entry (length-prefixed value, raw addr-concat key).
+	preV3Certifier := types.NewCertifier(addrs[0], addrs[0], "")
+	rawStore.Set(types.CertifierStoreKey(addrs[0]), cdc.MustMarshalLengthPrefixed(&preV3Certifier))
+
+	// Seed enough certs to span >2 batches (batch size is 256).
+	const numCerts = 600
+	for i := uint64(1); i <= numCerts; i++ {
+		cert, err := types.NewCertificate("auditing", fmt.Sprintf("content-%d", i), "", "", "", addrs[0])
+		require.NoError(t, err)
+		cert.CertificateId = i
+		rawStore.Set(types.CertificateStoreKey(i), cdc.MustMarshal(&cert))
+	}
+	nextIDBz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(nextIDBz, numCerts+1)
+	rawStore.Set(types.NextCertificateIDStoreKey(), nextIDBz)
+
+	migrator := certkeeper.NewMigrator(app.CertKeeper)
+	require.NoError(t, migrator.Migrate2to3(ctx))
+
+	// All certificates must be readable via collections by their original ID.
+	for i := uint64(1); i <= numCerts; i++ {
+		got, err := app.CertKeeper.GetCertificateByID(ctx, i)
+		require.NoError(t, err, "cert %d missing after migration", i)
+		require.Equal(t, i, got.CertificateId)
+		require.Equal(t, fmt.Sprintf("content-%d", i), got.GetContentString())
+	}
+
+	// NextCertificateID counter must round-trip via collections.
+	next, err := app.CertKeeper.GetNextCertificateID(ctx)
+	require.NoError(t, err)
+	require.Equal(t, uint64(numCerts+1), next)
+
+	// Secondary indexes were rebuilt: the certifier index must list all certs.
+	certs := app.CertKeeper.GetCertificatesByCertifier(ctx, addrs[0])
+	require.Len(t, certs, numCerts)
 }
 
 // Test_Migrate2to3DeletesObsoletePrefixes verifies that the migration deletes all
