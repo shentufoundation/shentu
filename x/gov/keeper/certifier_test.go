@@ -61,15 +61,15 @@ func TestCertifierVoteIsRequiredForLegacyCertifierUpdateProposal(t *testing.T) {
 	now := time.Now()
 	depositEnd := now.Add(48 * time.Hour)
 	proposal := govtypesv1.Proposal{
-		Id:               999,
-		Messages:         []*codectypes.Any{msgAny},
-		Status:           govtypesv1.StatusVotingPeriod,
-		SubmitTime:       &now,
-		DepositEndTime:   &depositEnd,
-		TotalDeposit:     sdk.NewCoins(),
-		Title:            "legacy certifier update",
-		Summary:          "summary",
-		Proposer:         addrs[0].String(),
+		Id:             999,
+		Messages:       []*codectypes.Any{msgAny},
+		Status:         govtypesv1.StatusVotingPeriod,
+		SubmitTime:     &now,
+		DepositEndTime: &depositEnd,
+		TotalDeposit:   sdk.NewCoins(),
+		Title:          "legacy certifier update",
+		Summary:        "summary",
+		Proposer:       addrs[0].String(),
 	}
 	err = app.GovKeeper.SetProposal(ctx, proposal)
 	require.NoError(t, err)
@@ -78,4 +78,3 @@ func TestCertifierVoteIsRequiredForLegacyCertifierUpdateProposal(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, required)
 }
-
