@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -73,7 +74,9 @@ func (k Keeper) Tally(ctx context.Context, proposal govtypesv1.Proposal) (passes
 			return false, err
 		}
 
-		delegatorVoting(ctx, k, vote, currValidators, results, &totalVotingPower)
+		if err := delegatorVoting(ctx, k, vote, currValidators, results, &totalVotingPower); err != nil {
+			return false, err
+		}
 
 		return false, k.Votes.Remove(ctx, collections.Join(vote.ProposalId, sdk.AccAddress(voter)))
 	})
@@ -99,13 +102,15 @@ func (k Keeper) Tally(ctx context.Context, proposal govtypesv1.Proposal) (passes
 		totalVotingPower = totalVotingPower.Add(votingPower)
 	}
 
-	params, _ := k.Params.Get(ctx)
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return false, false, govtypesv1.TallyResult{}, err
+	}
 	tallyParams := govtypesv1.TallyParams{
 		Quorum:        params.Quorum,
 		Threshold:     params.Threshold,
 		VetoThreshold: params.VetoThreshold,
 	}
-	customParams, _ := k.GetCustomParams(ctx)
 	tallyResults = govtypesv1.NewTallyResultFromMap(results)
 	th := TallyHelper{
 		totalVotingPower,
@@ -119,6 +124,13 @@ func (k Keeper) Tally(ctx context.Context, proposal govtypesv1.Proposal) (passes
 			return false, false, govtypesv1.TallyResult{}, err
 		}
 		if isCertifierUpdate {
+			customParams, err := k.GetCustomParams(ctx)
+			if err != nil {
+				return false, false, govtypesv1.TallyResult{}, err
+			}
+			if customParams.CertifierUpdateStakeVoteTally == nil {
+				return false, false, govtypesv1.TallyResult{}, govtypes.ErrInvalidProposal.Wrap("CertifierUpdateStakeVoteTally custom param is not set")
+			}
 			th.tallyParams = *customParams.CertifierUpdateStakeVoteTally
 		}
 	}
@@ -167,14 +179,14 @@ func fetchBondedValidators(ctx context.Context, k Keeper, validators map[string]
 	return nil
 }
 
-func delegatorVoting(ctx context.Context, k Keeper, vote govtypesv1.Vote, validators map[string]govtypesv1.ValidatorGovInfo, results map[govtypesv1.VoteOption]math.LegacyDec, totalVotingPower *math.LegacyDec) {
+func delegatorVoting(ctx context.Context, k Keeper, vote govtypesv1.Vote, validators map[string]govtypesv1.ValidatorGovInfo, results map[govtypesv1.VoteOption]math.LegacyDec, totalVotingPower *math.LegacyDec) error {
 	voter, err := sdk.AccAddressFromBech32(vote.Voter)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// iterate over all delegations from voter, deduct from any delegated-to validators
-	k.stakingKeeper.IterateDelegations(ctx, voter, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
+	return k.stakingKeeper.IterateDelegations(ctx, voter, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
 		valAddrStr := delegation.GetValidatorAddr()
 
 		if val, ok := validators[valAddrStr]; ok {
@@ -293,14 +305,32 @@ func SecurityTally(ctx context.Context, k Keeper, proposal govtypesv1.Proposal) 
 		results[vote.Options[0].Option] = results[vote.Options[0].Option].Add(math.LegacyNewDec(1))
 		totalHeadCounts = totalHeadCounts.Add(math.LegacyNewDec(1))
 	}
-	customParams, err := k.GetCustomParams(ctx)
-	if err != nil {
-		return false, false, govtypesv1.TallyResult{}
-	}
 
 	tallyResults := govtypesv1.NewTallyResultFromMap(results)
 
+	// Determine proposal kind up front so that any failure below can fail
+	// closed correctly: non-certifier-update proposals must end voting (the
+	// mandatory certifier round did not pass), while certifier-update
+	// proposals fall through to the stake round.
+	var isCertifierUpdateProposal bool
+	if len(proposalMsgs) == 1 {
+		isCertifierUpdateProposal, err = isCertifierUpdateProposalMsg(proposalMsgs[0])
+		if err != nil {
+			return false, !isCertifierUpdateProposal, tallyResults
+		}
+	}
+
+	customParams, err := k.GetCustomParams(ctx)
+	if err != nil {
+		// Fail closed: kill non-certifier-update proposals, let
+		// certifier-update proposals fall through to the stake round.
+		return false, !isCertifierUpdateProposal, tallyResults
+	}
+
 	ctally := customParams.CertifierUpdateSecurityVoteTally
+	if ctally == nil {
+		return false, !isCertifierUpdateProposal, tallyResults
+	}
 
 	th := TallyHelper{
 		totalHeadCounts,
@@ -313,19 +343,11 @@ func SecurityTally(ctx context.Context, k Keeper, proposal govtypesv1.Proposal) 
 	}
 	pass := passAndVetoSecurityResult(ctx, k, th)
 
-	var endVoting, isCertifierUpdateProposal bool
 	// For CertifierUpdateProposal: If security round didn't pass, continue to
 	// stake voting (must pass one of the two rounds).
 	//
 	// For other proposal types (SoftwareUpgrade, etc.): Only continue to stake
 	// round if security round passed (must pass both rounds).
-	if len(proposalMsgs) == 1 {
-		isCertifierUpdateProposal, err = isCertifierUpdateProposalMsg(proposalMsgs[0])
-		if err != nil {
-			return false, false, govtypesv1.TallyResult{}
-		}
-	}
-
-	endVoting = (pass && isCertifierUpdateProposal) || (!pass && !isCertifierUpdateProposal)
+	endVoting := (pass && isCertifierUpdateProposal) || (!pass && !isCertifierUpdateProposal)
 	return pass, endVoting, tallyResults
 }

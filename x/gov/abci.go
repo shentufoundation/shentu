@@ -162,7 +162,40 @@ func processActiveProposal(ctx sdk.Context, k *keeper.Keeper, logger log.Logger)
 					if err != nil {
 						return false, err
 					}
+					return false, nil
 				}
+				// endVoting == true: the certifier round is conclusive and the
+				// proposal must not advance to the validator round (e.g. a
+				// software-upgrade proposal whose certifier round failed, or
+				// a fail-closed result from a misconfigured store). Reject
+				// the proposal, burn its deposits, and remove it from the
+				// active queue so it is not reprocessed every block.
+				if err := k.DeleteAndBurnDeposits(ctx, proposal.Id); err != nil {
+					return false, err
+				}
+				if err := k.ActiveProposalsQueue.Remove(ctx, collections.Join(*proposal.VotingEndTime, proposal.Id)); err != nil {
+					return false, err
+				}
+				proposal.Status = govtypesv1.StatusRejected
+				proposal.FailedReason = "proposal rejected in certifier voting round"
+				proposal.FinalTallyResult = &tallyResults
+				if err := k.SetProposal(ctx, proposal); err != nil {
+					return false, err
+				}
+				logger.Info(
+					"proposal tallied",
+					"proposal", proposal.Id,
+					"status", proposal.Status.String(),
+					"title", proposal.Title,
+					"results", "rejected in certifier round",
+				)
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						govtypes.EventTypeActiveProposal,
+						sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
+						sdk.NewAttribute(govtypes.AttributeKeyProposalResult, govtypes.AttributeValueProposalRejected),
+					),
+				)
 				return false, nil
 			}
 		}
