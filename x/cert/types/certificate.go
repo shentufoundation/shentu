@@ -12,6 +12,28 @@ import (
 // Certificate types implement UnpackInterfaceMessages to unpack Content field.
 var _ codecTypes.UnpackInterfacesMessage = Certificate{}
 
+const (
+	CompilationCertificateTypeName = "compilation"
+	AuditingCertificateTypeName    = "auditing"
+	ProofCertificateTypeName       = "proof"
+	IdentityCertificateTypeName    = "identity"
+	GeneralCertificateTypeName     = "general"
+	BountyAdminCertificateTypeName = "bountyadmin"
+	OpenMathCertificateTypeName    = "openmath"
+)
+
+// IssueableCertificateTypeNames returns the certificate type names accepted by
+// AssembleContent/NewCertificate for standard issue flows.
+func IssueableCertificateTypeNames() []string {
+	return []string{
+		GeneralCertificateTypeName,
+		AuditingCertificateTypeName,
+		ProofCertificateTypeName,
+		IdentityCertificateTypeName,
+		OpenMathCertificateTypeName,
+	}
+}
+
 // IsValidCertificateType reports whether the enum value is a declared certificate type.
 func IsValidCertificateType(certType CertificateType) bool {
 	_, ok := CertificateType_name[int32(certType)]

@@ -10,7 +10,7 @@ import (
 
 type CertKeeper interface {
 	IsBountyAdmin(ctx context.Context, addr sdk.AccAddress) bool
-	IsCertified(ctx context.Context, content string, certType string) bool
+	IsOpenMathCertified(ctx context.Context, addr sdk.AccAddress) bool
 }
 
 type AccountKeeper interface {

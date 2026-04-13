@@ -14,29 +14,29 @@ func TestCertificateTypeFromString(t *testing.T) {
 		expected types.CertificateType
 	}{
 		{"COMPILATION", types.CertificateTypeCompilation},
-		{"compilation", types.CertificateTypeCompilation},
+		{types.CompilationCertificateTypeName, types.CertificateTypeCompilation},
 		{"CERT_TYPE_COMPILATION", types.CertificateTypeCompilation},
 		{"AUDITING", types.CertificateTypeAuditing},
-		{"auditing", types.CertificateTypeAuditing},
+		{types.AuditingCertificateTypeName, types.CertificateTypeAuditing},
 		{"CERT_TYPE_AUDITING", types.CertificateTypeAuditing},
 		{"PROOF", types.CertificateTypeProof},
-		{"proof", types.CertificateTypeProof},
+		{types.ProofCertificateTypeName, types.CertificateTypeProof},
 		{"CERT_TYPE_PROOF", types.CertificateTypeProof},
 		{"ORACLEOPERATOR", types.CertificateTypeOracleOperator},
 		{"CERT_TYPE_ORACLE_OPERATOR", types.CertificateTypeOracleOperator},
 		{"SHIELDPOOLCREATOR", types.CertificateTypeShieldPoolCreator},
 		{"CERT_TYPE_SHIELD_POOL_CREATOR", types.CertificateTypeShieldPoolCreator},
 		{"IDENTITY", types.CertificateTypeIdentity},
-		{"identity", types.CertificateTypeIdentity},
+		{types.IdentityCertificateTypeName, types.CertificateTypeIdentity},
 		{"CERT_TYPE_IDENTITY", types.CertificateTypeIdentity},
 		{"GENERAL", types.CertificateTypeGeneral},
-		{"general", types.CertificateTypeGeneral},
+		{types.GeneralCertificateTypeName, types.CertificateTypeGeneral},
 		{"CERT_TYPE_GENERAL", types.CertificateTypeGeneral},
 		{"BOUNTYADMIN", types.CertificateTypeBountyAdmin},
 		{"CERT_TYPE_BOUNTY_ADMIN", types.CertificateTypeBountyAdmin},
 		{"CERT_TYPE_BOUNTYADMIN", types.CertificateTypeBountyAdmin},
 		{"OPENMATH", types.CertificateTypeOpenMath},
-		{"openmath", types.CertificateTypeOpenMath},
+		{types.OpenMathCertificateTypeName, types.CertificateTypeOpenMath},
 		{"CERT_TYPE_OPENMATH", types.CertificateTypeOpenMath},
 		// Invalid types.
 		{"", types.CertificateTypeNil},
@@ -56,11 +56,11 @@ func TestAssembleContent(t *testing.T) {
 		content string
 	}{
 		{"compilation", "compiler-hash"},
-		{"auditing", "audit-result"},
-		{"proof", "proof-data"},
-		{"identity", "identity-info"},
-		{"general", "general-content"},
-		{"openmath", "prover-addr"},
+		{types.AuditingCertificateTypeName, "audit-result"},
+		{types.ProofCertificateTypeName, "proof-data"},
+		{types.IdentityCertificateTypeName, "identity-info"},
+		{types.GeneralCertificateTypeName, "general-content"},
+		{types.OpenMathCertificateTypeName, "prover-addr"},
 	}
 	for _, tc := range validTypes {
 		t.Run(tc.name, func(t *testing.T) {
@@ -83,7 +83,7 @@ func TestNewCertificate_InvalidType(t *testing.T) {
 
 func TestNewCertificate_ValidTypes(t *testing.T) {
 	addr := []byte("test_addr_for_cert__")
-	for _, certType := range []string{"general", "auditing", "proof", "identity", "openmath"} {
+	for _, certType := range []string{"general", "auditing", "proof", "identity", types.OpenMathCertificateTypeName} {
 		t.Run(certType, func(t *testing.T) {
 			cert, err := types.NewCertificate(certType, "test-content", "", "", "description", addr)
 			require.NoError(t, err)

@@ -43,6 +43,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 // randCertificateType returns a random certificate type string suitable for
 // AssembleContent.
 func randCertificateType(r *rand.Rand) string {
-	certTypes := []string{"general", "auditing", "proof", "identity", "openmath"}
+	certTypes := types.IssueableCertificateTypeNames()
 	return certTypes[r.Intn(len(certTypes))]
 }

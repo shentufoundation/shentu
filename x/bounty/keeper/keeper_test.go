@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	err := suite.app.CertKeeper.SetCertifier(suite.ctx, certTypes.NewCertifier(suite.address[2], suite.address[2], ""))
 	suite.Require().NoError(err)
-	certificate, err := certTypes.NewCertificate("bountyadmin", suite.address[3].String(), "", "", "", suite.address[2])
+	certificate, err := certTypes.NewCertificate(certTypes.BountyAdminCertificateTypeName, suite.address[3].String(), "", "", "", suite.address[2])
 	if err != nil {
 		panic(err)
 	}
@@ -88,7 +88,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) issueOpenMathCertificate(addr sdk.AccAddress) {
-	certificate, err := certTypes.NewCertificate("openmath", addr.String(), "", "", "", suite.address[2])
+	certificate, err := certTypes.NewCertificate(certTypes.OpenMathCertificateTypeName, addr.String(), "", "", "", suite.address[2])
 	suite.Require().NoError(err)
 
 	_, err = suite.app.CertKeeper.IssueCertificate(suite.ctx, certificate)

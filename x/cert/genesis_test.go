@@ -22,7 +22,7 @@ func TestGenesisRoundTrip(t *testing.T) {
 		require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, addr, "genesis test")))
 	}
 	for i, content := range []string{"content-a", "content-b", "content-c"} {
-		c, err := types.NewCertificate("general", content, "", "", "", addrs[i%len(addrs)])
+		c, err := types.NewCertificate(types.GeneralCertificateTypeName, content, "", "", "", addrs[i%len(addrs)])
 		require.NoError(t, err)
 		_, err = app.CertKeeper.IssueCertificate(ctx, c)
 		require.NoError(t, err)
@@ -64,13 +64,13 @@ func TestGenesisRoundTrip_OpenMath(t *testing.T) {
 
 	// Issue openmath certs for two provers.
 	for _, prover := range []string{addrs[1].String(), addrs[2].String()} {
-		c, err := types.NewCertificate("openmath", prover, "", "", "prover cert", addrs[0])
+		c, err := types.NewCertificate(types.OpenMathCertificateTypeName, prover, "", "", "prover cert", addrs[0])
 		require.NoError(t, err)
 		_, err = app.CertKeeper.IssueCertificate(ctx, c)
 		require.NoError(t, err)
 	}
 
-	require.True(t, app.CertKeeper.IsCertified(ctx, addrs[1].String(), "openmath"))
+	require.True(t, app.CertKeeper.IsCertified(ctx, addrs[1].String(), types.OpenMathCertificateTypeName))
 
 	// Export and re-import.
 	exported := cert.ExportGenesis(ctx, app.CertKeeper)
@@ -81,9 +81,9 @@ func TestGenesisRoundTrip_OpenMath(t *testing.T) {
 	cert.InitGenesis(ctx2, app2.CertKeeper, *exported)
 
 	// OpenMath certs survive the round trip.
-	require.True(t, app2.CertKeeper.IsCertified(ctx2, addrs[1].String(), "openmath"))
-	require.True(t, app2.CertKeeper.IsCertified(ctx2, addrs[2].String(), "openmath"))
-	require.False(t, app2.CertKeeper.IsCertified(ctx2, addrs[0].String(), "openmath"))
+	require.True(t, app2.CertKeeper.IsCertified(ctx2, addrs[1].String(), types.OpenMathCertificateTypeName))
+	require.True(t, app2.CertKeeper.IsCertified(ctx2, addrs[2].String(), types.OpenMathCertificateTypeName))
+	require.False(t, app2.CertKeeper.IsCertified(ctx2, addrs[0].String(), types.OpenMathCertificateTypeName))
 }
 
 func TestGenesisDefault(t *testing.T) {
@@ -105,7 +105,7 @@ func TestGenesisRoundTrip_MultipleCertTypes(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
 	// Issue one of each type.
-	certTypes := []string{"general", "auditing", "proof", "identity", "openmath"}
+	certTypes := types.IssueableCertificateTypeNames()
 	for i, ct := range certTypes {
 		c, err := types.NewCertificate(ct, "content-"+ct, "", "", "", addrs[0])
 		require.NoError(t, err)
@@ -139,7 +139,7 @@ func TestGenesisRoundTrip_PreservesNextID(t *testing.T) {
 
 	// Issue 5 certificates to advance the next ID.
 	for i := 0; i < 5; i++ {
-		c, err := types.NewCertificate("general", "id-test-"+string(rune('A'+i)), "", "", "", addrs[0])
+		c, err := types.NewCertificate(types.GeneralCertificateTypeName, "id-test-"+string(rune('A'+i)), "", "", "", addrs[0])
 		require.NoError(t, err)
 		_, err = app.CertKeeper.IssueCertificate(ctx, c)
 		require.NoError(t, err)
@@ -153,7 +153,7 @@ func TestGenesisRoundTrip_PreservesNextID(t *testing.T) {
 	ctx2 := app2.BaseApp.NewContext(false)
 	cert.InitGenesis(ctx2, app2.CertKeeper, *exported)
 
-	c, err := types.NewCertificate("general", "after-reimport", "", "", "", addrs[0])
+	c, err := types.NewCertificate(types.GeneralCertificateTypeName, "after-reimport", "", "", "", addrs[0])
 	require.NoError(t, err)
 	newID, err := app2.CertKeeper.IssueCertificate(ctx2, c)
 	require.NoError(t, err)

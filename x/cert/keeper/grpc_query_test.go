@@ -104,7 +104,7 @@ func TestQueryCertificate_Found(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
-	cert, err := types.NewCertificate("general", "query-test", "", "", "", addrs[0])
+	cert, err := types.NewCertificate(types.GeneralCertificateTypeName, "query-test", "", "", "", addrs[0])
 	require.NoError(t, err)
 	id, err := app.CertKeeper.IssueCertificate(ctx, cert)
 	require.NoError(t, err)
@@ -140,7 +140,7 @@ func TestQueryCertificates_All(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
 	for i := 0; i < 5; i++ {
-		issueCert(t, app, ctx, addrs[0], "general", fmt.Sprintf("cert-all-%d", i))
+		issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, fmt.Sprintf("cert-all-%d", i))
 	}
 
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{})
@@ -157,9 +157,9 @@ func TestQueryCertificates_ByCertifier(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
 
 	for i := 0; i < 3; i++ {
-		issueCert(t, app, ctx, addrs[0], "general", fmt.Sprintf("addr0-%d", i))
+		issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, fmt.Sprintf("addr0-%d", i))
 	}
-	issueCert(t, app, ctx, addrs[1], "general", "addr1-0")
+	issueCert(t, app, ctx, addrs[1], types.GeneralCertificateTypeName, "addr1-0")
 
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{Certifier: addrs[0].String()})
 	require.NoError(t, err)
@@ -172,8 +172,8 @@ func TestQueryCertificates_ByType(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
-	issueCert(t, app, ctx, addrs[0], "auditing", "audit-content")
-	issueCert(t, app, ctx, addrs[0], "general", "general-content")
+	issueCert(t, app, ctx, addrs[0], types.AuditingCertificateTypeName, "audit-content")
+	issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, "general-content")
 
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{CertificateType: types.CertificateTypeAuditing})
 	require.NoError(t, err)
@@ -188,9 +188,9 @@ func TestQueryCertificates_ByContent(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
 
-	issueCert(t, app, ctx, addrs[0], "general", "shared-content")
-	issueCert(t, app, ctx, addrs[1], "openmath", "shared-content")
-	issueCert(t, app, ctx, addrs[0], "general", "other-content")
+	issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, "shared-content")
+	issueCert(t, app, ctx, addrs[1], types.OpenMathCertificateTypeName, "shared-content")
+	issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, "other-content")
 
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{Content: "shared-content"})
 	require.NoError(t, err)
@@ -204,9 +204,9 @@ func TestQueryCertificates_ByOpenMathType(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
 	for _, prover := range []sdk.AccAddress{addrs[1], addrs[2]} {
-		issueCert(t, app, ctx, addrs[0], "openmath", prover.String())
+		issueCert(t, app, ctx, addrs[0], types.OpenMathCertificateTypeName, prover.String())
 	}
-	issueCert(t, app, ctx, addrs[0], "general", "some-content")
+	issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, "some-content")
 
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{CertificateType: types.CertificateTypeOpenMath})
 	require.NoError(t, err)
@@ -228,10 +228,10 @@ func TestQueryCertificates_ByCertifierAndType(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
 
 	for _, content := range []string{"a", "b"} {
-		issueCert(t, app, ctx, addrs[0], "general", content)
+		issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, content)
 	}
-	issueCert(t, app, ctx, addrs[0], "openmath", addrs[2].String())
-	issueCert(t, app, ctx, addrs[1], "general", "c")
+	issueCert(t, app, ctx, addrs[0], types.OpenMathCertificateTypeName, addrs[2].String())
+	issueCert(t, app, ctx, addrs[1], types.GeneralCertificateTypeName, "c")
 
 	resp, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{
 		Certifier:       addrs[0].String(),
@@ -261,7 +261,7 @@ func TestQueryCertificates_Pagination(t *testing.T) {
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
 
 	for i := 0; i < 5; i++ {
-		issueCert(t, app, ctx, addrs[0], "general", fmt.Sprintf("paged-%d", i))
+		issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, fmt.Sprintf("paged-%d", i))
 	}
 
 	firstPage, err := querier.Certificates(sdk.WrapSDKContext(ctx), &types.QueryCertificatesRequest{

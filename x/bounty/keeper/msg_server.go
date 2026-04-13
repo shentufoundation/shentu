@@ -1114,7 +1114,7 @@ func (k msgServer) requireOpenMathCertificate(ctx sdk.Context, theorem types.The
 	if !theorem.RequireOpenmathCert {
 		return nil
 	}
-	if k.certKeeper.IsCertified(ctx, prover.String(), "openmath") {
+	if k.certKeeper.IsOpenMathCertified(ctx, prover) {
 		return nil
 	}
 	return types.ErrProofOpenMathCertNeeded

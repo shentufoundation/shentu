@@ -23,7 +23,7 @@ func Test_CertificateIndexWrites(t *testing.T) {
 		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], ""))
 
 		contentStr := "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn"
-		certTypeStr := "auditing"
+		certTypeStr := types.AuditingCertificateTypeName
 
 		// Before issuing: IsCertified and IsContentCertified must be false.
 		require.False(t, app.CertKeeper.IsCertified(ctx, contentStr, certTypeStr))
@@ -69,7 +69,7 @@ func Test_CertificateIndexDeletes(t *testing.T) {
 		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], ""))
 
 		contentStr := "unique-content-for-delete-test"
-		cert, err := types.NewCertificate("general", contentStr, "", "", "", addrs[0])
+		cert, err := types.NewCertificate(types.GeneralCertificateTypeName, contentStr, "", "", "", addrs[0])
 		require.NoError(t, err)
 		id, err := app.CertKeeper.IssueCertificate(ctx, cert)
 		require.NoError(t, err)
@@ -85,7 +85,7 @@ func Test_CertificateIndexDeletes(t *testing.T) {
 
 		// After delete: all index-based lookups must find nothing.
 		require.False(t, app.CertKeeper.IsContentCertified(ctx, contentStr))
-		require.False(t, app.CertKeeper.IsCertified(ctx, contentStr, "general"))
+		require.False(t, app.CertKeeper.IsCertified(ctx, contentStr, types.GeneralCertificateTypeName))
 
 		certs := app.CertKeeper.GetCertificatesByCertifier(ctx, addrs[0])
 		require.Empty(t, certs)
@@ -110,7 +110,7 @@ func Test_IsContentCertified(t *testing.T) {
 		content := "some-unique-content-string"
 		require.False(t, app.CertKeeper.IsContentCertified(ctx, content))
 
-		cert, err := types.NewCertificate("general", content, "", "", "", addrs[0])
+		cert, err := types.NewCertificate(types.GeneralCertificateTypeName, content, "", "", "", addrs[0])
 		require.NoError(t, err)
 		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
 		require.NoError(t, err)
@@ -133,7 +133,7 @@ func Test_IsBountyAdmin(t *testing.T) {
 		// addrs[1] is not yet a bounty admin.
 		require.False(t, app.CertKeeper.IsBountyAdmin(ctx, addrs[1]))
 
-		cert, err := types.NewCertificate("bountyadmin", addrs[1].String(), "", "", "", addrs[0])
+		cert, err := types.NewCertificate(types.BountyAdminCertificateTypeName, addrs[1].String(), "", "", "", addrs[0])
 		require.NoError(t, err)
 		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
 		require.NoError(t, err)
@@ -164,11 +164,11 @@ func Test_Migrate2to3IndexRebuild(t *testing.T) {
 		rawStore.Set(types.CertifierStoreKey(addrs[0]), cdc.MustMarshalLengthPrefixed(&preV4Certifier))
 
 		// Build two certificates.
-		cert1, err := types.NewCertificate("auditing", "content-alpha", "", "", "", addrs[0])
+		cert1, err := types.NewCertificate(types.AuditingCertificateTypeName, "content-alpha", "", "", "", addrs[0])
 		require.NoError(t, err)
 		cert1.CertificateId = 1
 
-		cert2, err := types.NewCertificate("bountyadmin", addrs[1].String(), "", "", "", addrs[0])
+		cert2, err := types.NewCertificate(types.BountyAdminCertificateTypeName, addrs[1].String(), "", "", "", addrs[0])
 		require.NoError(t, err)
 		cert2.CertificateId = 2
 
@@ -181,7 +181,7 @@ func Test_Migrate2to3IndexRebuild(t *testing.T) {
 		rawStore.Set(types.NextCertificateIDStoreKey(), nextIDBz)
 
 		// Before migration: index-based lookups must fail (no index entries).
-		require.False(t, app.CertKeeper.IsCertified(ctx, "content-alpha", "auditing"))
+		require.False(t, app.CertKeeper.IsCertified(ctx, "content-alpha", types.AuditingCertificateTypeName))
 		require.False(t, app.CertKeeper.IsContentCertified(ctx, "content-alpha"))
 		require.False(t, app.CertKeeper.IsBountyAdmin(ctx, addrs[1]))
 		require.Empty(t, app.CertKeeper.GetCertificatesByCertifier(ctx, addrs[0]))
@@ -191,7 +191,7 @@ func Test_Migrate2to3IndexRebuild(t *testing.T) {
 		require.NoError(t, migrator.Migrate2to3(ctx))
 
 		// After migration: all index-based lookups must succeed.
-		require.True(t, app.CertKeeper.IsCertified(ctx, "content-alpha", "auditing"))
+		require.True(t, app.CertKeeper.IsCertified(ctx, "content-alpha", types.AuditingCertificateTypeName))
 		require.True(t, app.CertKeeper.IsContentCertified(ctx, "content-alpha"))
 		require.True(t, app.CertKeeper.IsBountyAdmin(ctx, addrs[1]))
 

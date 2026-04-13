@@ -417,3 +417,12 @@ func (k Keeper) IsBountyAdmin(ctx context.Context, address sdk.AccAddress) bool 
 	defer iterator.Close()
 	return iterator.Valid()
 }
+
+// IsOpenMathCertified checks if an address holds an OpenMath certificate.
+func (k Keeper) IsOpenMathCertified(ctx context.Context, address sdk.AccAddress) bool {
+	prefix := types.TypeContentIndexPrefix(types.CertificateTypeOpenMath, address.String())
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
+	defer iterator.Close()
+	return iterator.Valid()
+}
