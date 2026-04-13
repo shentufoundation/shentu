@@ -86,3 +86,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
+
+func (suite *KeeperTestSuite) issueOpenMathCertificate(addr sdk.AccAddress) {
+	certificate, err := certTypes.NewCertificate("openmath", addr.String(), "", "", "", suite.address[2])
+	suite.Require().NoError(err)
+
+	_, err = suite.app.CertKeeper.IssueCertificate(suite.ctx, certificate)
+	suite.Require().NoError(err)
+}

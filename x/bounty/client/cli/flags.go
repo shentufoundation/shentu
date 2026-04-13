@@ -25,4 +25,6 @@ const (
 	FlagComplexity  = "complexity"
 	FlagImports     = "imports"
 	FlagTheoremType = "theorem-type"
+
+	FlagRequireOpenMathCert = "require-openmath-cert"
 )

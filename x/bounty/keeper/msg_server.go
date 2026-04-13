@@ -652,7 +652,16 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 		return nil, err
 	}
 
-	theorem := types.NewTheorem(theoremID, proposer, msg.Title, msg.Description, msg.Code, submitTime, endTime)
+	theorem := types.NewTheorem(
+		theoremID,
+		proposer,
+		msg.Title,
+		msg.Description,
+		msg.Code,
+		msg.RequireOpenmathCert,
+		submitTime,
+		endTime,
+	)
 
 	if err = k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
 		return nil, err
@@ -728,6 +737,9 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	// check if theorem exists and is in proof period
 	theorem, err := k.validateTheoremStatus(ctx, msg.TheoremId)
 	if err != nil {
+		return nil, err
+	}
+	if err = k.requireOpenMathCertificate(ctx, *theorem, proposer); err != nil {
 		return nil, err
 	}
 
@@ -809,6 +821,18 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 			"expected: %s, actual: %s",
 			types.ProofStatus_PROOF_STATUS_HASH_LOCK_PERIOD.String(), proof.Status.String(),
 		)
+	}
+
+	theorem, err := k.Theorems.Get(ctx, proof.TheoremId)
+	if err != nil {
+		return nil, err
+	}
+	proverAddr, err := k.validateAddress(msg.Prover)
+	if err != nil {
+		return nil, err
+	}
+	if err = k.requireOpenMathCertificate(ctx, theorem, proverAddr); err != nil {
+		return nil, err
 	}
 
 	// Verify the hash matches
@@ -1084,6 +1108,16 @@ func (k msgServer) validateTheoremStatus(ctx sdk.Context, theoremID uint64) (*ty
 		return nil, types.ErrTheoremProofStatusInvalid
 	}
 	return &theorem, nil
+}
+
+func (k msgServer) requireOpenMathCertificate(ctx sdk.Context, theorem types.Theorem, prover sdk.AccAddress) error {
+	if !theorem.RequireOpenmathCert {
+		return nil
+	}
+	if k.certKeeper.IsCertified(ctx, prover.String(), "openmath") {
+		return nil
+	}
+	return types.ErrProofOpenMathCertNeeded
 }
 
 // isValidProofStatus checks if the given proof status is valid

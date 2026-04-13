@@ -459,7 +459,12 @@ func NewCreateTheoremCmd() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateTheorem(title, desc, code, clientCtx.GetFromAddress().String(), grant)
+			requireOpenMathCert, err := cmd.Flags().GetBool(FlagRequireOpenMathCert)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateTheorem(title, desc, code, clientCtx.GetFromAddress().String(), grant, requireOpenMathCert)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -469,6 +474,7 @@ func NewCreateTheoremCmd() *cobra.Command {
 	cmd.Flags().String(FlagDescription, "", "The theorem's desc")
 	cmd.Flags().String(FlagCode, "", "The theorem's code")
 	cmd.Flags().String(FlagGrant, "", "The theorem's grant")
+	cmd.Flags().Bool(FlagRequireOpenMathCert, false, "Require provers to hold an openmath certificate")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagTitle)

@@ -66,6 +66,7 @@ var (
 	ErrProofAlreadyExist       = errors.Register(ModuleName, 403, "proof already exist")
 	ErrProofHashInvalid        = errors.Register(ModuleName, 404, "invalid proof hash")
 	ErrProofNotExist           = errors.Register(ModuleName, 405, "proof does not exist.")
+	ErrProofOpenMathCertNeeded = errors.Register(ModuleName, 406, "openmath certificate required")
 )
 
 // [5xx] Deposit & Distribution

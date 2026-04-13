@@ -36,16 +36,17 @@ func NewFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, c
 	}
 }
 
-func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, submitTime, endTime time.Time) Theorem {
+func NewTheorem(id uint64, proposer sdk.AccAddress, title, desc, code string, requireOpenMathCert bool, submitTime, endTime time.Time) Theorem {
 	return Theorem{
-		Id:          id,
-		Title:       title,
-		Description: desc,
-		Code:        code,
-		Status:      TheoremStatus_THEOREM_STATUS_PROOF_PERIOD,
-		SubmitTime:  &submitTime,
-		EndTime:     &endTime,
-		Proposer:    proposer.String(),
+		Id:                  id,
+		Title:               title,
+		Description:         desc,
+		Code:                code,
+		Status:              TheoremStatus_THEOREM_STATUS_PROOF_PERIOD,
+		SubmitTime:          &submitTime,
+		EndTime:             &endTime,
+		Proposer:            proposer.String(),
+		RequireOpenmathCert: requireOpenMathCert,
 	}
 }
 
