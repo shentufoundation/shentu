@@ -1,6 +1,7 @@
 package cert_test
 
 import (
+	"encoding/binary"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -152,11 +153,15 @@ func Test_Migrate2to3IndexRebuild(t *testing.T) {
 		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
-		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], ""))
 
 		// Access the raw KV store for the cert module.
 		storeKey := app.GetKey(types.StoreKey)
 		rawStore := ctx.KVStore(storeKey)
+		cdc := app.AppCodec()
+
+		// Simulate pre-v4 certifier entry: raw addr-concat key + length-prefixed value.
+		preV4Certifier := types.NewCertifier(addrs[0], addrs[0], "")
+		rawStore.Set(types.CertifierStoreKey(addrs[0]), cdc.MustMarshalLengthPrefixed(&preV4Certifier))
 
 		// Build two certificates.
 		cert1, err := types.NewCertificate("auditing", "content-alpha", "", "", "", addrs[0])
@@ -168,10 +173,12 @@ func Test_Migrate2to3IndexRebuild(t *testing.T) {
 		cert2.CertificateId = 2
 
 		// Write certificates ONLY to the primary store (bypass indexes).
-		cdc := app.AppCodec()
 		rawStore.Set(types.CertificateStoreKey(cert1.CertificateId), cdc.MustMarshal(&cert1))
 		rawStore.Set(types.CertificateStoreKey(cert2.CertificateId), cdc.MustMarshal(&cert2))
-		require.NoError(t, app.CertKeeper.SetNextCertificateID(ctx, 3))
+		// Simulate pre-v4 next-cert-ID entry: 8B little-endian.
+		nextIDBz := make([]byte, 8)
+		binary.LittleEndian.PutUint64(nextIDBz, 3)
+		rawStore.Set(types.NextCertificateIDStoreKey(), nextIDBz)
 
 		// Before migration: index-based lookups must fail (no index entries).
 		require.False(t, app.CertKeeper.IsCertified(ctx, "content-alpha", "auditing"))
@@ -179,7 +186,7 @@ func Test_Migrate2to3IndexRebuild(t *testing.T) {
 		require.False(t, app.CertKeeper.IsBountyAdmin(ctx, addrs[1]))
 		require.Empty(t, app.CertKeeper.GetCertificatesByCertifier(ctx, addrs[0]))
 
-		// Run the migration.
+		// Run the migration (rebuilds indexes + converts primary stores to collections).
 		migrator := certkeeper.NewMigrator(app.CertKeeper)
 		require.NoError(t, migrator.Migrate2to3(ctx))
 

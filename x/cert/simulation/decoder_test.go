@@ -28,11 +28,11 @@ func TestDecodeStore_Certifier(t *testing.T) {
 
 	kvA := kv.Pair{
 		Key:   append(types.CertifiersStoreKey(), []byte("addr1")...),
-		Value: cdc.MustMarshalLengthPrefixed(&certifier),
+		Value: cdc.MustMarshal(&certifier),
 	}
 	kvB := kv.Pair{
 		Key:   append(types.CertifiersStoreKey(), []byte("addr2")...),
-		Value: cdc.MustMarshalLengthPrefixed(&certifier),
+		Value: cdc.MustMarshal(&certifier),
 	}
 
 	decoder := simulation.NewDecodeStore(cdc)
@@ -70,9 +70,9 @@ func TestDecodeStore_NextCertificateID(t *testing.T) {
 	cdc := encCfg.Codec.(codec.BinaryCodec)
 
 	bzA := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bzA, 42)
+	binary.BigEndian.PutUint64(bzA, 42)
 	bzB := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bzB, 99)
+	binary.BigEndian.PutUint64(bzB, 99)
 
 	kvA := kv.Pair{Key: types.NextCertificateIDStoreKey(), Value: bzA}
 	kvB := kv.Pair{Key: types.NextCertificateIDStoreKey(), Value: bzB}

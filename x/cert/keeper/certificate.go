@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"context"
-	"encoding/binary"
+	"errors"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
@@ -17,9 +18,7 @@ import (
 
 // SetCertificate stores a certificate using its ID field and maintains all secondary indexes.
 func (k Keeper) SetCertificate(ctx context.Context, certificate types.Certificate) error {
-	store := k.storeService.OpenKVStore(ctx)
-	bz := k.cdc.MustMarshal(&certificate)
-	if err := store.Set(types.CertificateStoreKey(certificate.CertificateId), bz); err != nil {
+	if err := k.Certificates.Set(ctx, certificate.CertificateId, certificate); err != nil {
 		return err
 	}
 	return k.writeCertificateIndexes(ctx, certificate)
@@ -34,8 +33,7 @@ func (k Keeper) DeleteCertificate(ctx context.Context, certificate types.Certifi
 	if !has {
 		return types.ErrCertificateNotExists
 	}
-	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Delete(types.CertificateStoreKey(certificate.CertificateId)); err != nil {
+	if err := k.Certificates.Remove(ctx, certificate.CertificateId); err != nil {
 		return err
 	}
 	return k.deleteCertificateIndexes(ctx, certificate)
@@ -89,22 +87,18 @@ func (k Keeper) deleteCertificateIndexes(ctx context.Context, cert types.Certifi
 
 // HasCertificateByID checks if a certificate exists given an ID.
 func (k Keeper) HasCertificateByID(ctx context.Context, id uint64) (bool, error) {
-	store := k.storeService.OpenKVStore(ctx)
-	return store.Has(types.CertificateStoreKey(id))
+	return k.Certificates.Has(ctx, id)
 }
 
 // GetCertificateByID retrieves a certificate given an ID.
 func (k Keeper) GetCertificateByID(ctx context.Context, id uint64) (types.Certificate, error) {
-	store := k.storeService.OpenKVStore(ctx)
-	certificateData, err := store.Get(types.CertificateStoreKey(id))
+	cert, err := k.Certificates.Get(ctx, id)
 	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return types.Certificate{}, types.ErrCertificateNotExists
+		}
 		return types.Certificate{}, err
 	}
-	if certificateData == nil {
-		return types.Certificate{}, types.ErrCertificateNotExists
-	}
-	var cert types.Certificate
-	k.cdc.MustUnmarshal(certificateData, &cert)
 	return cert, nil
 }
 
@@ -148,15 +142,12 @@ func (k Keeper) IssueCertificate(ctx context.Context, c types.Certificate) (uint
 		return 0, types.ErrUnqualifiedCertifier
 	}
 
-	certificateID, err := k.GetNextCertificateID(ctx)
+	certificateID, err := k.NextCertificateID.Next(ctx)
 	if err != nil {
 		return 0, err
 	}
 	c.CertificateId = certificateID
 
-	if err := k.SetNextCertificateID(ctx, certificateID+1); err != nil {
-		return 0, err
-	}
 	if err := k.SetCertificate(ctx, c); err != nil {
 		return 0, err
 	}
@@ -166,16 +157,11 @@ func (k Keeper) IssueCertificate(ctx context.Context, c types.Certificate) (uint
 
 // IterateAllCertificate iterates over the all the stored certificates and performs a callback function.
 func (k Keeper) IterateAllCertificate(ctx context.Context, callback func(certificate types.Certificate) (stop bool)) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	iterator := storetypes.KVStorePrefixIterator(store, types.CertificatesStoreKey())
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var cert types.Certificate
-		k.cdc.MustUnmarshal(iterator.Value(), &cert)
-
-		if callback(cert) {
-			break
-		}
+	err := k.Certificates.Walk(ctx, nil, func(_ uint64, cert types.Certificate) (bool, error) {
+		return callback(cert), nil
+	})
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -414,20 +400,12 @@ func (k Keeper) RevokeCertificate(ctx context.Context, certificate types.Certifi
 
 // SetNextCertificateID sets the next certificate ID to store.
 func (k Keeper) SetNextCertificateID(ctx context.Context, id uint64) error {
-	store := k.storeService.OpenKVStore(ctx)
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, id)
-	return store.Set(types.NextCertificateIDStoreKey(), bz)
+	return k.NextCertificateID.Set(ctx, id)
 }
 
 // GetNextCertificateID gets the next certificate ID from store.
 func (k Keeper) GetNextCertificateID(ctx context.Context) (uint64, error) {
-	store := k.storeService.OpenKVStore(ctx)
-	opBz, err := store.Get(types.NextCertificateIDStoreKey())
-	if err != nil {
-		return 0, err
-	}
-	return binary.LittleEndian.Uint64(opBz), nil
+	return k.NextCertificateID.Peek(ctx)
 }
 
 // IsBountyAdmin checks if an address is a bounty admin.

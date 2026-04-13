@@ -15,15 +15,24 @@ func concat(bytes ...[]byte) []byte {
 	return a
 }
 
+const (
+	// CertifierStoreKeyPrefix is the prefix byte for certifier kv-store keys.
+	CertifierStoreKeyPrefix byte = 0x0
+	// CertificateStoreKeyPrefix is the prefix byte for certificate kv-store keys.
+	CertificateStoreKeyPrefix byte = 0x5
+	// NextCertificateIDKeyPrefix is the prefix byte for the next certificate ID.
+	NextCertificateIDKeyPrefix byte = 0x8
+)
+
 var (
 	// certifierStoreKeyPrefix is the prefix of certifier kv-store keys.
-	certifierStoreKeyPrefix = []byte{0x0}
+	certifierStoreKeyPrefix = []byte{CertifierStoreKeyPrefix}
 
 	// certificateStoreKeyPrefix is the prefix of certificate kv-store keys.
-	certificateStoreKeyPrefix = []byte{0x5}
+	certificateStoreKeyPrefix = []byte{CertificateStoreKeyPrefix}
 
 	// nextCertificateIDKeyPrefix is the prefix of the next certificate ID to assign.
-	nextCertificateIDKeyPrefix = []byte{0x08}
+	nextCertificateIDKeyPrefix = []byte{NextCertificateIDKeyPrefix}
 
 	// Secondary certificate index prefixes. All ≥ 0x10 to avoid conflicts.
 

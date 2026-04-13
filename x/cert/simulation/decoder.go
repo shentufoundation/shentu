@@ -17,8 +17,8 @@ func NewDecodeStore(cdc codec.BinaryCodec) func(kvA, kvB kv.Pair) string {
 		switch {
 		case bytes.Equal(kvA.Key[:1], types.CertifiersStoreKey()):
 			var certifierA, certifierB types.Certifier
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &certifierA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &certifierB)
+			cdc.MustUnmarshal(kvA.Value, &certifierA)
+			cdc.MustUnmarshal(kvB.Value, &certifierB)
 			return fmt.Sprintf("%v\n%v", certifierA, certifierB)
 
 		case bytes.Equal(kvA.Key[:1], types.CertificatesStoreKey()):
@@ -28,8 +28,8 @@ func NewDecodeStore(cdc codec.BinaryCodec) func(kvA, kvB kv.Pair) string {
 			return fmt.Sprintf("%v\n%v", certA, certB)
 
 		case bytes.Equal(kvA.Key, types.NextCertificateIDStoreKey()):
-			idA := binary.LittleEndian.Uint64(kvA.Value)
-			idB := binary.LittleEndian.Uint64(kvB.Value)
+			idA := binary.BigEndian.Uint64(kvA.Value)
+			idB := binary.BigEndian.Uint64(kvB.Value)
 			return fmt.Sprintf("NextCertificateID: %d\n%d", idA, idB)
 
 		default:
