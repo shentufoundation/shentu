@@ -40,15 +40,7 @@ func (k msgServer) UpdateCertifier(goCtx context.Context, msg *types.MsgUpdateCe
 		return nil, err
 	}
 
-	var proposerAddr sdk.AccAddress
-	if msg.Proposer != "" {
-		proposerAddr, err = sdk.AccAddressFromBech32(msg.Proposer)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	certifier := types.NewCertifier(certifierAddr, proposerAddr, msg.Description)
+	certifier := types.NewCertifier(certifierAddr, msg.Description)
 	if err := k.Keeper.UpdateCertifier(ctx, operation, certifier); err != nil {
 		return nil, err
 	}
@@ -59,7 +51,6 @@ func (k msgServer) UpdateCertifier(goCtx context.Context, msg *types.MsgUpdateCe
 			sdk.NewAttribute("operation", operation.String()),
 			sdk.NewAttribute("certifier", msg.Certifier),
 			sdk.NewAttribute("description", msg.Description),
-			sdk.NewAttribute("proposer", msg.Proposer),
 		),
 	)
 

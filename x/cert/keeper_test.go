@@ -104,7 +104,7 @@ func Test_IterationByCertifier(t *testing.T) {
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 5, math.NewInt(10000))
 		for _, addr := range addrs {
-			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, addr, ""))
+			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, ""))
 		}
 
 		// Store certificates
@@ -140,7 +140,7 @@ func Test_CertificateQueries(t *testing.T) {
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 5, math.NewInt(10000))
 		for _, addr := range addrs {
-			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, addr, ""))
+			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, ""))
 		}
 
 		// Store certificates
@@ -224,7 +224,7 @@ func Test_IsCertified(t *testing.T) {
 		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], ""))
+		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], ""))
 
 		certType := "auditing"
 		contentStr := "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn"

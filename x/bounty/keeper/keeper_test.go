@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 	suite.msgServer = keeper.NewMsgServerImpl(suite.keeper)
 
-	err := suite.app.CertKeeper.SetCertifier(suite.ctx, certTypes.NewCertifier(suite.address[2], suite.address[2], ""))
+	err := suite.app.CertKeeper.SetCertifier(suite.ctx, certTypes.NewCertifier(suite.address[2], ""))
 	suite.Require().NoError(err)
 	certificate, err := certTypes.NewCertificate(certTypes.BountyAdminCertificateTypeName, suite.address[3].String(), "", "", "", suite.address[2])
 	if err != nil {

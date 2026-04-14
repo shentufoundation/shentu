@@ -7,15 +7,11 @@ import (
 )
 
 // NewCertifier returns a new certifier.
-func NewCertifier(address sdk.AccAddress, proposer sdk.AccAddress, description string) Certifier {
-	certifier := Certifier{
+func NewCertifier(address sdk.AccAddress, description string) Certifier {
+	return Certifier{
 		Address:     address.String(),
 		Description: description,
 	}
-	if len(proposer) > 0 {
-		certifier.Proposer = proposer.String()
-	}
-	return certifier
 }
 
 // Certifiers is a collection of certifier objects.

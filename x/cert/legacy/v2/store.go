@@ -88,14 +88,6 @@ func migrateCertifier(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 		}
 		certifier.Address = certifierAddr
 
-		if len(certifier.Proposer) != 0 {
-			proposalAddr, err := common.PrefixToShentu(certifier.Proposer)
-			if err != nil {
-				return err
-			}
-			certifier.Proposer = proposalAddr
-		}
-
 		bz := cdc.MustMarshalLengthPrefixed(&certifier)
 		oldStore.Set(iterator.Key(), bz)
 	}
@@ -117,14 +109,6 @@ func migrateCertifierAlias(store storetypes.KVStore, cdc codec.BinaryCodec) erro
 			return err
 		}
 		certifier.Address = certifierAddr
-
-		if len(certifier.Proposer) != 0 {
-			proposalAddr, err := common.PrefixToShentu(certifier.Proposer)
-			if err != nil {
-				return err
-			}
-			certifier.Proposer = proposalAddr
-		}
 
 		bz := cdc.MustMarshalLengthPrefixed(&certifier)
 		oldStore.Set(iterator.Key(), bz)

@@ -22,7 +22,6 @@ func TestDecodeStore_Certifier(t *testing.T) {
 
 	certifier := types.Certifier{
 		Address:     "shentu1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5z5tpw",
-		Proposer:    "shentu1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5z5tpw",
 		Description: "test certifier",
 	}
 

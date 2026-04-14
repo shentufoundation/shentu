@@ -21,7 +21,7 @@ func Test_CertificateIndexWrites(t *testing.T) {
 		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], ""))
+		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], ""))
 
 		contentStr := "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn"
 		certTypeStr := types.AuditingCertificateTypeName
@@ -67,7 +67,7 @@ func Test_CertificateIndexDeletes(t *testing.T) {
 		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], ""))
+		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], ""))
 
 		contentStr := "unique-content-for-delete-test"
 		cert, err := types.NewCertificate(types.GeneralCertificateTypeName, contentStr, "", "", "", addrs[0])
@@ -106,7 +106,7 @@ func Test_IsContentCertified(t *testing.T) {
 		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], ""))
+		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], ""))
 
 		content := "some-unique-content-string"
 		require.False(t, app.CertKeeper.IsContentCertified(ctx, content))
@@ -129,7 +129,7 @@ func Test_IsBountyAdmin(t *testing.T) {
 		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
-		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], ""))
+		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], ""))
 
 		// addrs[1] is not yet a bounty admin.
 		require.False(t, app.CertKeeper.IsBountyAdmin(ctx, addrs[1]))
@@ -161,7 +161,7 @@ func Test_Migrate2to3IndexRebuild(t *testing.T) {
 		cdc := app.AppCodec()
 
 		// Simulate pre-v4 certifier entry: raw addr-concat key + length-prefixed value.
-		preV4Certifier := types.NewCertifier(addrs[0], addrs[0], "")
+		preV4Certifier := types.NewCertifier(addrs[0], "")
 		rawStore.Set(types.CertifierStoreKey(addrs[0]), cdc.MustMarshalLengthPrefixed(&preV4Certifier))
 
 		// Build two certificates.
@@ -221,7 +221,7 @@ func Test_Migrate2to3LargeBatch(t *testing.T) {
 	cdc := app.AppCodec()
 
 	// Pre-v3 certifier entry (length-prefixed value, raw addr-concat key).
-	preV3Certifier := types.NewCertifier(addrs[0], addrs[0], "")
+	preV3Certifier := types.NewCertifier(addrs[0], "")
 	rawStore.Set(types.CertifierStoreKey(addrs[0]), cdc.MustMarshalLengthPrefixed(&preV3Certifier))
 
 	// Seed enough certs to span >2 batches (batch size is 256).

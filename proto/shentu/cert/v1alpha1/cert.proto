@@ -15,7 +15,8 @@ message Certifier {
     string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
     reserved 2;
     reserved "alias";
-    string proposer = 3 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+    reserved 3;
+    reserved "proposer";
     string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
 }
 

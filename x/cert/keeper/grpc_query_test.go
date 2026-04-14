@@ -42,7 +42,7 @@ func TestQueryCertifier_Found(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
 
-	expected := types.NewCertifier(addrs[0], addrs[1], "test certifier")
+	expected := types.NewCertifier(addrs[0], "test certifier")
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, expected))
 
 	resp, err := querier.Certifier(sdk.WrapSDKContext(ctx), &types.QueryCertifierRequest{Address: addrs[0].String()})
@@ -73,7 +73,7 @@ func TestQueryCertifiers(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, math.NewInt(10000))
 
 	for _, addr := range addrs {
-		require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, addr, "")))
+		require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "")))
 	}
 
 	resp, err := querier.Certifiers(sdk.WrapSDKContext(ctx), &types.QueryCertifiersRequest{})
@@ -102,7 +102,7 @@ func TestQueryCertifiers_NilRequest(t *testing.T) {
 func TestQueryCertificate_Found(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	cert, err := types.NewCertificate(types.GeneralCertificateTypeName, "query-test", "", "", "", addrs[0])
 	require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestQueryCertificate_Found(t *testing.T) {
 func TestQueryCertificate_NotFound(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	_, err := querier.Certificate(sdk.WrapSDKContext(ctx), &types.QueryCertificateRequest{CertificateId: 99999})
 	require.Error(t, err)
@@ -137,7 +137,7 @@ func TestQueryCertificate_NilRequest(t *testing.T) {
 func TestQueryCertificates_All(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	for i := 0; i < 5; i++ {
 		issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, fmt.Sprintf("cert-all-%d", i))
@@ -153,8 +153,8 @@ func TestQueryCertificates_All(t *testing.T) {
 func TestQueryCertificates_ByCertifier(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], "")))
 
 	for i := 0; i < 3; i++ {
 		issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, fmt.Sprintf("addr0-%d", i))
@@ -170,7 +170,7 @@ func TestQueryCertificates_ByCertifier(t *testing.T) {
 func TestQueryCertificates_ByType(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	issueCert(t, app, ctx, addrs[0], types.AuditingCertificateTypeName, "audit-content")
 	issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, "general-content")
@@ -185,8 +185,8 @@ func TestQueryCertificates_ByType(t *testing.T) {
 func TestQueryCertificates_ByContent(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], "")))
 
 	issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, "shared-content")
 	issueCert(t, app, ctx, addrs[1], types.OpenMathCertificateTypeName, "shared-content")
@@ -201,7 +201,7 @@ func TestQueryCertificates_ByContent(t *testing.T) {
 func TestQueryCertificates_ByOpenMathType(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	for _, prover := range []sdk.AccAddress{addrs[1], addrs[2]} {
 		issueCert(t, app, ctx, addrs[0], types.OpenMathCertificateTypeName, prover.String())
@@ -224,8 +224,8 @@ func TestQueryCertificates_ByOpenMathType(t *testing.T) {
 func TestQueryCertificates_ByCertifierAndType(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], "")))
 
 	for _, content := range []string{"a", "b"} {
 		issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, content)
@@ -258,7 +258,7 @@ func TestQueryCertificates_ByCertifierAndType(t *testing.T) {
 func TestQueryCertificates_Pagination(t *testing.T) {
 	app, ctx, querier := setupQuerier(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	for i := 0; i < 5; i++ {
 		issueCert(t, app, ctx, addrs[0], types.GeneralCertificateTypeName, fmt.Sprintf("paged-%d", i))

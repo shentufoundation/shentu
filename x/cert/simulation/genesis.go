@@ -16,7 +16,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	for _, acc := range simState.Accounts {
 		if simState.Rand.Intn(100) < 10 {
-			certifiers = append(certifiers, types.NewCertifier(acc.Address, acc.Address, ""))
+			certifiers = append(certifiers, types.NewCertifier(acc.Address, ""))
 		}
 	}
 
@@ -24,7 +24,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	if len(certifiers) == 0 {
 		idx := simState.Rand.Intn(len(simState.Accounts))
 		acc := simState.Accounts[idx]
-		certifiers = append(certifiers, types.NewCertifier(acc.Address, acc.Address, ""))
+		certifiers = append(certifiers, types.NewCertifier(acc.Address, ""))
 	}
 
 	certGenesis := types.GenesisState{

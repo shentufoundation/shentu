@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryOperator() {
 				Address: suite.address[0].String(),
 			},
 			func() {
-				suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[1], suite.address[1], ""))
+				suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[1], ""))
 				suite.createOperator(suite.address[0], suite.address[1])
 			},
 			func(res *types.QueryOperatorResponse) {
@@ -82,7 +82,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryOperators() {
 			"valid request",
 			&types.QueryOperatorsRequest{},
 			func() {
-				suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[1], suite.address[1], ""))
+				suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[1], ""))
 				suite.createOperator(suite.address[0], suite.address[1])
 			},
 			func(res *types.QueryOperatorsResponse) {
@@ -438,7 +438,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryParamsResponse() {
 }
 
 func (suite *KeeperTestSuite) createOperator(address, proposer sdk.AccAddress) {
-	suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(proposer, proposer, ""))
+	suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(proposer, ""))
 	err := suite.keeper.CreateOperator(suite.ctx, address, sdk.Coins{sdk.NewInt64Coin("stake", 50000)}, proposer, "operator")
 	suite.Require().NoError(err)
 }

@@ -31,14 +31,13 @@ func TestMsgServerUpdateCertifier_Add(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, math.NewInt(10000))
 	authority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
 
-	msg := types.NewMsgUpdateCertifier(authority, addrs[0], "first", types.Add, addrs[1])
+	msg := types.NewMsgUpdateCertifier(authority, addrs[0], "first", types.Add)
 	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), msg)
 	require.NoError(t, err)
 
 	certifier, err := app.CertKeeper.GetCertifier(ctx, addrs[0])
 	require.NoError(t, err)
 	require.Equal(t, addrs[0].String(), certifier.Address)
-	require.Equal(t, addrs[1].String(), certifier.Proposer)
 }
 
 func TestMsgServerUpdateCertifier_AddDuplicate(t *testing.T) {
@@ -46,7 +45,7 @@ func TestMsgServerUpdateCertifier_AddDuplicate(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
 	authority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
 
-	msg := types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Add, addrs[1])
+	msg := types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Add)
 	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), msg)
 	require.NoError(t, err)
 
@@ -60,12 +59,12 @@ func TestMsgServerUpdateCertifier_Remove(t *testing.T) {
 	authority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
 
 	// Add two certifiers so one can be removed.
-	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Add, nil))
+	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Add))
 	require.NoError(t, err)
-	_, err = msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[1], "", types.Add, nil))
+	_, err = msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[1], "", types.Add))
 	require.NoError(t, err)
 
-	_, err = msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Remove, nil))
+	_, err = msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Remove))
 	require.NoError(t, err)
 
 	_, err = app.CertKeeper.GetCertifier(ctx, addrs[0])
@@ -77,10 +76,10 @@ func TestMsgServerUpdateCertifier_RemoveLastFails(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
 	authority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
 
-	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Add, nil))
+	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Add))
 	require.NoError(t, err)
 
-	_, err = msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Remove, nil))
+	_, err = msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Remove))
 	require.True(t, errorsmod.IsOf(err, types.ErrOnlyOneCertifier))
 }
 
@@ -88,7 +87,7 @@ func TestMsgServerUpdateCertifier_UnauthorizedAuthority(t *testing.T) {
 	_, ctx, msgServer := setupMsgServer(t)
 	fakeAuthority := sdk.AccAddress([]byte("fake_authority_addr_"))
 
-	msg := types.NewMsgUpdateCertifier(fakeAuthority, fakeAuthority, "", types.Add, nil)
+	msg := types.NewMsgUpdateCertifier(fakeAuthority, fakeAuthority, "", types.Add)
 	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), msg)
 	require.True(t, errorsmod.IsOf(err, sdkerrors.ErrUnauthorized))
 }
@@ -100,7 +99,7 @@ func TestMsgServerUpdateCertifier_UnauthorizedAuthority(t *testing.T) {
 func TestMsgServerIssueCertificate_Success(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	content := types.AssembleContent(types.AuditingCertificateTypeName, "some-content")
 	msg := types.NewMsgIssueCertificate(content, "", "", "test cert", addrs[0])
@@ -125,7 +124,7 @@ func TestMsgServerIssueCertificate_NonCertifierFails(t *testing.T) {
 func TestMsgServerIssueCertificate_MultipleCertTypes(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	for _, certType := range types.IssueableCertificateTypeNames() {
 		content := types.AssembleContent(certType, "content-"+certType)
@@ -144,7 +143,7 @@ func TestMsgServerIssueCertificate_MultipleCertTypes(t *testing.T) {
 func TestMsgServerRevokeCertificate_Success(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	content := types.AssembleContent(types.GeneralCertificateTypeName, "revoke-me")
 	issueMsg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
@@ -164,7 +163,7 @@ func TestMsgServerRevokeCertificate_Success(t *testing.T) {
 func TestMsgServerRevokeCertificate_NonCertifierFails(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	content := types.AssembleContent(types.GeneralCertificateTypeName, "revoke-test")
 	issueMsg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
@@ -183,7 +182,7 @@ func TestMsgServerRevokeCertificate_NonCertifierFails(t *testing.T) {
 func TestMsgServerRevokeCertificate_NotFoundFails(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	revokeMsg := types.NewMsgRevokeCertificate(addrs[0], 99999, "")
 	_, err := msgServer.RevokeCertificate(sdk.WrapSDKContext(ctx), revokeMsg)
@@ -198,7 +197,7 @@ func TestMsgServerRevokeCertificate_NotFoundFails(t *testing.T) {
 func TestMsgServerOpenMath_IssueAndQuery(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	// Issue an openmath certificate for a prover (addrs[1]).
 	content := types.AssembleContent(types.OpenMathCertificateTypeName, addrs[1].String())
@@ -218,7 +217,7 @@ func TestMsgServerOpenMath_IssueAndQuery(t *testing.T) {
 func TestMsgServerOpenMath_MultipleProvers(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 4, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	// Certify addrs[1] and addrs[2] as openmath provers.
 	for _, prover := range []sdk.AccAddress{addrs[1], addrs[2]} {
@@ -244,7 +243,7 @@ func TestMsgServerOpenMath_MultipleProvers(t *testing.T) {
 func TestMsgServerOpenMath_RevokeProverCert(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	// Issue openmath cert.
 	content := types.AssembleContent(types.OpenMathCertificateTypeName, addrs[1].String())
@@ -284,8 +283,8 @@ func TestMsgServerRevokeCertificate_CrossCertifierRevoke(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
 	// Both are certifiers.
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], addrs[1], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], "")))
 
 	// addrs[0] issues a certificate.
 	content := types.AssembleContent(types.GeneralCertificateTypeName, "cross-revoke-content")
@@ -307,7 +306,7 @@ func TestMsgServerRevokeCertificate_CrossCertifierRevoke(t *testing.T) {
 func TestMsgServerIssueCertificate_DuplicateContent(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	// Issue the same content twice — both should succeed (different certificate IDs).
 	for i := 0; i < 2; i++ {
@@ -325,7 +324,7 @@ func TestMsgServerIssueCertificate_DuplicateContent(t *testing.T) {
 func TestMsgServerIssueCertificate_WithCompilationContent(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	content := types.AssembleContent(types.CompilationCertificateTypeName, "source-hash")
 	msg := types.NewMsgIssueCertificate(content, "solc-0.8.0", "0xdeadbeef", "compilation cert", addrs[0])
@@ -344,11 +343,11 @@ func TestMsgServerUpdateCertifier_RemoveNonExistent(t *testing.T) {
 	authority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
 
 	// Add one certifier so there's at least one.
-	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Add, nil))
+	_, err := msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[0], "", types.Add))
 	require.NoError(t, err)
 
 	// Try to remove addrs[1] which was never added.
-	_, err = msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[1], "", types.Remove, nil))
+	_, err = msgServer.UpdateCertifier(sdk.WrapSDKContext(ctx), types.NewMsgUpdateCertifier(authority, addrs[1], "", types.Remove))
 	require.Error(t, err)
 	require.True(t, errorsmod.IsOf(err, types.ErrCertifierNotExists))
 }
@@ -360,7 +359,7 @@ func TestMsgServerUpdateCertifier_RemoveNonExistent(t *testing.T) {
 func TestMsgServerOpenMath_DoesNotInterfereWithOtherTypes(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	// Issue both an openmath and a general cert with the same content string.
 	contentStr := addrs[1].String()

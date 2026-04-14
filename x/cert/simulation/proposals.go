@@ -37,19 +37,6 @@ func SimulateMsgUpdateCertifier(k keeper.Keeper) simtypes.MsgSimulatorFn {
 
 		var operation types.AddOrRemove
 		var certifier sdk.AccAddress
-		var proposer sdk.AccAddress
-
-		// Pick a random proposer from existing certifiers.
-		if len(certifiers) > 0 {
-			idx := r.Intn(len(certifiers))
-			proposerAddr, err := sdk.AccAddressFromBech32(certifiers[idx].Address)
-			if err == nil {
-				proposer = proposerAddr
-			}
-		}
-		if proposer == nil {
-			proposer = accs[r.Intn(len(accs))].Address
-		}
 
 		switch r.Intn(2) {
 		case 0: // add a new certifier
@@ -87,6 +74,6 @@ func SimulateMsgUpdateCertifier(k keeper.Keeper) simtypes.MsgSimulatorFn {
 		}
 
 		description := simtypes.RandStringOfLength(r, 10)
-		return types.NewMsgUpdateCertifier(authority, certifier, description, operation, proposer)
+		return types.NewMsgUpdateCertifier(authority, certifier, description, operation)
 	}
 }

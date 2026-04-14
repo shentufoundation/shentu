@@ -24,7 +24,7 @@ func TestCertifierVoteIsRequiredForMsgUpdateCertifier(t *testing.T) {
 	proposer, err := app.AccountKeeper.AddressCodec().StringToBytes(addrs[0].String())
 	require.NoError(t, err)
 
-	msg := certtypes.NewMsgUpdateCertifier(governanceAuthority, addrs[1], "governance certifier update", certtypes.Add, addrs[0])
+	msg := certtypes.NewMsgUpdateCertifier(governanceAuthority, addrs[1], "governance certifier update", certtypes.Add)
 	proposal, err := app.GovKeeper.SubmitProposal(ctx, []sdk.Msg{msg}, "", "certifier update", "summary", proposer, false)
 	require.NoError(t, err)
 

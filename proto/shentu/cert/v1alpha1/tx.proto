@@ -40,7 +40,6 @@ message MsgUpdateCertifier {
     string certifier = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString", (gogoproto.moretags) = "yaml:\"certifier\"" ];
     string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     CertifierUpdateOperation operation = 4 [ (gogoproto.moretags) = "yaml:\"operation\"" ];
-    string proposer = 5 [ (cosmos_proto.scalar) = "cosmos.AddressString", (gogoproto.moretags) = "yaml:\"proposer\"" ];
 }
 
 message MsgUpdateCertifierResponse {}

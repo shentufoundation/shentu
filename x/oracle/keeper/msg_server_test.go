@@ -160,7 +160,7 @@ func DepositCollateral(ctx sdk.Context, ok keeper.Keeper, ck certkeeper.Keeper, 
 	t := ctx.Value("t").(*testing.T)
 	params := ok.GetLockedPoolParams(ctx)
 	collateral := sdk.Coins{sdk.NewInt64Coin("stake", params.MinimumCollateral)}
-	ck.SetCertifier(ctx, certtypes.NewCertifier(addr, addr, ""))
+	ck.SetCertifier(ctx, certtypes.NewCertifier(addr, ""))
 	require.NoError(t, ok.CreateOperator(ctx, addr, collateral, addr, "operator0"))
 }
 

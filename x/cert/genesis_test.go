@@ -19,7 +19,7 @@ func TestGenesisRoundTrip(t *testing.T) {
 
 	// Seed certifiers and certificates.
 	for _, addr := range addrs {
-		require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, addr, "genesis test")))
+		require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "genesis test")))
 	}
 	for i, content := range []string{"content-a", "content-b", "content-c"} {
 		c, err := types.NewCertificate(types.GeneralCertificateTypeName, content, "", "", "", addrs[i%len(addrs)])
@@ -60,7 +60,7 @@ func TestGenesisRoundTrip_OpenMath(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, math.NewInt(10000))
 
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	// Issue openmath certs for two provers.
 	for _, prover := range []string{addrs[1].String(), addrs[2].String()} {
@@ -102,7 +102,7 @@ func TestGenesisRoundTrip_MultipleCertTypes(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
 
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	// Issue one of each type.
 	certTypes := types.IssueableCertificateTypeNames()
@@ -135,7 +135,7 @@ func TestGenesisRoundTrip_PreservesNextID(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 
-	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
 	// Issue 5 certificates to advance the next ID.
 	for i := 0; i < 5; i++ {
@@ -166,7 +166,7 @@ func TestGenesisRoundTrip_MultipleCertifiers(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 5, math.NewInt(10000))
 
 	for i, addr := range addrs {
-		require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, addr, "certifier-"+string(rune('A'+i)))))
+		require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "certifier-"+string(rune('A'+i)))))
 	}
 
 	exported := cert.ExportGenesis(ctx, app.CertKeeper)

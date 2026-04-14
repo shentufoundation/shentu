@@ -28,18 +28,13 @@ func NewMsgUpdateCertifier(
 	certifier sdk.AccAddress,
 	description string,
 	operation AddOrRemove,
-	proposer sdk.AccAddress,
 ) *MsgUpdateCertifier {
-	msg := &MsgUpdateCertifier{
+	return &MsgUpdateCertifier{
 		Authority:   authority.String(),
 		Certifier:   certifier.String(),
 		Description: description,
 		Operation:   operation.ToProto(),
 	}
-	if len(proposer) > 0 {
-		msg.Proposer = proposer.String()
-	}
-	return msg
 }
 
 // Route returns the module name.
@@ -68,16 +63,6 @@ func (m MsgUpdateCertifier) ValidateBasic() error {
 
 	if _, err := AddOrRemoveFromProto(m.Operation); err != nil {
 		return err
-	}
-
-	if m.Proposer != "" {
-		proposerAddr, err := sdk.AccAddressFromBech32(m.Proposer)
-		if err != nil {
-			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Proposer)
-		}
-		if proposerAddr.Empty() {
-			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
-		}
 	}
 	return nil
 }

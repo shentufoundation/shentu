@@ -21,7 +21,6 @@ func validShentuAddr(t *testing.T, seed string) sdk.AccAddress {
 func TestMsgUpdateCertifier_ValidateBasic(t *testing.T) {
 	authority := validShentuAddr(t, "authority")
 	certifier := validShentuAddr(t, "certifier")
-	proposer := validShentuAddr(t, "proposer_")
 
 	tests := []struct {
 		name    string
@@ -30,12 +29,12 @@ func TestMsgUpdateCertifier_ValidateBasic(t *testing.T) {
 	}{
 		{
 			"valid add",
-			types.NewMsgUpdateCertifier(authority, certifier, "desc", types.Add, proposer),
+			types.NewMsgUpdateCertifier(authority, certifier, "desc", types.Add),
 			false,
 		},
 		{
 			"valid remove",
-			types.NewMsgUpdateCertifier(authority, certifier, "desc", types.Remove, nil),
+			types.NewMsgUpdateCertifier(authority, certifier, "desc", types.Remove),
 			false,
 		},
 		{
@@ -74,16 +73,6 @@ func TestMsgUpdateCertifier_ValidateBasic(t *testing.T) {
 			},
 			true,
 		},
-		{
-			"invalid proposer",
-			&types.MsgUpdateCertifier{
-				Authority: authority.String(),
-				Certifier: certifier.String(),
-				Operation: types.CertifierUpdateOperationAdd,
-				Proposer:  "invalid",
-			},
-			true,
-		},
 	}
 
 	for _, tc := range tests {
@@ -101,7 +90,7 @@ func TestMsgUpdateCertifier_ValidateBasic(t *testing.T) {
 func TestMsgUpdateCertifier_GetSigners(t *testing.T) {
 	authority := validShentuAddr(t, "authority")
 	certifier := validShentuAddr(t, "certifier")
-	msg := types.NewMsgUpdateCertifier(authority, certifier, "", types.Add, nil)
+	msg := types.NewMsgUpdateCertifier(authority, certifier, "", types.Add)
 
 	signers := msg.GetSigners()
 	require.Len(t, signers, 1)
@@ -241,7 +230,7 @@ func TestMsgRevokeCertificate_GetSigners(t *testing.T) {
 func TestMsgUpdateCertifier_RouteAndType(t *testing.T) {
 	authority := validShentuAddr(t, "authority")
 	certifier := validShentuAddr(t, "certifier")
-	msg := types.NewMsgUpdateCertifier(authority, certifier, "", types.Add, nil)
+	msg := types.NewMsgUpdateCertifier(authority, certifier, "", types.Add)
 	require.Equal(t, types.ModuleName, msg.Route())
 	require.Equal(t, "update_certifier", msg.Type())
 }
