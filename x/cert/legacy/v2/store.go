@@ -79,7 +79,7 @@ func migrateCertifier(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var certifier types.Certifier
+		var certifier LegacyCertifier
 		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &certifier)
 
 		certifierAddr, err := common.PrefixToShentu(certifier.Address)
@@ -87,6 +87,14 @@ func migrateCertifier(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 			return err
 		}
 		certifier.Address = certifierAddr
+
+		if len(certifier.Proposer) != 0 {
+			proposalAddr, err := common.PrefixToShentu(certifier.Proposer)
+			if err != nil {
+				return err
+			}
+			certifier.Proposer = proposalAddr
+		}
 
 		bz := cdc.MustMarshalLengthPrefixed(&certifier)
 		oldStore.Set(iterator.Key(), bz)
@@ -101,7 +109,7 @@ func migrateCertifierAlias(store storetypes.KVStore, cdc codec.BinaryCodec) erro
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var certifier types.Certifier
+		var certifier LegacyCertifier
 		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &certifier)
 
 		certifierAddr, err := common.PrefixToShentu(certifier.Address)
@@ -109,6 +117,14 @@ func migrateCertifierAlias(store storetypes.KVStore, cdc codec.BinaryCodec) erro
 			return err
 		}
 		certifier.Address = certifierAddr
+
+		if len(certifier.Proposer) != 0 {
+			proposalAddr, err := common.PrefixToShentu(certifier.Proposer)
+			if err != nil {
+				return err
+			}
+			certifier.Proposer = proposalAddr
+		}
 
 		bz := cdc.MustMarshalLengthPrefixed(&certifier)
 		oldStore.Set(iterator.Key(), bz)
