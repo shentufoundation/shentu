@@ -677,6 +677,8 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 		sdk.NewEvent(types.EventTypeCreateTheorem,
 			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
 			sdk.NewAttribute(types.AttributeKeyProposer, msg.Proposer),
+			sdk.NewAttribute(types.AttributeKeyInitialGrant, sdk.NewCoins(msg.InitialGrant...).String()),
+			sdk.NewAttribute(types.AttributeKeyRequireOpenmathCert, fmt.Sprintf("%t", msg.RequireOpenmathCert)),
 		),
 	)
 
@@ -785,8 +787,10 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeSubmitProofHash,
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", msg.TheoremId)),
 			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
-			sdk.NewAttribute(types.AttributeKeyProposer, msg.Prover),
+			sdk.NewAttribute(types.AttributeKeyProver, msg.Prover),
+			sdk.NewAttribute(types.AttributeKeyDeposit, sdk.NewCoins(msg.Deposit...).String()),
 		),
 	)
 
@@ -859,8 +863,9 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSubmitProofDetail,
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
 			sdk.NewAttribute(types.AttributeKeyProofID, msg.ProofId),
-			sdk.NewAttribute(types.AttributeKeyProposer, msg.Prover),
+			sdk.NewAttribute(types.AttributeKeyProver, msg.Prover),
 		),
 	)
 
@@ -912,7 +917,9 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSubmitProofVerification,
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
 			sdk.NewAttribute(types.AttributeKeyProofID, msg.ProofId),
+			sdk.NewAttribute(types.AttributeKeyProver, proof.Prover),
 			sdk.NewAttribute(types.AttributeKeyChecker, msg.Checker),
 			sdk.NewAttribute(types.AttributeKeyProofStatus, msg.Status.String()),
 		),
@@ -1215,8 +1222,10 @@ func (k msgServer) handlePassedProof(
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProofPassed,
-			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
 			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
+			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
+			sdk.NewAttribute(types.AttributeKeyProver, proof.Prover),
+			sdk.NewAttribute(types.AttributeKeyComplexity, fmt.Sprintf("%d", complexity)),
 		),
 	)
 
@@ -1236,8 +1245,9 @@ func (k msgServer) handleFailedProof(
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProofFailed,
-			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
 			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
+			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
+			sdk.NewAttribute(types.AttributeKeyProver, proof.Prover),
 		),
 	)
 
