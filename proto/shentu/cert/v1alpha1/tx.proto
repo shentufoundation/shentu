@@ -76,19 +76,3 @@ message MsgRevokeCertificate {
 }
 
 message MsgRevokeCertificateResponse {}
-
-// MsgCertifyPlatform is deprecated. Platform certification has been removed.
-// Kept as reserved fields for wire compatibility.
-message MsgCertifyPlatform {
-    option (cosmos.msg.v1.signer) = "certifier";
-
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    string certifier = 1;
-    reserved 2;
-    reserved "validator_pubkey";
-    string platform = 3;
-}
-
-message MsgCertifyPlatformResponse {}
