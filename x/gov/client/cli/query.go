@@ -562,4 +562,3 @@ $ %[1]s query gov param deposit
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
-

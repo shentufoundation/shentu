@@ -29,6 +29,7 @@ import (
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
@@ -237,7 +238,16 @@ func (am AppModule) EndBlock(ctx context.Context) error {
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	//simulation.RandomizedGenState(simState)
+	simulation.RandomizedGenState(simState)
+}
+
+// ProposalMsgs returns the gov-owned proposal messages the simulator
+// picks from when it decides what a new governance proposal should
+// contain. Shentu piggybacks on the upstream text proposal; module.go
+// delegates through the local simulation package so that list can grow
+// without touching module-level wiring.
+func (AppModule) ProposalMsgs(_ module.SimulationState) []simtypes.WeightedProposalMsg {
+	return simulation.ProposalMsgs()
 }
 
 // RegisterStoreDecoder registers a decoder for gov module.
@@ -245,7 +255,11 @@ func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	sdr[govtypes.StoreKey] = simtypes.NewStoreDecoderFuncFromCollectionsSchema(am.keeper.Schema)
 }
 
-// WeightedOperations returns the all the gov module operations with their respective weights.
+// WeightedOperations returns all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return nil
+	return simulation.WeightedOperations(
+		simState.AppParams, simState.TxConfig,
+		am.accountKeeper, am.bankKeeper, am.keeper,
+		simState.ProposalMsgs, simState.LegacyProposalContents,
+	)
 }

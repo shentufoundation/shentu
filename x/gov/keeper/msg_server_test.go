@@ -1,120 +1,165 @@
 package keeper_test
 
-//
-//import (
-//	"strings"
-//
-//	"github.com/cosmos/cosmos-sdk/testutil/testdata"
-//	sdk "github.com/cosmos/cosmos-sdk/types"
-//	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-//	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-//
-//	"github.com/shentufoundation/shentu/v2/common"
-//)
-//
-//func (suite *KeeperTestSuite) TestSubmitProposalReq() {
-//	govAcct := suite.app.GovKeeper.GetGovernanceAccount(suite.ctx).GetAddress()
-//	addrs := suite.addrs
-//	proposer := addrs[0]
-//
-//	coins := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100)))
-//	initialDeposit := coins
-//	minDeposit := suite.app.GovKeeper.GetDepositParams(suite.ctx).MinDeposit
-//	bankMsg := &banktypes.MsgSend{
-//		FromAddress: govAcct.String(),
-//		ToAddress:   proposer.String(),
-//		Amount:      coins,
-//	}
-//
-//	cases := map[string]struct {
-//		preRun    func() (*v1.MsgSubmitProposal, error)
-//		expErr    bool
-//		expErrMsg string
-//	}{
-//		"metadata too long": {
-//			preRun: func() (*v1.MsgSubmitProposal, error) {
-//				return v1.NewMsgSubmitProposal(
-//					[]sdk.Msg{bankMsg},
-//					initialDeposit,
-//					proposer.String(),
-//					strings.Repeat("1", 300),
-//				)
-//			},
-//			expErr:    true,
-//			expErrMsg: "metadata too long",
-//		},
-//		"many signers": {
-//			preRun: func() (*v1.MsgSubmitProposal, error) {
-//				return v1.NewMsgSubmitProposal(
-//					[]sdk.Msg{testdata.NewTestMsg(govAcct, addrs[0])},
-//					initialDeposit,
-//					proposer.String(),
-//					"",
-//				)
-//			},
-//			expErr:    true,
-//			expErrMsg: "expected gov account as only signer for proposal message",
-//		},
-//		"signer isn't gov account": {
-//			preRun: func() (*v1.MsgSubmitProposal, error) {
-//				return v1.NewMsgSubmitProposal(
-//					[]sdk.Msg{testdata.NewTestMsg(addrs[0])},
-//					initialDeposit,
-//					proposer.String(),
-//					"",
-//				)
-//			},
-//			expErr:    true,
-//			expErrMsg: "expected gov account as only signer for proposal message",
-//		},
-//		"invalid msg handler": {
-//			preRun: func() (*v1.MsgSubmitProposal, error) {
-//				return v1.NewMsgSubmitProposal(
-//					[]sdk.Msg{testdata.NewTestMsg(govAcct)},
-//					initialDeposit,
-//					proposer.String(),
-//					"",
-//				)
-//			},
-//			expErr:    true,
-//			expErrMsg: "proposal message not recognized by router",
-//		},
-//		"all good": {
-//			preRun: func() (*v1.MsgSubmitProposal, error) {
-//				return v1.NewMsgSubmitProposal(
-//					[]sdk.Msg{bankMsg},
-//					initialDeposit,
-//					proposer.String(),
-//					"",
-//				)
-//			},
-//			expErr: false,
-//		},
-//		"all good with min deposit": {
-//			preRun: func() (*v1.MsgSubmitProposal, error) {
-//				return v1.NewMsgSubmitProposal(
-//					[]sdk.Msg{bankMsg},
-//					minDeposit,
-//					proposer.String(),
-//					"",
-//				)
-//			},
-//			expErr: false,
-//		},
-//	}
-//
-//	for name, tc := range cases {
-//		suite.Run(name, func() {
-//			msg, err := tc.preRun()
-//			suite.Require().NoError(err)
-//			res, err := suite.msgSrvr.SubmitProposal(suite.ctx, msg)
-//			if tc.expErr {
-//				suite.Require().Error(err)
-//				suite.Require().Contains(err.Error(), tc.expErrMsg)
-//			} else {
-//				suite.Require().NoError(err)
-//				suite.Require().NotNil(res.ProposalId)
-//			}
-//		})
-//	}
-//}
+import (
+	"testing"
+
+	"cosmossdk.io/math"
+	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/common"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
+)
+
+// msgServerFixture wires a MsgServer, a funded proposer (uctk >=
+// MinDeposit * MinDepositRatio), and the gov module authority. Every
+// msg-server SubmitProposal test needs these three handles plus the
+// deposit amount to submit alongside the proposal.
+func msgServerFixture(t *testing.T) (
+	*shentuapp.ShentuApp, sdk.Context, govtypesv1.MsgServer,
+	sdk.AccAddress, sdk.AccAddress, sdk.Coins,
+) {
+	t.Helper()
+	app := shentuapp.Setup(t, false)
+	ctx := app.BaseApp.NewContext(false)
+
+	addrs := shentuapp.AddTestAddrsIncremental(app, ctx, 2, math.NewInt(10000))
+	proposer := addrs[0]
+
+	// Fund the proposer with enough uctk to satisfy MinDepositRatio
+	// (default 0.01 of MinDeposit). MintCoins + SendCoinsFromModuleToAccount
+	// is the standard shentu test pattern for uctk balances.
+	deposit := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, math.NewInt(1_000_000_000)))
+	require.NoError(t, app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, deposit))
+	require.NoError(t, app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, proposer, deposit))
+
+	msgSrvr := keeper.NewMsgServerImpl(app.GovKeeper)
+	authority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
+	return app, ctx, msgSrvr, authority, proposer, deposit
+}
+
+// MsgServer.SubmitProposal must reject a proposal that bundles a
+// MsgUpdateCertifier with any other message. This is the front-line
+// enforcement point for external clients — if it's ever bypassed, a
+// bundle would reach the store and let its non-cert messages ride the
+// certifier head-count tally.
+func TestMsgServerSubmitProposal_RejectsBundledCertUpdate(t *testing.T) {
+	app, ctx, msgSrvr, authority, proposer, deposit := msgServerFixture(t)
+
+	certMsg := certtypes.NewMsgUpdateCertifier(authority, proposer, "add", certtypes.Add)
+	sendMsg := banktypes.NewMsgSend(
+		authority, proposer,
+		sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, math.NewInt(1))),
+	)
+
+	msg, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{certMsg, sendMsg},
+		deposit,
+		proposer.String(),
+		"",
+		"bundle",
+		"summary",
+		false,
+	)
+	require.NoError(t, err)
+
+	_, err = msgSrvr.SubmitProposal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "certifier-update message must contain exactly one message")
+
+	// No proposal may have been persisted.
+	count, err := proposalCount(app, ctx)
+	require.NoError(t, err)
+	require.Zero(t, count)
+}
+
+// A solo MsgUpdateCertifier must go through the msg-server entry point
+// cleanly — the solo-message guard only trips on bundles.
+func TestMsgServerSubmitProposal_AcceptsSoloCertUpdate(t *testing.T) {
+	_, ctx, msgSrvr, authority, proposer, deposit := msgServerFixture(t)
+
+	certMsg := certtypes.NewMsgUpdateCertifier(authority, proposer, "add", certtypes.Add)
+
+	msg, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{certMsg},
+		deposit,
+		proposer.String(),
+		"",
+		"solo cert",
+		"summary",
+		false,
+	)
+	require.NoError(t, err)
+
+	resp, err := msgSrvr.SubmitProposal(ctx, msg)
+	require.NoError(t, err)
+	require.NotZero(t, resp.ProposalId)
+}
+
+// A plain MsgSend proposal must not be affected by the cert-update
+// guard — it should reach the embedded cosmos-sdk keeper and persist
+// normally. Guards against over-eager rejection logic.
+func TestMsgServerSubmitProposal_AcceptsPlainProposal(t *testing.T) {
+	_, ctx, msgSrvr, authority, proposer, deposit := msgServerFixture(t)
+
+	sendMsg := banktypes.NewMsgSend(
+		authority, proposer,
+		sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, math.NewInt(1))),
+	)
+
+	msg, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{sendMsg},
+		deposit,
+		proposer.String(),
+		"",
+		"send",
+		"summary",
+		false,
+	)
+	require.NoError(t, err)
+
+	resp, err := msgSrvr.SubmitProposal(ctx, msg)
+	require.NoError(t, err)
+	require.NotZero(t, resp.ProposalId)
+}
+
+// Regression: empty title must still be rejected. Makes sure the
+// solo-message guard wasn't reordered in front of basic validation.
+func TestMsgServerSubmitProposal_RejectsEmptyTitle(t *testing.T) {
+	_, ctx, msgSrvr, authority, proposer, deposit := msgServerFixture(t)
+
+	sendMsg := banktypes.NewMsgSend(
+		authority, proposer,
+		sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, math.NewInt(1))),
+	)
+
+	msg, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{sendMsg},
+		deposit,
+		proposer.String(),
+		"",
+		"",
+		"summary",
+		false,
+	)
+	require.NoError(t, err)
+
+	_, err = msgSrvr.SubmitProposal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "title")
+}
+
+func proposalCount(app *shentuapp.ShentuApp, ctx sdk.Context) (int, error) {
+	n := 0
+	err := app.GovKeeper.Proposals.Walk(ctx, nil, func(_ uint64, _ govtypesv1.Proposal) (bool, error) {
+		n++
+		return false, nil
+	})
+	return n, err
+}

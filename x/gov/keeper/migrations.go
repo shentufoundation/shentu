@@ -6,7 +6,6 @@ import (
 
 	v5 "github.com/shentufoundation/shentu/v2/x/gov/migrations/v5"
 	v6 "github.com/shentufoundation/shentu/v2/x/gov/migrations/v6"
-	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -48,14 +47,7 @@ func (m Migrator) Migrate5to6(ctx sdk.Context) error {
 	return v5.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc, m.keeper.Constitution)
 }
 
-// Migrate6to7 drops the two-round security-proposal state from the
-// store. See x/gov/migrations/v6 for the full scan/guard logic.
+// Migrate6to7  migrates from version 6 to 7.
 func (m Migrator) Migrate6to7(ctx sdk.Context) error {
-	return v6.MigrateStore(
-		ctx,
-		m.keeper.storeService,
-		m.keeper.Proposals,
-		m.keeper.Votes,
-		typesv1.IsCertifierUpdateProposalMsg,
-	)
+	return v6.MigrateStore(ctx, m.keeper.storeService)
 }
