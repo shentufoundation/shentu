@@ -29,6 +29,9 @@ func TestEndBlocker_CertifierUpdateRejectedOnNoCertifierVotes(t *testing.T) {
 
 	addrs := shentuapp.AddTestAddrsIncremental(app, ctx, 2, math.NewInt(10000))
 	govAuthority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
+	// SubmitProposal rejects cert-update from non-certifiers; register
+	// the proposer so submission reaches the end-blocker path under test.
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, certtypes.NewCertifier(addrs[0], "")))
 	proposer, err := app.AccountKeeper.AddressCodec().StringToBytes(addrs[0].String())
 	require.NoError(t, err)
 

@@ -43,6 +43,9 @@ func TestAddVote_CertUpdateRoutedToCertifierVote_NonCertifierRejected(t *testing
 	nonCertifier := addrs[1]
 	authority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
 
+	// Cert-update submission requires a certifier proposer.
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, certtypes.NewCertifier(proposer, "")))
+
 	certMsg := certtypes.NewMsgUpdateCertifier(authority, addrs[0], "add", certtypes.Add)
 	proposalID := submitAndActivate(t, app, ctx, []sdk.Msg{certMsg}, proposer)
 
@@ -70,6 +73,8 @@ func TestAddVote_CertUpdateRoutedToCertifierVote_CertifierAccepted(t *testing.T)
 	addrs := shentuapp.AddTestAddrsIncremental(app, ctx, 2, math.NewInt(10000))
 	proposer := addrs[0]
 	certifier := addrs[1]
+	// Proposer must also be a certifier so cert-update submission passes.
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, certtypes.NewCertifier(proposer, "")))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, certtypes.NewCertifier(certifier, "")))
 	authority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
 

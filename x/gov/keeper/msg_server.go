@@ -76,6 +76,14 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubm
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Reject non-certifier proposers for cert-update proposals here
+	// (before deposit validation) to avoid wasting gas on submissions
+	// that the Keeper shadow would reject anyway.
+	if err := k.ValidateCertUpdateProposer(ctx, proposalMsgs, proposer); err != nil {
+		return nil, err
+	}
+
 	initialDeposit := msg.GetInitialDeposit()
 
 	params, err := k.Params.Get(ctx)

@@ -31,6 +31,11 @@ func securityTallyFixture(t *testing.T, nCertifiers int) (
 	proposerAddr := addrs[0]
 	certifiers := addrs[1:]
 
+	// Register the proposer as a certifier too — SubmitProposal enforces
+	// the certifier-only proposer rule for cert-update proposals. The
+	// fixture deliberately does NOT include the proposer in the voting
+	// electorate (`certifiers` slice) so tally math stays unaffected.
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, certtypes.NewCertifier(proposerAddr, "")))
 	for _, c := range certifiers {
 		require.NoError(t, app.CertKeeper.SetCertifier(ctx, certtypes.NewCertifier(c, "")))
 	}

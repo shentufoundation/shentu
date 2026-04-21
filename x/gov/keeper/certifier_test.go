@@ -24,6 +24,10 @@ func TestCertifierVoteIsRequiredForMsgUpdateCertifier(t *testing.T) {
 	addrs := shentuapp.AddTestAddrsIncremental(app, ctx, 2, math.NewInt(10000))
 	governanceAuthority := app.GovKeeper.GetGovernanceAccount(ctx).GetAddress()
 
+	// SubmitProposal enforces the certifier-only proposer rule for
+	// cert-update proposals; register addrs[0] so submission succeeds.
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, certtypes.NewCertifier(addrs[0], "")))
+
 	proposer, err := app.AccountKeeper.AddressCodec().StringToBytes(addrs[0].String())
 	require.NoError(t, err)
 

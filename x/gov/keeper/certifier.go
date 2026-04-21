@@ -28,11 +28,51 @@ func isCertifierUpdateProposalMsg(msg sdk.Msg) (bool, error) {
 	return typesv1.IsCertifierUpdateProposalMsg(msg)
 }
 
-// SubmitProposal shadows the embedded cosmos-sdk Keeper.SubmitProposal to
-// enforce the cert-update solo-message guard for programmatic callers.
-// MsgServer.SubmitProposal also runs this check explicitly.
+// ValidateCertUpdateProposer enforces the certifier-only proposer rule
+// for cert-update proposals. Without it, any address with a deposit-sized
+// balance could flood the cert round with spam proposals, and the
+// certifier head-count electorate would spend every cycle voting down
+// noise. Certifiers vote; certifiers propose.
+//
+// Returns nil for bundled proposals (blocked earlier by the solo-message
+// guard) and for non-cert-update proposals (they flow through the normal
+// stake round).
+func (k Keeper) ValidateCertUpdateProposer(ctx context.Context, messages []sdk.Msg, proposer sdk.AccAddress) error {
+	if len(messages) != 1 {
+		return nil
+	}
+	isCertUpdate, err := isCertifierUpdateProposalMsg(messages[0])
+	if err != nil {
+		return err
+	}
+	if !isCertUpdate {
+		return nil
+	}
+	isCertifier, err := k.IsCertifier(ctx, proposer)
+	if err != nil {
+		return err
+	}
+	if !isCertifier {
+		return errors.Wrapf(
+			govtypes.ErrInvalidProposer,
+			"cert-update proposal must be submitted by a registered certifier; %s is not",
+			proposer,
+		)
+	}
+	return nil
+}
+
+// SubmitProposal shadows the embedded cosmos-sdk Keeper.SubmitProposal
+// to enforce two cert-update guards common to every caller path
+// (msg-server, programmatic, tests): solo-message + certifier-only
+// proposer. msg-server runs the same checks earlier so bad submissions
+// fail before deposit validation; this shadow is the backstop for
+// programmatic callers that bypass msg-server.
 func (k Keeper) SubmitProposal(ctx context.Context, messages []sdk.Msg, metadata, title, summary string, proposer sdk.AccAddress, expedited bool) (govtypesv1.Proposal, error) {
 	if err := ValidateCertifierUpdateSoloMessage(messages); err != nil {
+		return govtypesv1.Proposal{}, err
+	}
+	if err := k.ValidateCertUpdateProposer(ctx, messages, proposer); err != nil {
 		return govtypesv1.Proposal{}, err
 	}
 	return k.Keeper.SubmitProposal(ctx, messages, metadata, title, summary, proposer, expedited)

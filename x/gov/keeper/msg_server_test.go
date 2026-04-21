@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
@@ -79,10 +80,13 @@ func TestMsgServerSubmitProposal_RejectsBundledCertUpdate(t *testing.T) {
 	require.Zero(t, count)
 }
 
-// A solo MsgUpdateCertifier must go through the msg-server entry point
-// cleanly — the solo-message guard only trips on bundles.
+// A solo MsgUpdateCertifier from a registered certifier must go through
+// the msg-server entry point cleanly — the solo-message guard only trips
+// on bundles, and the certifier-only proposer guard is satisfied.
 func TestMsgServerSubmitProposal_AcceptsSoloCertUpdate(t *testing.T) {
-	_, ctx, msgSrvr, authority, proposer, deposit := msgServerFixture(t)
+	app, ctx, msgSrvr, authority, proposer, deposit := msgServerFixture(t)
+
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, certtypes.NewCertifier(proposer, "")))
 
 	certMsg := certtypes.NewMsgUpdateCertifier(authority, proposer, "add", certtypes.Add)
 
@@ -127,6 +131,36 @@ func TestMsgServerSubmitProposal_AcceptsPlainProposal(t *testing.T) {
 	resp, err := msgSrvr.SubmitProposal(ctx, msg)
 	require.NoError(t, err)
 	require.NotZero(t, resp.ProposalId)
+}
+
+// A cert-update proposal from a non-certifier must be rejected with
+// ErrInvalidProposer. Without this guard, any address with a
+// deposit-sized balance could flood the cert round with spam proposals.
+func TestMsgServerSubmitProposal_RejectsCertUpdateFromNonCertifier(t *testing.T) {
+	app, ctx, msgSrvr, authority, proposer, deposit := msgServerFixture(t)
+
+	// proposer is NOT registered as a certifier.
+	certMsg := certtypes.NewMsgUpdateCertifier(authority, proposer, "add", certtypes.Add)
+
+	msg, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{certMsg},
+		deposit,
+		proposer.String(),
+		"",
+		"solo cert",
+		"summary",
+		false,
+	)
+	require.NoError(t, err)
+
+	_, err = msgSrvr.SubmitProposal(ctx, msg)
+	require.Error(t, err)
+	require.ErrorIs(t, err, govtypes.ErrInvalidProposer)
+
+	// No proposal may have been persisted.
+	count, err := proposalCount(app, ctx)
+	require.NoError(t, err)
+	require.Zero(t, count)
 }
 
 // Regression: empty title must still be rejected. Makes sure the
