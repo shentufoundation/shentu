@@ -11,5 +11,9 @@ option (gogoproto.goproto_getters_all)  = false;
 
 message CustomParams {
   cosmos.gov.v1beta1.TallyParams certifier_update_security_vote_tally = 1;
-  cosmos.gov.v1beta1.TallyParams certifier_update_stake_vote_tally = 2;
+
+  // Field 2 (certifier_update_stake_vote_tally) is retired alongside
+  // the two-round security-proposal model. See shentu.gov.v1.CustomParams.
+  reserved 2;
+  reserved "certifier_update_stake_vote_tally";
 }

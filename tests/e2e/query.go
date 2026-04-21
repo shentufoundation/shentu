@@ -17,7 +17,6 @@ import (
 
 	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
 func connectGrpc(grpcEndpoint string) (*grpc.ClientConn, error) {
@@ -161,21 +160,6 @@ func queryCertificate(grpcEndpoint, content, certificate string) (bool, error) {
 		return false, err
 	}
 	return len(res.Certificates) > 0, nil
-}
-
-func queryCertVoted(grpcEndpoint string, proposalID uint64) (bool, error) {
-	conn, err := connectGrpc(grpcEndpoint)
-	defer conn.Close()
-
-	client := govtypes.NewCustomQueryClient(conn)
-
-	res, err := client.CertVoted(context.Background(), &govtypes.QueryCertVotedRequest{
-		ProposalId: proposalID,
-	})
-	if err != nil {
-		return false, err
-	}
-	return res.CertVoted, nil
 }
 
 func queryProposal(grpcEndpoint string, proposalID uint64) (*sdkgovtypes.Proposal, error) {

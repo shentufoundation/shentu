@@ -29,7 +29,6 @@ func DefaultGenesisState() *GenesisState {
 
 	// quorum, threshold, and veto threshold params
 	certifierUpdateSecurityVoteTally := govtypesv1.NewTallyParams(math.LegacyNewDecWithPrec(334, 3).String(), math.LegacyNewDecWithPrec(667, 3).String(), math.LegacyNewDecWithPrec(334, 3).String())
-	certifierUpdateStakeVoteTally := govtypesv1.NewTallyParams(math.LegacyNewDecWithPrec(334, 3).String(), math.LegacyNewDecWithPrec(9, 1).String(), math.LegacyNewDecWithPrec(334, 3).String())
 
 	param := govtypesv1.DefaultParams()
 	param.MinDeposit = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, minDepositTokens))
@@ -39,7 +38,6 @@ func DefaultGenesisState() *GenesisState {
 		Params:             &param,
 		CustomParams: &CustomParams{
 			CertifierUpdateSecurityVoteTally: &certifierUpdateSecurityVoteTally,
-			CertifierUpdateStakeVoteTally:    &certifierUpdateStakeVoteTally,
 		},
 	}
 }
@@ -52,14 +50,23 @@ func ValidateGenesis(data *GenesisState) error {
 
 	var errGroup errgroup.Group
 
-	// weed out duplicate proposals
+	// weed out duplicate proposals and enforce the cert-update
+	// solo-message schema rule so shentud validate-genesis fails a
+	// bundled cert-update proposal before the node ever starts.
 	proposalIds := make(map[uint64]struct{})
 	for _, p := range data.Proposals {
 		if _, ok := proposalIds[p.Id]; ok {
 			return fmt.Errorf("duplicate proposal id: %d", p.Id)
 		}
-
 		proposalIds[p.Id] = struct{}{}
+
+		msgs, err := p.GetMsgs()
+		if err != nil {
+			return fmt.Errorf("proposal %d: decode messages: %w", p.Id, err)
+		}
+		if err := ValidateCertifierUpdateSoloMessage(msgs); err != nil {
+			return fmt.Errorf("proposal %d: %w", p.Id, err)
+		}
 	}
 
 	// weed out duplicate deposits

@@ -14,7 +14,6 @@ const ParamCustom = "custom"
 // parameter store keys
 var (
 	ParamStoreKeyCustomParams = []byte("customparams")
-	CertVotesKeyPrefix        = []byte("certvote")
 )
 
 //// ParamKeyTable is the key declaration for parameters.
@@ -91,9 +90,6 @@ func validateCustomParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if err := validateTallyParams(*v.CertifierUpdateSecurityVoteTally); err != nil {
-		return err
-	}
-	if err := validateTallyParams(*v.CertifierUpdateStakeVoteTally); err != nil {
 		return err
 	}
 

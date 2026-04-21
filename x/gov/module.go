@@ -32,7 +32,7 @@ import (
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
-const ConsensusVersion = 6
+const ConsensusVersion = 7
 
 var (
 	_ module.AppModuleBasic      = AppModuleBasic{}
@@ -196,6 +196,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	err = cfg.RegisterMigration(govtypes.ModuleName, 5, m.Migrate5to6)
+	if err != nil {
+		panic(err)
+	}
+
+	err = cfg.RegisterMigration(govtypes.ModuleName, 6, m.Migrate6to7)
 	if err != nil {
 		panic(err)
 	}

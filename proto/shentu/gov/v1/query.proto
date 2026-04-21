@@ -16,21 +16,6 @@ service CustomQuery {
   rpc CustomParams(cosmos.gov.v1.QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/cosmos/gov/v1/custom/params";
   }
-
-  // Proposal queries proposal details based on ProposalID.
-  rpc CertVoted(QueryCertVotedRequest) returns (QueryCertVotedResponse) {
-    option (google.api.http).get = "/shentu/gov/v1/cert_voted/{proposal_id}";
-  }
-}
-
-message QueryCertVotedRequest {
-  // proposal_id defines the unique id of the proposal.
-  uint64 proposal_id = 1;
-}
-
-// QueryProposalResponse is the response type for the Query/Proposal RPC method.
-message QueryCertVotedResponse {
-  bool cert_voted = 1;
 }
 
 // QueryParamsResponse is the response type for the Query/Params RPC method.

@@ -61,14 +61,25 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govtypes.AccountKeeper, bk
 		}
 	}
 
-	for _, proposalID := range data.CertVotedProposalIds {
-		err := k.SetCertVote(ctx, proposalID)
-		if err != nil {
-			return
-		}
-	}
+	// data.CertVotedProposalIds is deprecated. It tracked cert-update
+	// proposals that had cleared the certifier round and advanced to a
+	// validator stake round under the old two-round model. The new
+	// model decides cert-update proposals in the cert round alone, so
+	// the field is ignored here and no longer written on export.
 
 	for _, proposal := range data.Proposals {
+		// Enforce the cert-update solo-message invariant at import so a
+		// bundled [MsgUpdateCertifier, MsgSend]-style proposal can't be
+		// persisted through genesis and then ride the certifier
+		// head-count path past the stake tally.
+		msgs, err := proposal.GetMsgs()
+		if err != nil {
+			panic(fmt.Errorf("proposal %d: decode messages: %w", proposal.Id, err))
+		}
+		if err := keeper.ValidateCertifierUpdateSoloMessage(msgs); err != nil {
+			panic(fmt.Errorf("proposal %d: %w", proposal.Id, err))
+		}
+
 		switch proposal.Status {
 		case govtypesv1.StatusDepositPeriod:
 			err := k.InactiveProposalsQueue.Set(ctx, collections.Join(*proposal.DepositEndTime, proposal.Id), proposal.Id)
@@ -81,7 +92,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govtypes.AccountKeeper, bk
 				panic(err)
 			}
 		}
-		err := k.SetProposal(ctx, *proposal)
+		err = k.SetProposal(ctx, *proposal)
 		if err != nil {
 			panic(err)
 		}
@@ -148,25 +159,15 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) (*typesv1.GenesisState, err
 		panic(err)
 	}
 
-	var certVotedProposalIds []uint64
-	for _, proposal := range proposals {
-		voted, err := k.GetCertifierVoted(ctx, proposal.Id)
-		if err != nil {
-			return nil, err
-		}
-		if voted {
-			certVotedProposalIds = append(certVotedProposalIds, proposal.Id)
-		}
-	}
-
 	return &typesv1.GenesisState{
-		StartingProposalId:   startingProposalID,
-		Deposits:             proposalsDeposits,
-		Votes:                proposalsVotes,
-		Proposals:            proposals,
-		Params:               &params,
-		Constitution:         constitution,
-		CustomParams:         &customParams,
-		CertVotedProposalIds: certVotedProposalIds,
+		StartingProposalId: startingProposalID,
+		Deposits:           proposalsDeposits,
+		Votes:              proposalsVotes,
+		Proposals:          proposals,
+		Params:             &params,
+		Constitution:       constitution,
+		CustomParams:       &customParams,
+		// CertVotedProposalIds intentionally omitted: deprecated under
+		// the single-round cert-update model. See genesis.proto.
 	}, nil
 }

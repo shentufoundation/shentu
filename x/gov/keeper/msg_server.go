@@ -68,6 +68,13 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubm
 		return nil, err
 	}
 
+	// CertifierUpdate must travel alone so bundled messages can't ride
+	// the head-count tally and bypass stake voting. The Keeper-level
+	// shadow SubmitProposal also runs this check for programmatic callers.
+	if err := ValidateCertifierUpdateSoloMessage(proposalMsgs); err != nil {
+		return nil, err
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	initialDeposit := msg.GetInitialDeposit()
 

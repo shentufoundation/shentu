@@ -8,5 +8,11 @@ option go_package = "github.com/shentufoundation/shentu/x/gov/types/v1";
 
 message CustomParams {
   cosmos.gov.v1.TallyParams certifier_update_security_vote_tally = 1;
-  cosmos.gov.v1.TallyParams certifier_update_stake_vote_tally = 2;
+
+  // Field 2 (certifier_update_stake_vote_tally) configured the
+  // stake-round tally for cert-update proposals under the two-round
+  // security-proposal model. The model is gone; the tag must not be
+  // re-used.
+  reserved 2;
+  reserved "certifier_update_stake_vote_tally";
 }
