@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/math"
 	"golang.org/x/sync/errgroup"
+
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -72,7 +73,7 @@ func ValidateGenesis(data *GenesisState) error {
 	// weed out duplicate deposits
 	errGroup.Go(func() error {
 		type depositKey struct {
-			ProposalId uint64 //nolint:revive // staying consistent with main and v0.47
+			ProposalId uint64
 			Depositor  string
 		}
 		depositIds := make(map[depositKey]struct{})
@@ -95,8 +96,7 @@ func ValidateGenesis(data *GenesisState) error {
 	// weed out duplicate votes
 	errGroup.Go(func() error {
 		type voteKey struct {
-			//nolint:revive
-			ProposalId uint64 //nolint:revive // staying consistent with main and v0.47
+			ProposalId uint64
 			Voter      string
 		}
 		voteIds := make(map[voteKey]struct{})

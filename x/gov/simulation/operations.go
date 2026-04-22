@@ -22,7 +22,7 @@ func WeightedOperations(
 	bk govtypes.BankKeeper,
 	k keeper.Keeper,
 	wMsgs []simtypes.WeightedProposalMsg,
-	wContents []simtypes.WeightedProposalContent, //nolint:staticcheck // used for legacy testing
+	wContents []simtypes.WeightedProposalContent,
 ) []simtypes.WeightedOperation {
 	return govsim.WeightedOperations(appParams, txGen, ak, bk, &k.Keeper, wMsgs, wContents)
 }

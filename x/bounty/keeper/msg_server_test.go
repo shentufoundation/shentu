@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/google/uuid"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -31,7 +32,8 @@ func (suite *KeeperTestSuite) TestCreateProgram() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Program(1)  -> Set: Simple",
+		{
+			"Program(1)  -> Set: Simple",
 			args{
 				msgCreatePrograms: []types.MsgCreateProgram{
 					{

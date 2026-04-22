@@ -39,7 +39,7 @@ func OperatorStoreKey(operator sdk.AccAddress) []byte {
 
 func WithdrawStoreKey(address sdk.AccAddress, dueBlock int64) []byte {
 	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, uint64(dueBlock))
+	binary.LittleEndian.PutUint64(b, uint64(dueBlock)) //nolint:gosec // dueBlock is a non-negative block height
 	return append(append(WithdrawStoreKeyPrefix, b...), address.Bytes()...)
 }
 
@@ -53,7 +53,7 @@ func TaskStoreKey(taskID []byte) []byte {
 
 func ClosingTaskIDsStoreKey(blockHeight int64) []byte {
 	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, uint64(blockHeight))
+	binary.LittleEndian.PutUint64(b, uint64(blockHeight)) //nolint:gosec // blockHeight is non-negative
 	return append(ClosingTaskStoreKeyPrefix, b...)
 }
 

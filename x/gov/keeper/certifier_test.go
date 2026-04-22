@@ -2,16 +2,16 @@ package keeper_test
 
 import (
 	"testing"
-
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"cosmossdk.io/math"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"github.com/stretchr/testify/require"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"

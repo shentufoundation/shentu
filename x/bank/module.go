@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
-	"cosmossdk.io/core/address"
-	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+
+	"cosmossdk.io/core/address"
+	"cosmossdk.io/core/appmodule"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"

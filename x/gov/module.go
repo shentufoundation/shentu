@@ -6,13 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
-
 	modulev1 "cosmossdk.io/api/cosmos/gov/module/v1"
+	"cosmossdk.io/core/appmodule"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -28,6 +26,7 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
 	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
@@ -136,7 +135,8 @@ var _ appmodule.AppModule = AppModule{}
 func NewAppModule(
 	cdc codec.Codec,
 	keeper keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
-	ss govtypes.ParamSubspace) AppModule {
+	ss govtypes.ParamSubspace,
+) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,

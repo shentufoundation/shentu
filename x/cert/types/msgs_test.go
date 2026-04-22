@@ -3,9 +3,10 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )

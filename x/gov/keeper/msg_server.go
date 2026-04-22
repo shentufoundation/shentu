@@ -156,7 +156,7 @@ func (k msgServer) CancelProposal(goCtx context.Context, msg *govtypesv1.MsgCanc
 	return &govtypesv1.MsgCancelProposalResponse{
 		ProposalId:     msg.ProposalId,
 		CanceledTime:   ctx.BlockTime(),
-		CanceledHeight: uint64(ctx.BlockHeight()),
+		CanceledHeight: uint64(ctx.BlockHeight()), //nolint:gosec // BlockHeight is non-negative
 	}, nil
 }
 

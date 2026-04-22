@@ -4,6 +4,7 @@ import (
 	"time"
 
 	types1 "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/gogoproto/proto"
 )
 

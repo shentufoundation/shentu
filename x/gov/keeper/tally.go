@@ -75,7 +75,6 @@ func (k Keeper) Tally(ctx context.Context, proposal govtypesv1.Proposal) (passes
 
 		return false, k.Votes.Remove(ctx, collections.Join(vote.ProposalId, sdk.AccAddress(voter)))
 	})
-
 	if err != nil {
 		return false, false, tallyResults, err
 	}

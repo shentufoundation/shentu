@@ -241,7 +241,6 @@ $ %s query gov vote 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 			if vote.Empty() {
 				params := govtypesv1.NewQueryVoteParams(proposalID, voterAddr)
 				resByTxQuery, err := govUtils.QueryVoteByTxQuery(clientCtx, params)
-
 				if err != nil {
 					return err
 				}
@@ -326,7 +325,6 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 				cmd.Context(),
 				&govtypesv1.QueryVotesRequest{ProposalId: proposalID, Pagination: pageReq},
 			)
-
 			if err != nil {
 				return err
 			}

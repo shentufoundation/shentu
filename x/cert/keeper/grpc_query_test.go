@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	querytypes "github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/stretchr/testify/require"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/cert/keeper"

@@ -4,11 +4,11 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 // EndBlocker called every block, process inflation, update validator set.

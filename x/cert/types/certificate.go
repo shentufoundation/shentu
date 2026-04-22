@@ -6,6 +6,7 @@ import (
 
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	proto "github.com/cosmos/gogoproto/proto"
 )
 

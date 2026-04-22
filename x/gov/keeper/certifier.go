@@ -8,12 +8,12 @@ import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
-	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	typesv1 "github.com/shentufoundation/shentu/v2/x/gov/types/v1"
 )
 
 // ValidateCertifierUpdateSoloMessage re-exports typesv1.ValidateCertifierUpdateSoloMessage

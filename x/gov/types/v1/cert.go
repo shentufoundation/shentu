@@ -26,7 +26,6 @@ func IsCertifierUpdateProposalMsg(msg sdk.Msg) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	//nolint:staticcheck // legacy proposal path retained for in-flight proposals
 	_, isCertUpdate := content.(*certtypes.CertifierUpdateProposal)
 	return isCertUpdate, nil
 }

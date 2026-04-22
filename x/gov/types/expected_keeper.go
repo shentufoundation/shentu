@@ -5,10 +5,11 @@ import (
 
 	addresscodec "cosmossdk.io/core/address"
 	"cosmossdk.io/math"
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)

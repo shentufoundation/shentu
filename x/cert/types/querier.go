@@ -32,14 +32,17 @@ func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, certT
 	if page <= 0 {
 		page = 1
 	}
+	if limit < 0 {
+		limit = 0
+	}
 	var contentFilter string
 	if len(content) > 0 {
 		contentFilter = content[0]
 	}
 	return QueryCertificatesParams{
 		Pagination: &qtypes.PageRequest{
-			Offset:     uint64((page - 1) * limit),
-			Limit:      uint64(limit),
+			Offset:     uint64((page - 1) * limit), //nolint:gosec // page>=1, limit>=0
+			Limit:      uint64(limit),              //nolint:gosec // limit>=0
 			CountTotal: true,
 		},
 		Certifier:       certifier,

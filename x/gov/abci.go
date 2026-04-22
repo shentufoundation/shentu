@@ -102,7 +102,6 @@ func removeInactiveProposals(ctx sdk.Context, k *keeper.Keeper, logger log.Logge
 
 		return false, nil
 	})
-
 	if err != nil {
 		return err
 	}
@@ -165,7 +164,7 @@ func processActiveProposal(ctx sdk.Context, k *keeper.Keeper, logger log.Logger)
 			return false, nil
 		}
 
-		//var tagValue, logMsg string
+		// var tagValue, logMsg string
 		passes, burnDeposits, tallyResults, err = k.Tally(ctx, proposal)
 		if err != nil {
 			return false, err

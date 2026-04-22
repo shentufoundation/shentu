@@ -1,14 +1,14 @@
 package keeper
 
 import (
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	v5 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v5"
-	"github.com/cosmos/gogoproto/grpc"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	v3 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v3"
 	v4 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v4"
+	v5 "github.com/cosmos/cosmos-sdk/x/auth/migrations/v5"
+
+	"github.com/cosmos/gogoproto/grpc"
 
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )

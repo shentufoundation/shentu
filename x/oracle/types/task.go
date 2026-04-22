@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/cosmos/gogoproto/proto"
-
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/gogoproto/proto"
 )
 
 // NewTask returns a new task.

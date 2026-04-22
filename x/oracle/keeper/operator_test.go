@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
@@ -29,7 +30,8 @@ func (suite *KeeperTestSuite) TestOperator_Create() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: min collateral",
+		{
+			"Operator(1) Create: min collateral",
 			args{
 				collateral:   50000,
 				senderAddr:   suite.address[0],
@@ -41,7 +43,8 @@ func (suite *KeeperTestSuite) TestOperator_Create() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: under min collateral",
+		{
+			"Operator(1) Create: under min collateral",
 			args{
 				collateral:   10000,
 				senderAddr:   suite.address[0],
@@ -91,7 +94,8 @@ func (suite *KeeperTestSuite) TestOperator_Get() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(2) Get: One & All",
+		{
+			"Operator(2) Get: One & All",
 			args{
 				collateral:    50000,
 				senderAddr1:   suite.address[0],
@@ -154,7 +158,8 @@ func (suite *KeeperTestSuite) TestOperator_Remove() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(2) Remove: One",
+		{
+			"Operator(2) Remove: One",
 			args{
 				collateral:    50000,
 				senderAddr1:   suite.address[0],
@@ -222,7 +227,8 @@ func (suite *KeeperTestSuite) TestOperator_Collateral() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Add: 100,000 uctk",
+		{
+			"Operator(1) Add: 100,000 uctk",
 			args{
 				collateral:      50000,
 				senderAddr:      suite.address[0],
@@ -236,7 +242,8 @@ func (suite *KeeperTestSuite) TestOperator_Collateral() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Add: 10,000 uctk -> Reduce: 5,000 uctk",
+		{
+			"Operator(1) Add: 10,000 uctk -> Reduce: 5,000 uctk",
 			args{
 				collateral:         50000,
 				senderAddr:         suite.address[2],
@@ -251,7 +258,8 @@ func (suite *KeeperTestSuite) TestOperator_Collateral() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Add: 10,000 uctk -> Reduce: 15,000 uctk", // 10,000+10,000-15,000=5000 < min(10,000)
+		{
+			"Operator(1) Add: 10,000 uctk -> Reduce: 15,000 uctk", // 10,000+10,000-15,000=5000 < min(10,000)
 			args{
 				collateral:         50000,
 				senderAddr:         suite.address[0],
@@ -327,7 +335,8 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Add: 100000 uctk",
+		{
+			"Operator(1) Add: 100000 uctk",
 			args{
 				collateral:   50000,
 				senderAddr:   suite.address[0],
@@ -340,7 +349,8 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) WithdrawAll: Reward <= Collateral",
+		{
+			"Operator(1) WithdrawAll: Reward <= Collateral",
 			args{
 				collateral:   50000,
 				senderAddr:   suite.address[0],
@@ -354,7 +364,8 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) WithdrawAll: Reward > Collateral",
+		{
+			"Operator(1) WithdrawAll: Reward > Collateral",
 			args{
 				collateral:   50000,
 				senderAddr:   suite.address[0],

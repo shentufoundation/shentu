@@ -1,10 +1,10 @@
 package cert
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func InitDefaultGenesis(ctx sdk.Context, k keeper.Keeper) {
