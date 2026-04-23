@@ -5,10 +5,11 @@ import (
 
 	addresscodec "cosmossdk.io/core/address"
 	"cosmossdk.io/math"
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)
@@ -27,7 +28,6 @@ type AccountKeeper interface {
 type CertKeeper interface {
 	IsCertifier(ctx context.Context, addr sdk.AccAddress) (bool, error)
 	GetCertifier(ctx context.Context, certifierAddress sdk.AccAddress) (certtypes.Certifier, error)
-	HasCertifierAlias(ctx context.Context, alias string) (bool, error)
 	IsCertified(ctx context.Context, content string, certType string) bool
 	GetAllCertifiers(ctx context.Context) (certifiers certtypes.Certifiers)
 }

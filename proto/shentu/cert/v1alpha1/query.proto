@@ -5,24 +5,17 @@ import "gogoproto/gogo.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "google/api/annotations.proto";
 import "shentu/cert/v1alpha1/cert.proto";
-import "shentu/cert/v1alpha1/genesis.proto";
-import "google/protobuf/any.proto";
-import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/cert/types";
 
 // Query defines the gRPC querier service for cert module.
 service Query {
     rpc Certifier(QueryCertifierRequest) returns (QueryCertifierResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/certifier/{address}/alias/{alias}";
+        option (google.api.http).get = "/shentu/cert/v1alpha1/certifier/{address}";
     }
 
     rpc Certifiers(QueryCertifiersRequest) returns (QueryCertifiersResponse) {
         option (google.api.http).get = "/shentu/cert/v1alpha1/certifiers";
-    }
-
-    rpc Platform(QueryPlatformRequest) returns (QueryPlatformResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/platform";
     }
 
     rpc Certificate(QueryCertificateRequest) returns (QueryCertificateResponse) {
@@ -32,15 +25,10 @@ service Query {
     rpc Certificates(QueryCertificatesRequest) returns (QueryCertificatesResponse) {
         option (google.api.http).get = "/shentu/cert/v1alpha1/certificates";
     }
-
-    rpc AddrConversion(ConversionToShentuAddrRequest) returns (ConversionToShentuAddrResponse) {
-        option (google.api.http).get = "/shentu/conversion/to-shentu/{address}";
-    }
 }
 
 message QueryCertifierRequest {
     string address = 1;
-    string alias = 2;
 }
 
 message QueryCertifierResponse {
@@ -54,14 +42,6 @@ message QueryCertifiersResponse {
     repeated Certifier certifiers = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryPlatformRequest {
-    google.protobuf.Any pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-}
-
-message QueryPlatformResponse {
-    Platform platform = 1 [(gogoproto.nullable) = false];
-}
-
 message QueryCertificateRequest {
     uint64 certificate_id = 1;
 }
@@ -72,24 +52,16 @@ message QueryCertificateResponse {
 
 message QueryCertificatesRequest {
     string certifier = 1;
-    string certificate_type = 2;
+    CertificateType certificate_type = 2;
+    string content = 3;
 
     // pagination defines an optional pagination for the request.
     cosmos.base.query.v1beta1.PageRequest pagination = 4;
 }
 
 message QueryCertificatesResponse {
-    uint64 total = 1;
-    repeated QueryCertificateResponse certificates = 2 [(gogoproto.nullable) = false];
+    repeated Certificate certificates = 1 [(gogoproto.nullable) = false];
 
     // pagination defines the pagination in the response.
-    //cosmos.base.query.v1beta1.PageResponse pagination = 3;
-}
-
-message ConversionToShentuAddrRequest {
-    string address = 1;
-}
-
-message ConversionToShentuAddrResponse {
-    string address = 1;
+    cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

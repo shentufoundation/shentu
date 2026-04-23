@@ -44,7 +44,7 @@ func AddGenesisCertifierCmd(defaultNodeHome string) *cobra.Command {
 			certGenState := certtypes.GetGenesisStateFromAppState(cdc, appState)
 
 			certGenState.Certifiers = append(certGenState.Certifiers,
-				certtypes.NewCertifier(addr, "", nil, ""))
+				certtypes.NewCertifier(addr, ""))
 
 			certGenStateBz, err := json.Marshal(certGenState)
 			if err != nil {

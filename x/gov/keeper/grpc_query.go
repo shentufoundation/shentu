@@ -20,16 +20,6 @@ func NewCustomQueryServer(k *Keeper) typesv1.CustomQueryServer {
 	return customQueryServer{k: k}
 }
 
-// CertVoted returns certifier voting
-func (cq customQueryServer) CertVoted(c context.Context, req *typesv1.QueryCertVotedRequest) (*typesv1.QueryCertVotedResponse, error) {
-	//ctx := sdk.UnwrapSDKContext(c)
-	voted, err := cq.k.GetCertifierVoted(c, req.ProposalId)
-	if err != nil {
-		return nil, err
-	}
-	return &typesv1.QueryCertVotedResponse{CertVoted: voted}, nil
-}
-
 func (cq customQueryServer) CustomParams(c context.Context, req *govtypesv1.QueryParamsRequest) (*typesv1.QueryParamsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")

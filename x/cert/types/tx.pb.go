@@ -32,26 +32,54 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgProposeCertifier is the message for proposing new certifier.
-type MsgProposeCertifier struct {
-	Proposer    string `protobuf:"bytes,1,opt,name=proposer,proto3" json:"proposer,omitempty" yaml:"proposer"`
-	Alias       string `protobuf:"bytes,2,opt,name=alias,proto3" json:"alias,omitempty" yaml:"alias"`
-	Certifier   string `protobuf:"bytes,3,opt,name=certifier,proto3" json:"certifier,omitempty" yaml:"certifier"`
-	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
+type CertifierUpdateOperation int32
+
+const (
+	CertifierUpdateOperationUnspecified CertifierUpdateOperation = 0
+	CertifierUpdateOperationAdd         CertifierUpdateOperation = 1
+	CertifierUpdateOperationRemove      CertifierUpdateOperation = 2
+)
+
+var CertifierUpdateOperation_name = map[int32]string{
+	0: "CERTIFIER_UPDATE_OPERATION_UNSPECIFIED",
+	1: "CERTIFIER_UPDATE_OPERATION_ADD",
+	2: "CERTIFIER_UPDATE_OPERATION_REMOVE",
 }
 
-func (m *MsgProposeCertifier) Reset()         { *m = MsgProposeCertifier{} }
-func (m *MsgProposeCertifier) String() string { return proto.CompactTextString(m) }
-func (*MsgProposeCertifier) ProtoMessage()    {}
-func (*MsgProposeCertifier) Descriptor() ([]byte, []int) {
+var CertifierUpdateOperation_value = map[string]int32{
+	"CERTIFIER_UPDATE_OPERATION_UNSPECIFIED": 0,
+	"CERTIFIER_UPDATE_OPERATION_ADD":         1,
+	"CERTIFIER_UPDATE_OPERATION_REMOVE":      2,
+}
+
+func (x CertifierUpdateOperation) String() string {
+	return proto.EnumName(CertifierUpdateOperation_name, int32(x))
+}
+
+func (CertifierUpdateOperation) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_c52586cc907ff884, []int{0}
 }
-func (m *MsgProposeCertifier) XXX_Unmarshal(b []byte) error {
+
+// MsgUpdateCertifier is the governance-authorized message for updating the certifier roster.
+type MsgUpdateCertifier struct {
+	Authority   string                   `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
+	Certifier   string                   `protobuf:"bytes,2,opt,name=certifier,proto3" json:"certifier,omitempty" yaml:"certifier"`
+	Description string                   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
+	Operation   CertifierUpdateOperation `protobuf:"varint,4,opt,name=operation,proto3,enum=shentu.cert.v1alpha1.CertifierUpdateOperation" json:"operation,omitempty" yaml:"operation"`
+}
+
+func (m *MsgUpdateCertifier) Reset()         { *m = MsgUpdateCertifier{} }
+func (m *MsgUpdateCertifier) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateCertifier) ProtoMessage()    {}
+func (*MsgUpdateCertifier) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c52586cc907ff884, []int{0}
+}
+func (m *MsgUpdateCertifier) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgProposeCertifier) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateCertifier) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgProposeCertifier.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateCertifier.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -61,33 +89,33 @@ func (m *MsgProposeCertifier) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *MsgProposeCertifier) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgProposeCertifier.Merge(m, src)
+func (m *MsgUpdateCertifier) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateCertifier.Merge(m, src)
 }
-func (m *MsgProposeCertifier) XXX_Size() int {
+func (m *MsgUpdateCertifier) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgProposeCertifier) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgProposeCertifier.DiscardUnknown(m)
+func (m *MsgUpdateCertifier) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateCertifier.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgProposeCertifier proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateCertifier proto.InternalMessageInfo
 
-type MsgProposeCertifierResponse struct {
+type MsgUpdateCertifierResponse struct {
 }
 
-func (m *MsgProposeCertifierResponse) Reset()         { *m = MsgProposeCertifierResponse{} }
-func (m *MsgProposeCertifierResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgProposeCertifierResponse) ProtoMessage()    {}
-func (*MsgProposeCertifierResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateCertifierResponse) Reset()         { *m = MsgUpdateCertifierResponse{} }
+func (m *MsgUpdateCertifierResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateCertifierResponse) ProtoMessage()    {}
+func (*MsgUpdateCertifierResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c52586cc907ff884, []int{1}
 }
-func (m *MsgProposeCertifierResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateCertifierResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgProposeCertifierResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateCertifierResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgProposeCertifierResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateCertifierResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -97,17 +125,17 @@ func (m *MsgProposeCertifierResponse) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *MsgProposeCertifierResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgProposeCertifierResponse.Merge(m, src)
+func (m *MsgUpdateCertifierResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateCertifierResponse.Merge(m, src)
 }
-func (m *MsgProposeCertifierResponse) XXX_Size() int {
+func (m *MsgUpdateCertifierResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgProposeCertifierResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgProposeCertifierResponse.DiscardUnknown(m)
+func (m *MsgUpdateCertifierResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateCertifierResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgProposeCertifierResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateCertifierResponse proto.InternalMessageInfo
 
 // MsgCertifyGeneral is the message for issuing a general certificate.
 type MsgIssueCertificate struct {
@@ -263,146 +291,72 @@ func (m *MsgRevokeCertificateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRevokeCertificateResponse proto.InternalMessageInfo
 
-// MsgCertifyPlatform is the message for certifying a validator's host platform.
-type MsgCertifyPlatform struct {
-	Certifier       string     `protobuf:"bytes,1,opt,name=certifier,proto3" json:"certifier,omitempty" yaml:"certifier"`
-	ValidatorPubkey *types.Any `protobuf:"bytes,2,opt,name=validator_pubkey,json=validatorPubkey,proto3" json:"validator_pubkey,omitempty"`
-	Platform        string     `protobuf:"bytes,3,opt,name=platform,proto3" json:"platform,omitempty" yaml:"platform"`
-}
-
-func (m *MsgCertifyPlatform) Reset()         { *m = MsgCertifyPlatform{} }
-func (m *MsgCertifyPlatform) String() string { return proto.CompactTextString(m) }
-func (*MsgCertifyPlatform) ProtoMessage()    {}
-func (*MsgCertifyPlatform) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c52586cc907ff884, []int{6}
-}
-func (m *MsgCertifyPlatform) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgCertifyPlatform) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgCertifyPlatform.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgCertifyPlatform) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCertifyPlatform.Merge(m, src)
-}
-func (m *MsgCertifyPlatform) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgCertifyPlatform) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCertifyPlatform.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgCertifyPlatform proto.InternalMessageInfo
-
-type MsgCertifyPlatformResponse struct {
-}
-
-func (m *MsgCertifyPlatformResponse) Reset()         { *m = MsgCertifyPlatformResponse{} }
-func (m *MsgCertifyPlatformResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCertifyPlatformResponse) ProtoMessage()    {}
-func (*MsgCertifyPlatformResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c52586cc907ff884, []int{7}
-}
-func (m *MsgCertifyPlatformResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgCertifyPlatformResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgCertifyPlatformResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgCertifyPlatformResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCertifyPlatformResponse.Merge(m, src)
-}
-func (m *MsgCertifyPlatformResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgCertifyPlatformResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCertifyPlatformResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgCertifyPlatformResponse proto.InternalMessageInfo
-
 func init() {
-	proto.RegisterType((*MsgProposeCertifier)(nil), "shentu.cert.v1alpha1.MsgProposeCertifier")
-	proto.RegisterType((*MsgProposeCertifierResponse)(nil), "shentu.cert.v1alpha1.MsgProposeCertifierResponse")
+	proto.RegisterEnum("shentu.cert.v1alpha1.CertifierUpdateOperation", CertifierUpdateOperation_name, CertifierUpdateOperation_value)
+	proto.RegisterType((*MsgUpdateCertifier)(nil), "shentu.cert.v1alpha1.MsgUpdateCertifier")
+	proto.RegisterType((*MsgUpdateCertifierResponse)(nil), "shentu.cert.v1alpha1.MsgUpdateCertifierResponse")
 	proto.RegisterType((*MsgIssueCertificate)(nil), "shentu.cert.v1alpha1.MsgIssueCertificate")
 	proto.RegisterType((*MsgIssueCertificateResponse)(nil), "shentu.cert.v1alpha1.MsgIssueCertificateResponse")
 	proto.RegisterType((*MsgRevokeCertificate)(nil), "shentu.cert.v1alpha1.MsgRevokeCertificate")
 	proto.RegisterType((*MsgRevokeCertificateResponse)(nil), "shentu.cert.v1alpha1.MsgRevokeCertificateResponse")
-	proto.RegisterType((*MsgCertifyPlatform)(nil), "shentu.cert.v1alpha1.MsgCertifyPlatform")
-	proto.RegisterType((*MsgCertifyPlatformResponse)(nil), "shentu.cert.v1alpha1.MsgCertifyPlatformResponse")
 }
 
 func init() { proto.RegisterFile("shentu/cert/v1alpha1/tx.proto", fileDescriptor_c52586cc907ff884) }
 
 var fileDescriptor_c52586cc907ff884 = []byte{
-	// 774 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0x3f, 0x4f, 0xdb, 0x4e,
-	0x18, 0x8e, 0x13, 0xf8, 0xf1, 0xe3, 0x80, 0x12, 0x4c, 0x0a, 0x69, 0x0a, 0x71, 0xe5, 0xa1, 0xa2,
-	0x51, 0xb1, 0x49, 0xba, 0x54, 0xb4, 0x4b, 0xc3, 0x52, 0x54, 0x45, 0x8a, 0xbc, 0xb5, 0x0b, 0xba,
-	0x38, 0x17, 0xc7, 0x22, 0xf6, 0x59, 0xbe, 0x4b, 0x84, 0xb7, 0xaa, 0x52, 0xa5, 0xaa, 0x52, 0xa5,
-	0x7e, 0x04, 0x3e, 0x02, 0x03, 0x1f, 0xa2, 0x62, 0xa8, 0x18, 0x3a, 0x74, 0x8a, 0x5a, 0x18, 0xe8,
-	0x9c, 0x4f, 0x50, 0xf9, 0xce, 0x67, 0x12, 0x27, 0xa9, 0x22, 0x16, 0xf0, 0xbd, 0xcf, 0x73, 0xef,
-	0x9f, 0xe7, 0x7d, 0xef, 0x0d, 0xd8, 0x26, 0x6d, 0xe4, 0xd2, 0xae, 0x6e, 0x22, 0x9f, 0xea, 0xbd,
-	0x32, 0xec, 0x78, 0x6d, 0x58, 0xd6, 0xe9, 0x89, 0xe6, 0xf9, 0x98, 0x62, 0x39, 0xc7, 0x61, 0x2d,
-	0x84, 0x35, 0x01, 0x17, 0x72, 0x16, 0xb6, 0x30, 0x23, 0xe8, 0xe1, 0x17, 0xe7, 0x16, 0x1e, 0x58,
-	0x18, 0x5b, 0x1d, 0xa4, 0xb3, 0x53, 0xa3, 0xdb, 0xd2, 0xa1, 0x1b, 0x08, 0xc8, 0xc4, 0xc4, 0xc1,
-	0xe4, 0x88, 0xdf, 0xe1, 0x87, 0x08, 0xda, 0xe4, 0x27, 0xdd, 0x21, 0x96, 0xde, 0x2b, 0x87, 0xff,
-	0x22, 0x60, 0x0d, 0x3a, 0xb6, 0x8b, 0x75, 0xf6, 0x37, 0x32, 0x29, 0x13, 0x93, 0x65, 0xb9, 0x31,
-	0x82, 0xfa, 0x25, 0x0d, 0xd6, 0x6b, 0xc4, 0xaa, 0xfb, 0xd8, 0xc3, 0x04, 0x1d, 0x20, 0x9f, 0xda,
-	0x2d, 0x1b, 0xf9, 0xb2, 0x0e, 0xfe, 0xf7, 0xb8, 0xcd, 0xcf, 0x4b, 0x8f, 0xa4, 0x9d, 0xc5, 0xea,
-	0xfa, 0xa0, 0xaf, 0xac, 0x06, 0xd0, 0xe9, 0xec, 0xab, 0x02, 0x51, 0x8d, 0x98, 0x24, 0x3f, 0x06,
-	0xf3, 0xb0, 0x63, 0x43, 0x92, 0x4f, 0x33, 0x76, 0x76, 0xd0, 0x57, 0x96, 0x39, 0x9b, 0x99, 0x55,
-	0x83, 0xc3, 0x72, 0x05, 0x2c, 0x9a, 0x22, 0x4a, 0x3e, 0xc3, 0xb8, 0xb9, 0x41, 0x5f, 0xc9, 0x72,
-	0x6e, 0x0c, 0xa9, 0xc6, 0x2d, 0x4d, 0x7e, 0x0e, 0x96, 0x9a, 0x88, 0x98, 0xbe, 0xed, 0x51, 0x1b,
-	0xbb, 0xf9, 0x39, 0x76, 0x6b, 0x63, 0xd0, 0x57, 0x64, 0x7e, 0x6b, 0x08, 0x54, 0x8d, 0x61, 0xea,
-	0xbe, 0xfe, 0xe9, 0x54, 0x49, 0xfd, 0x39, 0x55, 0x52, 0x1f, 0x6e, 0xce, 0x4a, 0x71, 0xb2, 0x9f,
-	0x6f, 0xce, 0x4a, 0xf7, 0x99, 0x24, 0xc9, 0xba, 0xd5, 0x6d, 0xf0, 0x70, 0x82, 0x1c, 0x06, 0x22,
-	0x1e, 0x76, 0x09, 0x52, 0x7f, 0x73, 0xb9, 0x0e, 0x09, 0xe9, 0x0a, 0xd4, 0x84, 0x14, 0xc9, 0x2f,
-	0xc0, 0x82, 0x89, 0x5d, 0x8a, 0x5c, 0xca, 0xd4, 0x5a, 0xaa, 0xe4, 0x34, 0xde, 0x5b, 0x4d, 0xf4,
-	0x56, 0x7b, 0xe5, 0x06, 0xd5, 0xa5, 0x8b, 0xf3, 0xdd, 0x85, 0x03, 0x4e, 0x34, 0xc4, 0x8d, 0x50,
-	0x6b, 0x13, 0x3b, 0x9e, 0xdd, 0x41, 0x7e, 0xa4, 0xde, 0x90, 0xd6, 0x02, 0x51, 0x8d, 0x98, 0x24,
-	0xbf, 0x04, 0x2b, 0x8d, 0x80, 0x22, 0x13, 0x37, 0xd1, 0x51, 0x1b, 0x92, 0x76, 0xa4, 0xe3, 0xe6,
-	0xa0, 0xaf, 0xac, 0xf3, 0x5b, 0x02, 0x0e, 0x51, 0xd5, 0x58, 0x16, 0xc7, 0xd7, 0x90, 0xb4, 0xef,
-	0xae, 0xe6, 0x68, 0xef, 0xe6, 0x67, 0xea, 0xdd, 0xfe, 0xde, 0x70, 0x07, 0x6e, 0xed, 0xb7, 0x2d,
-	0x48, 0x6a, 0x19, 0xb5, 0x20, 0x69, 0x8e, 0x5b, 0xf0, 0x5d, 0x02, 0xb9, 0x1a, 0xb1, 0x0c, 0xd4,
-	0xc3, 0xc7, 0x23, 0x3d, 0x78, 0x0a, 0x16, 0x7c, 0x66, 0x14, 0x13, 0x2b, 0x0f, 0xfa, 0xca, 0x3d,
-	0x9e, 0x5b, 0x04, 0xa8, 0x86, 0xa0, 0xc8, 0xdb, 0x20, 0x6d, 0x37, 0x99, 0xdc, 0x73, 0xd5, 0x95,
-	0x41, 0x5f, 0x59, 0xe4, 0x44, 0xbb, 0xa9, 0x1a, 0x69, 0xbb, 0x99, 0x14, 0x29, 0x73, 0xc7, 0x91,
-	0x13, 0xe1, 0xc2, 0x72, 0x37, 0x58, 0xb9, 0x63, 0x79, 0xab, 0x45, 0xb0, 0x35, 0xa9, 0x9e, 0xb8,
-	0xe0, 0x8f, 0x69, 0x20, 0xd7, 0x88, 0xc5, 0xa1, 0xa0, 0xde, 0x81, 0xb4, 0x85, 0x7d, 0x67, 0xb4,
-	0x19, 0xd2, 0x6c, 0x0f, 0xe9, 0x2d, 0xc8, 0xf6, 0x60, 0xc7, 0x6e, 0x42, 0x8a, 0xfd, 0x23, 0xaf,
-	0xdb, 0x38, 0x46, 0x01, 0x93, 0x60, 0xda, 0xbc, 0xe6, 0x2f, 0xce, 0x77, 0x73, 0xd1, 0xf2, 0x31,
-	0xfd, 0xc0, 0xa3, 0x58, 0xab, 0x77, 0x1b, 0x6f, 0x50, 0x60, 0xac, 0xc6, 0x7e, 0xea, 0xcc, 0x0d,
-	0x5b, 0x18, 0x51, 0x6a, 0x91, 0x5a, 0xc3, 0x0b, 0x23, 0x42, 0xc2, 0x85, 0x11, 0x7d, 0x8e, 0xea,
-	0x34, 0x3a, 0x18, 0x39, 0xa6, 0x54, 0xa2, 0x60, 0x75, 0x0b, 0x14, 0xc6, 0x65, 0x10, 0x2a, 0x55,
-	0x7e, 0x64, 0x40, 0xa6, 0x46, 0x2c, 0xd9, 0x03, 0xd9, 0xb1, 0x65, 0xf6, 0x44, 0x9b, 0xb4, 0x94,
-	0xb5, 0x09, 0x0f, 0xbd, 0x50, 0x9e, 0x99, 0x2a, 0x22, 0x87, 0x11, 0xc7, 0xf6, 0xc1, 0xf4, 0x88,
-	0x49, 0xea, 0x3f, 0x22, 0x4e, 0x7b, 0x02, 0x32, 0x01, 0x6b, 0xe3, 0xe3, 0x5f, 0x9a, 0xea, 0x67,
-	0x8c, 0x5b, 0xa8, 0xcc, 0xce, 0x8d, 0x83, 0x3a, 0x60, 0x35, 0x39, 0x82, 0x3b, 0x53, 0xdd, 0x24,
-	0x98, 0x85, 0xbd, 0x59, 0x99, 0x22, 0x5c, 0x61, 0xfe, 0xfd, 0xcd, 0x59, 0x49, 0xaa, 0x1e, 0x7e,
-	0xbb, 0x2a, 0x4a, 0x97, 0x57, 0x45, 0xe9, 0xd7, 0x55, 0x51, 0xfa, 0x7a, 0x5d, 0x4c, 0x5d, 0x5e,
-	0x17, 0x53, 0x3f, 0xaf, 0x8b, 0xa9, 0x77, 0xba, 0x65, 0xd3, 0x76, 0xb7, 0xa1, 0x99, 0xd8, 0xd1,
-	0xb9, 0xf3, 0x16, 0xee, 0xba, 0x4d, 0x18, 0x3e, 0xc2, 0xc8, 0xa0, 0x9f, 0xf0, 0x1f, 0x3e, 0x1a,
-	0x78, 0x88, 0x34, 0xfe, 0x63, 0xa3, 0xfd, 0xec, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xaa, 0x0b,
-	0xfd, 0xb0, 0xc1, 0x07, 0x00, 0x00,
+	// 831 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0x4d, 0x6f, 0xe3, 0x44,
+	0x18, 0x8e, 0xbd, 0x5d, 0x4a, 0xa7, 0xec, 0x6e, 0x76, 0x6a, 0x76, 0x8b, 0x77, 0x6b, 0x07, 0x23,
+	0x41, 0x89, 0x76, 0xed, 0x4d, 0xb8, 0xa0, 0xc2, 0x25, 0x5f, 0x88, 0x20, 0x65, 0x53, 0xb9, 0x0d,
+	0x07, 0x2e, 0x91, 0x63, 0x4f, 0x1d, 0x8b, 0xd8, 0x63, 0x79, 0x26, 0xd1, 0xe6, 0x86, 0x90, 0x90,
+	0x56, 0x39, 0xf1, 0x07, 0x2a, 0xad, 0xc4, 0x1f, 0xe8, 0x61, 0x7f, 0x04, 0xe2, 0x80, 0x2a, 0x4e,
+	0x9c, 0x22, 0x48, 0x0f, 0xe5, 0x9c, 0x2b, 0x17, 0xe4, 0xf1, 0x47, 0xd2, 0x7c, 0x54, 0x11, 0x97,
+	0x24, 0x33, 0xcf, 0xf3, 0x3e, 0x7e, 0xe7, 0x79, 0xde, 0x71, 0xc0, 0x01, 0xe9, 0x22, 0x8f, 0xf6,
+	0x35, 0x13, 0x05, 0x54, 0x1b, 0x14, 0x8c, 0x9e, 0xdf, 0x35, 0x0a, 0x1a, 0x7d, 0xa5, 0xfa, 0x01,
+	0xa6, 0x18, 0x0a, 0x11, 0xac, 0x86, 0xb0, 0x9a, 0xc0, 0xa2, 0x60, 0x63, 0x1b, 0x33, 0x82, 0x16,
+	0xfe, 0x8a, 0xb8, 0xe2, 0x07, 0x36, 0xc6, 0x76, 0x0f, 0x69, 0x6c, 0xd5, 0xe9, 0x9f, 0x69, 0x86,
+	0x37, 0x4c, 0x20, 0x13, 0x13, 0x17, 0x93, 0x76, 0x54, 0x13, 0x2d, 0x62, 0xe8, 0x71, 0xb4, 0xd2,
+	0x5c, 0x62, 0x6b, 0x83, 0x42, 0xf8, 0x15, 0x03, 0x0f, 0x0d, 0xd7, 0xf1, 0xb0, 0xc6, 0x3e, 0xe3,
+	0x2d, 0x79, 0x65, 0xb3, 0xac, 0x37, 0x46, 0x50, 0xfe, 0xe5, 0x01, 0x6c, 0x10, 0xbb, 0xe5, 0x5b,
+	0x06, 0x45, 0x15, 0x14, 0x50, 0xe7, 0xcc, 0x41, 0x01, 0xfc, 0x06, 0xec, 0x18, 0x7d, 0xda, 0xc5,
+	0x81, 0x43, 0x87, 0xfb, 0x5c, 0x8e, 0x3b, 0xdc, 0x29, 0x3f, 0x9b, 0x8e, 0xe5, 0xec, 0xd0, 0x70,
+	0x7b, 0x47, 0x4a, 0x0a, 0x29, 0x7f, 0xbc, 0x7d, 0x2e, 0xc4, 0xcd, 0x95, 0x2c, 0x2b, 0x40, 0x84,
+	0x9c, 0xd0, 0xc0, 0xf1, 0x6c, 0x7d, 0x56, 0x1e, 0x6a, 0x99, 0x89, 0xf0, 0x3e, 0xbf, 0xa8, 0x95,
+	0x42, 0xb7, 0x68, 0xa5, 0x1c, 0xf8, 0x39, 0xd8, 0xb5, 0x10, 0x31, 0x03, 0xc7, 0xa7, 0x0e, 0xf6,
+	0xf6, 0xef, 0x30, 0xb5, 0x47, 0xd3, 0xb1, 0x0c, 0x23, 0xb5, 0x39, 0x50, 0xd1, 0xe7, 0xa9, 0xb0,
+	0x03, 0x76, 0xb0, 0x8f, 0x02, 0x83, 0xd5, 0x6d, 0xe5, 0xb8, 0xc3, 0xfb, 0x45, 0x55, 0x5d, 0x95,
+	0x95, 0x9a, 0xba, 0x10, 0x99, 0xd2, 0x4c, 0xaa, 0xca, 0xc2, 0xac, 0xeb, 0x54, 0x4a, 0xd1, 0x67,
+	0xb2, 0x47, 0xda, 0xeb, 0x37, 0x72, 0xe6, 0x9f, 0x37, 0x72, 0xe6, 0xc7, 0xeb, 0x8b, 0xfc, 0xcc,
+	0x81, 0xd1, 0xf5, 0x45, 0x5e, 0x60, 0x09, 0x2c, 0xd8, 0xac, 0x3c, 0x05, 0xe2, 0xb2, 0xf9, 0x3a,
+	0x22, 0x3e, 0xf6, 0x08, 0x52, 0xfe, 0xe6, 0xc1, 0x5e, 0x83, 0xd8, 0x75, 0x42, 0xfa, 0x09, 0x6a,
+	0x1a, 0x14, 0xc1, 0x2f, 0xc0, 0xb6, 0x89, 0x3d, 0x8a, 0x3c, 0xca, 0xa2, 0xd9, 0x2d, 0x0a, 0x6a,
+	0x34, 0x48, 0x6a, 0x32, 0x48, 0x6a, 0xc9, 0x1b, 0x96, 0x77, 0x7f, 0x7b, 0xfb, 0x7c, 0xbb, 0x12,
+	0x11, 0xf5, 0xa4, 0x02, 0x6a, 0xe0, 0x5d, 0x13, 0xbb, 0xbe, 0xd3, 0x4b, 0xc3, 0xd8, 0x9b, 0x8e,
+	0xe5, 0x07, 0x71, 0x18, 0x31, 0xa2, 0xe8, 0x29, 0x09, 0x7e, 0x09, 0xee, 0x75, 0x86, 0x14, 0x99,
+	0xd8, 0x42, 0xed, 0xae, 0x41, 0xba, 0xb1, 0xe9, 0x8f, 0xa7, 0x63, 0x79, 0x2f, 0xaa, 0x4a, 0xe0,
+	0x10, 0x55, 0xf4, 0xf7, 0x92, 0xe5, 0xd7, 0x06, 0xe9, 0x2e, 0x06, 0xb6, 0xb5, 0x79, 0x60, 0xc5,
+	0xf9, 0xb1, 0xb9, 0xcb, 0xea, 0x84, 0x55, 0x63, 0x33, 0x37, 0x1e, 0x47, 0x2f, 0x6e, 0x04, 0x90,
+	0xee, 0x87, 0x01, 0xbc, 0xcf, 0x02, 0x58, 0xf4, 0x52, 0x39, 0x00, 0x4f, 0x56, 0x58, 0x9c, 0x46,
+	0xf0, 0x3b, 0x07, 0x84, 0x06, 0xb1, 0x75, 0x34, 0xc0, 0xdf, 0xdf, 0xc8, 0xe0, 0x19, 0xd8, 0x0e,
+	0xd8, 0x66, 0x10, 0x5f, 0x0f, 0x38, 0x1d, 0xcb, 0xf7, 0xa3, 0xde, 0x62, 0x40, 0xd1, 0x13, 0x0a,
+	0x3c, 0x00, 0xbc, 0x63, 0x31, 0xbb, 0xb7, 0xca, 0xf7, 0xa6, 0x63, 0x79, 0x27, 0x22, 0x3a, 0x96,
+	0xa2, 0xf3, 0x8e, 0xf5, 0xff, 0xa7, 0xfa, 0xe6, 0xc4, 0x25, 0x8f, 0x0b, 0x8f, 0xfb, 0x88, 0x1d,
+	0x77, 0xa9, 0x6f, 0x45, 0x02, 0x4f, 0x57, 0x9d, 0x27, 0x39, 0x70, 0xfe, 0x27, 0x1e, 0xec, 0xaf,
+	0xbb, 0x00, 0xf0, 0x04, 0x7c, 0x5c, 0xa9, 0xe9, 0xa7, 0xf5, 0xaf, 0xea, 0x35, 0xbd, 0xdd, 0x3a,
+	0xae, 0x96, 0x4e, 0x6b, 0xed, 0xe6, 0x71, 0x4d, 0x2f, 0x9d, 0xd6, 0x9b, 0x2f, 0xdb, 0xad, 0x97,
+	0x27, 0xc7, 0xb5, 0x4a, 0x08, 0x56, 0xb3, 0x19, 0xf1, 0x93, 0xd1, 0x79, 0xee, 0xa3, 0x75, 0x4a,
+	0x2d, 0x8f, 0xf8, 0xc8, 0x0c, 0x11, 0x0b, 0x56, 0x80, 0x74, 0x8b, 0x68, 0xa9, 0x5a, 0xcd, 0x72,
+	0xa2, 0x3c, 0x3a, 0xcf, 0x3d, 0x59, 0x27, 0x56, 0xb2, 0x2c, 0x58, 0x07, 0x1f, 0xde, 0x22, 0xa2,
+	0xd7, 0x1a, 0xcd, 0x6f, 0x6b, 0x59, 0x5e, 0x54, 0x46, 0xe7, 0x39, 0x69, 0x9d, 0x8e, 0x8e, 0x5c,
+	0x3c, 0x40, 0xe2, 0xd6, 0xeb, 0x5f, 0xa4, 0x4c, 0x71, 0xc2, 0x83, 0x3b, 0x0d, 0x62, 0x43, 0x17,
+	0x3c, 0x58, 0x7c, 0x37, 0x1e, 0xae, 0x7e, 0x6d, 0x2c, 0x5f, 0x64, 0xf1, 0xc5, 0xa6, 0xcc, 0xc4,
+	0x7e, 0xe8, 0x83, 0xec, 0xd2, 0x75, 0xff, 0x74, 0xad, 0xca, 0x22, 0x55, 0x2c, 0x6c, 0x4c, 0x4d,
+	0x9f, 0x48, 0xc0, 0xc3, 0xe5, 0xe9, 0xce, 0xaf, 0xd5, 0x59, 0xe2, 0x8a, 0xc5, 0xcd, 0xb9, 0xc9,
+	0x43, 0xc5, 0xbb, 0x3f, 0x5c, 0x5f, 0xe4, 0xb9, 0x72, 0xfd, 0xd7, 0x89, 0xc4, 0x5d, 0x4e, 0x24,
+	0xee, 0xaf, 0x89, 0xc4, 0xfd, 0x7c, 0x25, 0x65, 0x2e, 0xaf, 0xa4, 0xcc, 0x9f, 0x57, 0x52, 0xe6,
+	0x3b, 0xcd, 0x76, 0x68, 0xb7, 0xdf, 0x51, 0x4d, 0xec, 0x6a, 0x91, 0xfc, 0x19, 0xee, 0x7b, 0x16,
+	0xcb, 0x29, 0xde, 0xd0, 0x5e, 0x45, 0xff, 0x6a, 0x74, 0xe8, 0x23, 0xd2, 0x79, 0x87, 0xbd, 0xfa,
+	0x3e, 0xfb, 0x2f, 0x00, 0x00, 0xff, 0xff, 0xc5, 0x8b, 0x03, 0x82, 0x9e, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -417,10 +371,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	ProposeCertifier(ctx context.Context, in *MsgProposeCertifier, opts ...grpc.CallOption) (*MsgProposeCertifierResponse, error)
+	UpdateCertifier(ctx context.Context, in *MsgUpdateCertifier, opts ...grpc.CallOption) (*MsgUpdateCertifierResponse, error)
 	IssueCertificate(ctx context.Context, in *MsgIssueCertificate, opts ...grpc.CallOption) (*MsgIssueCertificateResponse, error)
 	RevokeCertificate(ctx context.Context, in *MsgRevokeCertificate, opts ...grpc.CallOption) (*MsgRevokeCertificateResponse, error)
-	CertifyPlatform(ctx context.Context, in *MsgCertifyPlatform, opts ...grpc.CallOption) (*MsgCertifyPlatformResponse, error)
 }
 
 type msgClient struct {
@@ -431,9 +384,9 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) ProposeCertifier(ctx context.Context, in *MsgProposeCertifier, opts ...grpc.CallOption) (*MsgProposeCertifierResponse, error) {
-	out := new(MsgProposeCertifierResponse)
-	err := c.cc.Invoke(ctx, "/shentu.cert.v1alpha1.Msg/ProposeCertifier", in, out, opts...)
+func (c *msgClient) UpdateCertifier(ctx context.Context, in *MsgUpdateCertifier, opts ...grpc.CallOption) (*MsgUpdateCertifierResponse, error) {
+	out := new(MsgUpdateCertifierResponse)
+	err := c.cc.Invoke(ctx, "/shentu.cert.v1alpha1.Msg/UpdateCertifier", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -458,29 +411,19 @@ func (c *msgClient) RevokeCertificate(ctx context.Context, in *MsgRevokeCertific
 	return out, nil
 }
 
-func (c *msgClient) CertifyPlatform(ctx context.Context, in *MsgCertifyPlatform, opts ...grpc.CallOption) (*MsgCertifyPlatformResponse, error) {
-	out := new(MsgCertifyPlatformResponse)
-	err := c.cc.Invoke(ctx, "/shentu.cert.v1alpha1.Msg/CertifyPlatform", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	ProposeCertifier(context.Context, *MsgProposeCertifier) (*MsgProposeCertifierResponse, error)
+	UpdateCertifier(context.Context, *MsgUpdateCertifier) (*MsgUpdateCertifierResponse, error)
 	IssueCertificate(context.Context, *MsgIssueCertificate) (*MsgIssueCertificateResponse, error)
 	RevokeCertificate(context.Context, *MsgRevokeCertificate) (*MsgRevokeCertificateResponse, error)
-	CertifyPlatform(context.Context, *MsgCertifyPlatform) (*MsgCertifyPlatformResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) ProposeCertifier(ctx context.Context, req *MsgProposeCertifier) (*MsgProposeCertifierResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ProposeCertifier not implemented")
+func (*UnimplementedMsgServer) UpdateCertifier(ctx context.Context, req *MsgUpdateCertifier) (*MsgUpdateCertifierResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCertifier not implemented")
 }
 func (*UnimplementedMsgServer) IssueCertificate(ctx context.Context, req *MsgIssueCertificate) (*MsgIssueCertificateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IssueCertificate not implemented")
@@ -488,28 +431,25 @@ func (*UnimplementedMsgServer) IssueCertificate(ctx context.Context, req *MsgIss
 func (*UnimplementedMsgServer) RevokeCertificate(ctx context.Context, req *MsgRevokeCertificate) (*MsgRevokeCertificateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeCertificate not implemented")
 }
-func (*UnimplementedMsgServer) CertifyPlatform(ctx context.Context, req *MsgCertifyPlatform) (*MsgCertifyPlatformResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CertifyPlatform not implemented")
-}
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_ProposeCertifier_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgProposeCertifier)
+func _Msg_UpdateCertifier_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateCertifier)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).ProposeCertifier(ctx, in)
+		return srv.(MsgServer).UpdateCertifier(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.cert.v1alpha1.Msg/ProposeCertifier",
+		FullMethod: "/shentu.cert.v1alpha1.Msg/UpdateCertifier",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ProposeCertifier(ctx, req.(*MsgProposeCertifier))
+		return srv.(MsgServer).UpdateCertifier(ctx, req.(*MsgUpdateCertifier))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -550,31 +490,13 @@ func _Msg_RevokeCertificate_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_CertifyPlatform_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCertifyPlatform)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).CertifyPlatform(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.cert.v1alpha1.Msg/CertifyPlatform",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CertifyPlatform(ctx, req.(*MsgCertifyPlatform))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "shentu.cert.v1alpha1.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ProposeCertifier",
-			Handler:    _Msg_ProposeCertifier_Handler,
+			MethodName: "UpdateCertifier",
+			Handler:    _Msg_UpdateCertifier_Handler,
 		},
 		{
 			MethodName: "IssueCertificate",
@@ -584,16 +506,12 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			MethodName: "RevokeCertificate",
 			Handler:    _Msg_RevokeCertificate_Handler,
 		},
-		{
-			MethodName: "CertifyPlatform",
-			Handler:    _Msg_CertifyPlatform_Handler,
-		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "shentu/cert/v1alpha1/tx.proto",
 }
 
-func (m *MsgProposeCertifier) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateCertifier) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -603,48 +521,46 @@ func (m *MsgProposeCertifier) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgProposeCertifier) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateCertifier) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgProposeCertifier) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateCertifier) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if m.Operation != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Operation))
+		i--
+		dAtA[i] = 0x20
+	}
 	if len(m.Description) > 0 {
 		i -= len(m.Description)
 		copy(dAtA[i:], m.Description)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.Description)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x1a
 	}
 	if len(m.Certifier) > 0 {
 		i -= len(m.Certifier)
 		copy(dAtA[i:], m.Certifier)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.Certifier)))
 		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Alias) > 0 {
-		i -= len(m.Alias)
-		copy(dAtA[i:], m.Alias)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Alias)))
-		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Proposer) > 0 {
-		i -= len(m.Proposer)
-		copy(dAtA[i:], m.Proposer)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Proposer)))
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgProposeCertifierResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateCertifierResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -654,12 +570,12 @@ func (m *MsgProposeCertifierResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgProposeCertifierResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateCertifierResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgProposeCertifierResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateCertifierResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -818,78 +734,6 @@ func (m *MsgRevokeCertificateResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCertifyPlatform) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgCertifyPlatform) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgCertifyPlatform) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Platform) > 0 {
-		i -= len(m.Platform)
-		copy(dAtA[i:], m.Platform)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Platform)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.ValidatorPubkey != nil {
-		{
-			size, err := m.ValidatorPubkey.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Certifier) > 0 {
-		i -= len(m.Certifier)
-		copy(dAtA[i:], m.Certifier)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Certifier)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgCertifyPlatformResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgCertifyPlatformResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgCertifyPlatformResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -901,17 +745,13 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgProposeCertifier) Size() (n int) {
+func (m *MsgUpdateCertifier) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Proposer)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.Alias)
+	l = len(m.Authority)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -923,10 +763,13 @@ func (m *MsgProposeCertifier) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
+	if m.Operation != 0 {
+		n += 1 + sovTx(uint64(m.Operation))
+	}
 	return n
 }
 
-func (m *MsgProposeCertifierResponse) Size() (n int) {
+func (m *MsgUpdateCertifierResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1002,43 +845,13 @@ func (m *MsgRevokeCertificateResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgCertifyPlatform) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Certifier)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if m.ValidatorPubkey != nil {
-		l = m.ValidatorPubkey.Size()
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.Platform)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgCertifyPlatformResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
 func sovTx(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgProposeCertifier) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateCertifier) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1061,15 +874,15 @@ func (m *MsgProposeCertifier) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgProposeCertifier: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateCertifier: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgProposeCertifier: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateCertifier: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Proposer", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1097,41 +910,9 @@ func (m *MsgProposeCertifier) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Proposer = string(dAtA[iNdEx:postIndex])
+			m.Authority = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Alias", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Alias = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Certifier", wireType)
 			}
@@ -1163,7 +944,7 @@ func (m *MsgProposeCertifier) Unmarshal(dAtA []byte) error {
 			}
 			m.Certifier = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
@@ -1195,6 +976,25 @@ func (m *MsgProposeCertifier) Unmarshal(dAtA []byte) error {
 			}
 			m.Description = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Operation", wireType)
+			}
+			m.Operation = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Operation |= CertifierUpdateOperation(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -1216,7 +1016,7 @@ func (m *MsgProposeCertifier) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgProposeCertifierResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateCertifierResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1239,10 +1039,10 @@ func (m *MsgProposeCertifierResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgProposeCertifierResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateCertifierResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgProposeCertifierResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateCertifierResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -1690,206 +1490,6 @@ func (m *MsgRevokeCertificateResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgRevokeCertificateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgCertifyPlatform) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCertifyPlatform: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCertifyPlatform: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Certifier", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Certifier = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorPubkey", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.ValidatorPubkey == nil {
-				m.ValidatorPubkey = &types.Any{}
-			}
-			if err := m.ValidatorPubkey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Platform", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Platform = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgCertifyPlatformResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCertifyPlatformResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCertifyPlatformResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

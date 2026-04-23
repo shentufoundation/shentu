@@ -2,17 +2,13 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
-	"cosmossdk.io/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
@@ -23,32 +19,21 @@ type Querier struct {
 	Keeper
 }
 
-// Certifier queries a certifier given its address or alias.
+// Certifier queries a certifier given its address.
 func (q Querier) Certifier(c context.Context, req *types.QueryCertifierRequest) (*types.QueryCertifierResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	var certifier types.Certifier
-	var err error
-	if req.Alias != "" {
-		// query by alias
-		certifier, err = q.GetCertifierByAlias(ctx, req.Alias)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// query by address
-		certifierAddr, err := sdk.AccAddressFromBech32(req.Address)
-		if err != nil {
-			return nil, err
-		}
+	certifierAddr, err := sdk.AccAddressFromBech32(req.Address)
+	if err != nil {
+		return nil, err
+	}
 
-		certifier, err = q.GetCertifier(ctx, certifierAddr)
-		if err != nil {
-			return nil, err
-		}
+	certifier, err := q.GetCertifier(ctx, certifierAddr)
+	if err != nil {
+		return nil, err
 	}
 
 	return &types.QueryCertifierResponse{Certifier: certifier}, nil
@@ -62,25 +47,6 @@ func (q Querier) Certifiers(c context.Context, req *types.QueryCertifiersRequest
 	ctx := sdk.UnwrapSDKContext(c)
 
 	return &types.QueryCertifiersResponse{Certifiers: q.GetAllCertifiers(ctx)}, nil
-}
-
-func (q Querier) Platform(c context.Context, req *types.QueryPlatformRequest) (*types.QueryPlatformResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	pk, ok := req.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return nil, errors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", req.Pubkey)
-	}
-
-	platform, ok := q.GetPlatform(ctx, pk)
-	if !ok {
-		return nil, nil
-	}
-
-	return &types.QueryPlatformResponse{Platform: platform}, nil
 }
 
 func (q Querier) Certificate(c context.Context, req *types.QueryCertificateRequest) (*types.QueryCertificateResponse, error) {
@@ -114,39 +80,24 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		}
 	}
 
-	page, limit, err := qtypes.ParsePagination(req.Pagination)
-	if err != nil {
-		return nil, err
+	if !types.IsValidCertificateType(req.CertificateType) {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid certificate type: %d", req.CertificateType))
 	}
+
 	params := types.QueryCertificatesParams{
-		Page:            page,
-		Limit:           limit,
+		Pagination:      req.Pagination,
 		Certifier:       certifierAddr,
-		CertificateType: types.CertificateTypeFromString(req.CertificateType),
+		CertificateType: req.CertificateType,
+		Content:         req.Content,
 	}
 
-	total, certificates, err := q.GetCertificatesFiltered(ctx, params)
+	certificates, pagination, err := q.GetCertificatesFiltered(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
-	results := make([]types.QueryCertificateResponse, total)
-	for i, certificate := range certificates {
-		results[i] = types.QueryCertificateResponse{
-			Certificate: certificate,
-		}
-	}
-
-	return &types.QueryCertificatesResponse{Total: total, Certificates: results}, nil
-}
-
-func (q Querier) AddrConversion(_ context.Context, req *types.ConversionToShentuAddrRequest) (*types.ConversionToShentuAddrResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	shentuAddr, err := common.PrefixToShentu(req.Address)
-	if err != nil {
-		return nil, err
-	}
-	return &types.ConversionToShentuAddrResponse{Address: shentuAddr}, nil
+	return &types.QueryCertificatesResponse{
+		Certificates: certificates,
+		Pagination:   pagination,
+	}, nil
 }

@@ -3,10 +3,11 @@ package keeper_test
 import (
 	"testing"
 
-	"cosmossdk.io/collections"
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/collections"
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,9 +49,9 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	//govtypesv1.RegisterQueryServer(queryHelper, app.GovKeeper.Keeper)
+	// govtypesv1.RegisterQueryServer(queryHelper, app.GovKeeper.Keeper)
 	legacyQueryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	//govtypesv1beta1.RegisterQueryServer(legacyQueryHelper, keeper.NewLegacyQueryServer(app.GovKeeper))
+	// govtypesv1beta1.RegisterQueryServer(legacyQueryHelper, keeper.NewLegacyQueryServer(app.GovKeeper))
 	queryClient := govtypesv1.NewQueryClient(queryHelper)
 	legacyQueryClient := govtypesv1beta1.NewQueryClient(legacyQueryHelper)
 

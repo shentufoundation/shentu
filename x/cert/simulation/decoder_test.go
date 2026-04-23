@@ -1,118 +1,94 @@
 package simulation_test
 
-//
-//import (
-//	"fmt"
-//	"math/rand"
-//	"testing"
-//	"time"
-//
-//	"github.com/stretchr/testify/require"
-//
-//	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-//	"github.com/cosmos/cosmos-sdk/types/kv"
-//
-//	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-//	sdk "github.com/cosmos/cosmos-sdk/types"
-//	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-//
-//	shentuapp "github.com/shentufoundation/shentu/v2/app"
-//	. "github.com/shentufoundation/shentu/v2/x/cert/simulation"
-//	"github.com/shentufoundation/shentu/v2/x/cert/types"
-//)
-//
-//func TestDecodeStore(t *testing.T) {
-//	app := shentuapp.Setup(t, false)
-//	cdc := app.Codec()
-//
-//	rand.Seed(time.Now().UnixNano())
-//
-//	certifier := types.Certifier{
-//		Address:     RandomAccount().Address.String(),
-//		Proposer:    RandomAccount().Address.String(),
-//		Description: "this is a test case.",
-//	}
-//
-//	validatorPubKey := RandomAccount().PubKey
-//	var pkAny *codectypes.Any
-//	if validatorPubKey != nil {
-//		var err error
-//		if pkAny, err = codectypes.NewAnyWithValue(validatorPubKey); err != nil {
-//			panic(err)
-//		}
-//	}
-//
-//	platformPubKey := RandomAccount().PubKey
-//	if validatorPubKey != nil {
-//		var err error
-//		if pkAny, err = codectypes.NewAnyWithValue(validatorPubKey); err != nil {
-//			panic(err)
-//		}
-//	}
-//	platform := types.Platform{
-//		ValidatorPubkey: pkAny,
-//		Description:     "This is a test case.",
-//	}
-//
-//	libraryAddr := sdk.AccAddress("f23908hf932")
-//	library := types.Library{
-//		Address:   libraryAddr.String(),
-//		Publisher: sdk.AccAddress("0092uf32").String(),
-//	}
-//
-//	aliasCertifier := types.Certifier{
-//		Address:     RandomAccount().Address.String(),
-//		Alias:       "Alice",
-//		Proposer:    RandomAccount().Address.String(),
-//		Description: "this is a test case.",
-//	}
-//
-//	certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
-//	require.NoError(t, err)
-//
-//	kvPairs := []kv.Pair{
-//		{Key: types.CertifierStoreKey(certifierAddr), Value: cdc.MustMarshalLengthPrefixed(&certifier)},
-//		{Key: types.PlatformStoreKey(platformPubKey), Value: cdc.MustMarshalLengthPrefixed(&platform)},
-//		{Key: types.LibraryStoreKey(libraryAddr), Value: cdc.MustMarshalLengthPrefixed(&library)},
-//		{Key: types.CertifierAliasStoreKey(aliasCertifier.Alias), Value: cdc.MustMarshalLengthPrefixed(&aliasCertifier)},
-//	}
-//
-//	tests := []struct {
-//		name        string
-//		expectedLog string
-//	}{
-//		{"Certifier", fmt.Sprintf("%v\n%v", certifier, certifier)},
-//		{"Platform", fmt.Sprintf("%v\n%v", platform, platform)},
-//		{"Library", fmt.Sprintf("%v\n%v", library, library)},
-//		{"Alias certifier", fmt.Sprintf("%v\n%v", aliasCertifier, aliasCertifier)},
-//		{"other", ""},
-//	}
-//
-//	decoder := NewDecodeStore(cdc)
-//
-//	for i, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			if i == len(tests)-1 {
-//				require.Panics(t, func() { decoder(kvPairs[i], kvPairs[i]) }, tt.name)
-//			} else {
-//				require.Equal(t, tt.expectedLog, decoder(kvPairs[i], kvPairs[i]), tt.name)
-//			}
-//		})
-//	}
-//}
-//
-//// RandomAccount generates a random Account object.
-//func RandomAccount() simtypes.Account {
-//	privkeySeed := make([]byte, 15)
-//	rand.Read(privkeySeed)
-//
-//	privKey := secp256k1.GenPrivKey()
-//	pubKey := privKey.PubKey()
-//	address := sdk.AccAddress(pubKey.Address())
-//
-//	return simtypes.Account{
-//		PrivKey: privKey,
-//		PubKey:  pubKey,
-//		Address: address,
-//	}
-//}
+import (
+	"encoding/binary"
+	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/types/kv"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
+	"github.com/shentufoundation/shentu/v2/x/cert/simulation"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
+)
+
+func TestDecodeStore_Certifier(t *testing.T) {
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+	types.RegisterInterfaces(encCfg.InterfaceRegistry)
+	cdc := encCfg.Codec
+
+	certifier := types.Certifier{
+		Address:     "shentu1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5z5tpw",
+		Description: "test certifier",
+	}
+
+	kvA := kv.Pair{
+		Key:   append(types.CertifiersStoreKey(), []byte("addr1")...),
+		Value: cdc.MustMarshal(&certifier),
+	}
+	kvB := kv.Pair{
+		Key:   append(types.CertifiersStoreKey(), []byte("addr2")...),
+		Value: cdc.MustMarshal(&certifier),
+	}
+
+	decoder := simulation.NewDecodeStore(cdc)
+	result := decoder(kvA, kvB)
+	require.Contains(t, result, certifier.Address)
+}
+
+func TestDecodeStore_Certificate(t *testing.T) {
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+	types.RegisterInterfaces(encCfg.InterfaceRegistry)
+	cdc := encCfg.Codec
+
+	cert := types.Certificate{
+		CertificateId: 1,
+		Certifier:     "shentu1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5z5tpw",
+		Description:   "test cert",
+	}
+
+	kvA := kv.Pair{
+		Key:   append(types.CertificatesStoreKey(), []byte{0, 0, 0, 0, 0, 0, 0, 1}...),
+		Value: cdc.MustMarshal(&cert),
+	}
+	kvB := kv.Pair{
+		Key:   append(types.CertificatesStoreKey(), []byte{0, 0, 0, 0, 0, 0, 0, 2}...),
+		Value: cdc.MustMarshal(&cert),
+	}
+
+	decoder := simulation.NewDecodeStore(cdc)
+	result := decoder(kvA, kvB)
+	require.Contains(t, result, fmt.Sprintf("%v", cert))
+}
+
+func TestDecodeStore_NextCertificateID(t *testing.T) {
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+	cdc := encCfg.Codec.(codec.BinaryCodec)
+
+	bzA := make([]byte, 8)
+	binary.BigEndian.PutUint64(bzA, 42)
+	bzB := make([]byte, 8)
+	binary.BigEndian.PutUint64(bzB, 99)
+
+	kvA := kv.Pair{Key: types.NextCertificateIDStoreKey(), Value: bzA}
+	kvB := kv.Pair{Key: types.NextCertificateIDStoreKey(), Value: bzB}
+
+	decoder := simulation.NewDecodeStore(cdc)
+	result := decoder(kvA, kvB)
+	require.Contains(t, result, "42")
+	require.Contains(t, result, "99")
+}
+
+func TestDecodeStore_InvalidPrefix(t *testing.T) {
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+	cdc := encCfg.Codec.(codec.BinaryCodec)
+
+	kvA := kv.Pair{Key: []byte{0xFF, 0x01}, Value: []byte("data")}
+	kvB := kv.Pair{Key: []byte{0xFF, 0x02}, Value: []byte("data")}
+
+	decoder := simulation.NewDecodeStore(cdc)
+	require.Panics(t, func() { decoder(kvA, kvB) })
+}

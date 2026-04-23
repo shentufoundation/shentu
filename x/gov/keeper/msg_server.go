@@ -13,8 +13,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 type msgServer struct {
@@ -70,7 +68,22 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1.MsgSubm
 		return nil, err
 	}
 
+	// CertifierUpdate must travel alone so bundled messages can't ride
+	// the head-count tally and bypass stake voting. The Keeper-level
+	// shadow SubmitProposal also runs this check for programmatic callers.
+	if err := ValidateCertifierUpdateSoloMessage(proposalMsgs); err != nil {
+		return nil, err
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Reject non-certifier proposers for cert-update proposals here
+	// (before deposit validation) to avoid wasting gas on submissions
+	// that the Keeper shadow would reject anyway.
+	if err := k.ValidateCertUpdateProposer(ctx, proposalMsgs, proposer); err != nil {
+		return nil, err
+	}
+
 	initialDeposit := msg.GetInitialDeposit()
 
 	params, err := k.Params.Get(ctx)
@@ -143,7 +156,7 @@ func (k msgServer) CancelProposal(goCtx context.Context, msg *govtypesv1.MsgCanc
 	return &govtypesv1.MsgCancelProposalResponse{
 		ProposalId:     msg.ProposalId,
 		CanceledTime:   ctx.BlockTime(),
-		CanceledHeight: uint64(ctx.BlockHeight()),
+		CanceledHeight: uint64(ctx.BlockHeight()), //nolint:gosec // BlockHeight is non-negative
 	}, nil
 }
 
@@ -308,12 +321,6 @@ func (k legacyMsgServer) SubmitProposal(goCtx context.Context, msg *govtypesv1be
 		return nil, err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(goCtx)
-	err := validateProposalByType(sdkCtx, k.keeper, msg)
-	if err != nil {
-		return nil, err
-	}
-
 	contentMsg, err := govtypesv1.NewLegacyContent(msg.GetContent(), k.govAcct)
 	if err != nil {
 		return nil, fmt.Errorf("error converting legacy content into proposal message: %w", err)
@@ -388,22 +395,6 @@ func (k legacyMsgServer) Deposit(goCtx context.Context, msg *govtypesv1beta1.Msg
 func validateDeposit(amount sdk.Coins) error {
 	if !amount.IsValid() || !amount.IsAllPositive() {
 		return sdkerrors.ErrInvalidCoins.Wrap(amount.String())
-	}
-	return nil
-}
-
-func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypesv1beta1.MsgSubmitProposal) error {
-	switch c := msg.GetContent().(type) {
-	case *certtypes.CertifierUpdateProposal:
-		hasAlias, err := k.certKeeper.HasCertifierAlias(ctx, c.Alias)
-		if err != nil {
-			return err
-		}
-		if c.Alias != "" && hasAlias {
-			return certtypes.ErrRepeatedAlias
-		}
-	default:
-		return nil
 	}
 	return nil
 }

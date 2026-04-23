@@ -6,11 +6,40 @@ import (
 
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	proto "github.com/cosmos/gogoproto/proto"
 )
 
 // Certificate types implement UnpackInterfaceMessages to unpack Content field.
 var _ codecTypes.UnpackInterfacesMessage = Certificate{}
+
+const (
+	CompilationCertificateTypeName = "compilation"
+	AuditingCertificateTypeName    = "auditing"
+	ProofCertificateTypeName       = "proof"
+	IdentityCertificateTypeName    = "identity"
+	GeneralCertificateTypeName     = "general"
+	BountyAdminCertificateTypeName = "bountyadmin"
+	OpenMathCertificateTypeName    = "openmath"
+)
+
+// IssueableCertificateTypeNames returns the certificate type names accepted by
+// AssembleContent/NewCertificate for standard issue flows.
+func IssueableCertificateTypeNames() []string {
+	return []string{
+		GeneralCertificateTypeName,
+		AuditingCertificateTypeName,
+		ProofCertificateTypeName,
+		IdentityCertificateTypeName,
+		OpenMathCertificateTypeName,
+	}
+}
+
+// IsValidCertificateType reports whether the enum value is a declared certificate type.
+func IsValidCertificateType(certType CertificateType) bool {
+	_, ok := CertificateType_name[int32(certType)]
+	return ok
+}
 
 // CertificateTypeFromString returns a certificate type by parsing a string.
 func CertificateTypeFromString(s string) CertificateType {
@@ -29,11 +58,22 @@ func CertificateTypeFromString(s string) CertificateType {
 		return CertificateTypeIdentity
 	case "GENERAL", "CERT_TYPE_GENERAL":
 		return CertificateTypeGeneral
-	case "BOUNTYADMIN", "CERT_TYPE_BOUNTYADMIN":
+	case "BOUNTYADMIN", "CERT_TYPE_BOUNTY_ADMIN", "CERT_TYPE_BOUNTYADMIN":
 		return CertificateTypeBountyAdmin
+	case "OPENMATH", "CERT_TYPE_OPENMATH":
+		return CertificateTypeOpenMath
 	default:
 		return CertificateTypeNil
 	}
+}
+
+// ParseCertificateType parses a string and rejects unknown values.
+func ParseCertificateType(s string) (CertificateType, error) {
+	certType := CertificateTypeFromString(s)
+	if certType == CertificateTypeNil && s != "" {
+		return CertificateTypeNil, fmt.Errorf("invalid certificate type: %s", s)
+	}
+	return certType, nil
 }
 
 // TranslateCertificateType determines certificate type based on content interface type switch.
@@ -55,6 +95,8 @@ func TranslateCertificateType(certificate Certificate) CertificateType {
 		return CertificateTypeGeneral
 	case *BountyAdmin:
 		return CertificateTypeBountyAdmin
+	case *OpenMath:
+		return CertificateTypeOpenMath
 	default:
 		return CertificateTypeNil
 	}
@@ -87,6 +129,8 @@ func AssembleContent(certTypeStr, content string) Content {
 		return &General{content}
 	case CertificateTypeBountyAdmin:
 		return &BountyAdmin{content}
+	case CertificateTypeOpenMath:
+		return &OpenMath{content}
 	default:
 		return nil
 	}

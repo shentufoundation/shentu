@@ -10,10 +10,8 @@ import (
 
 // RegisterLegacyAminoCodec registers concrete types on the LegacyAmino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(MsgProposeCertifier{}, "cert/ProposeCertifier", nil)
-	cdc.RegisterConcrete(MsgCertifyPlatform{}, "cert/CertifyPlatform", nil)
+	cdc.RegisterConcrete(MsgUpdateCertifier{}, "cert/UpdateCertifier", nil)
 	cdc.RegisterConcrete(MsgIssueCertificate{}, "cert/IssueCertificate", nil)
-	cdc.RegisterConcrete(CertifierUpdateProposal{}, "cert/CertifierUpdateProposal", nil)
 	cdc.RegisterConcrete(MsgRevokeCertificate{}, "cert/RevokeCertificate", nil)
 	cdc.RegisterConcrete(&Compilation{}, "cert/Compilation", nil)
 	cdc.RegisterConcrete(&Auditing{}, "cert/Auditing", nil)
@@ -23,6 +21,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&Identity{}, "cert/Identity", nil)
 	cdc.RegisterConcrete(&General{}, "cert/General", nil)
 	cdc.RegisterConcrete(&BountyAdmin{}, "cert/BountyAdmin", nil)
+	cdc.RegisterConcrete(&OpenMath{}, "cert/OpenMath", nil)
 
 	cdc.RegisterInterface((*Content)(nil), nil)
 }
@@ -30,12 +29,12 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // RegisterInterfaces registers the x/cert interfaces types with the interface registry
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgProposeCertifier{},
-		&MsgCertifyPlatform{},
+		&MsgUpdateCertifier{},
 		&MsgIssueCertificate{},
 		&MsgRevokeCertificate{},
 	)
 
+	// Deprecated: kept so existing on-chain proposals can be deserialized.
 	registry.RegisterImplementations((*govtypesv1beta1.Content)(nil),
 		&CertifierUpdateProposal{},
 	)
@@ -51,6 +50,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&Identity{},
 		&General{},
 		&BountyAdmin{},
+		&OpenMath{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

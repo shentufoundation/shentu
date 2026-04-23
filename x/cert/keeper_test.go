@@ -79,6 +79,19 @@ func Test_GetNewCertificateID(t *testing.T) {
 	})
 }
 
+func Test_CertificateNotFoundErrors(t *testing.T) {
+	t.Run("missing certificate returns not found errors", func(t *testing.T) {
+		app := shentuapp.Setup(t, false)
+		ctx := app.BaseApp.NewContext(false)
+
+		_, err := app.CertKeeper.GetCertificateByID(ctx, 99999)
+		require.ErrorIs(t, err, types.ErrCertificateNotExists)
+
+		err = app.CertKeeper.DeleteCertificate(ctx, types.Certificate{CertificateId: 99999})
+		require.ErrorIs(t, err, types.ErrCertificateNotExists)
+	})
+}
+
 func randomString(length int) string {
 	out := make([]byte, length)
 	rand.Read(out)
@@ -91,7 +104,7 @@ func Test_IterationByCertifier(t *testing.T) {
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 5, math.NewInt(10000))
 		for _, addr := range addrs {
-			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
+			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, ""))
 		}
 
 		// Store certificates
@@ -127,7 +140,7 @@ func Test_CertificateQueries(t *testing.T) {
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 5, math.NewInt(10000))
 		for _, addr := range addrs {
-			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
+			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, ""))
 		}
 
 		// Store certificates
@@ -175,33 +188,33 @@ func Test_CertificateQueries(t *testing.T) {
 
 		// Test GetCertificatesFiltered()
 		queryParams := types.NewQueryCertificatesParams(1, totalCerts, nil, types.CertificateTypeFromString("compilation"))
-		total, certs, err := app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		certs, pagination, err := app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
-		require.Equal(t, uint64(count2), total)
+		require.Equal(t, uint64(count2), pagination.Total)
 		require.Equal(t, count2, len(certs))
 
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, nil, types.CertificateTypeFromString("general"))
-		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		certs, pagination, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
-		require.Equal(t, uint64(count-count2), total)
+		require.Equal(t, uint64(count-count2), pagination.Total)
 		require.Equal(t, count-count2, len(certs))
 
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], types.CertificateTypeFromString(""))
-		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		certs, pagination, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
-		require.Equal(t, uint64(count3), total)
+		require.Equal(t, uint64(count3), pagination.Total)
 		require.Equal(t, count3, len(certs))
 
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], types.CertificateTypeFromString("compilation"))
-		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		certs, pagination, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
-		require.Equal(t, uint64(count4), total)
+		require.Equal(t, uint64(count4), pagination.Total)
 		require.Equal(t, count4, len(certs))
 
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], types.CertificateTypeFromString("general"))
-		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		certs, pagination, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
-		require.Equal(t, uint64(count3-count4), total)
+		require.Equal(t, uint64(count3-count4), pagination.Total)
 		require.Equal(t, count3-count4, len(certs))
 	})
 }
@@ -211,7 +224,7 @@ func Test_IsCertified(t *testing.T) {
 		app := shentuapp.Setup(t, false)
 		ctx := app.BaseApp.NewContext(false)
 		addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
-		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))
+		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], ""))
 
 		certType := "auditing"
 		contentStr := "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn"

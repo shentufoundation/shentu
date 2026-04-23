@@ -40,13 +40,10 @@ func (k Keeper) AddVote(ctx context.Context, proposalID uint64, voterAddr sdk.Ac
 		return err
 	}
 	if required {
-		voted, err := k.GetCertifierVoted(ctx, proposalID)
-		if err != nil {
-			return err
-		}
-		if !voted {
-			return k.AddCertifierVote(ctx, proposalID, voterAddr, options)
-		}
+		// Cert-update proposals are decided by the certifier round
+		// alone; every ballot on such a proposal is a certifier
+		// head-count vote.
+		return k.AddCertifierVote(ctx, proposalID, voterAddr, options, metadata)
 	}
 
 	vote := govtypesv1.NewVote(proposalID, voterAddr, options, metadata)

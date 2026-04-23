@@ -2,62 +2,78 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/gogoproto/proto"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/cosmos/gogoproto/proto"
 )
 
 const (
-	TypeMsgProposeCertifier   = "propose_certifier"
+	TypeMsgUpdateCertifier    = "update_certifier"
 	TypeMsgCertifyValidator   = "certify_validator"
 	TypeMsgDecertifyValidator = "decertify_validator"
 	TypeMsgCertifyGeneral     = "certify_general"
 	TypeMsgRevokeCertificate  = "revoke_certificate"
 	TypeMsgCertifyCompilation = "certify_compilation"
-	TypeMsgCertifyPlatform    = "certify_platform"
 )
 
-// NewMsgProposeCertifier returns a new certifier proposal message.
-func NewMsgProposeCertifier(proposer, certifier sdk.AccAddress, alias string, description string) *MsgProposeCertifier {
-	return &MsgProposeCertifier{
-		Proposer:    proposer.String(),
+// NewMsgUpdateCertifier returns a new governance-authorized certifier update message.
+func NewMsgUpdateCertifier(
+	authority sdk.AccAddress,
+	certifier sdk.AccAddress,
+	description string,
+	operation AddOrRemove,
+) *MsgUpdateCertifier {
+	return &MsgUpdateCertifier{
+		Authority:   authority.String(),
 		Certifier:   certifier.String(),
-		Alias:       alias,
 		Description: description,
+		Operation:   operation.ToProto(),
 	}
 }
 
 // Route returns the module name.
-func (m MsgProposeCertifier) Route() string { return ModuleName }
+func (m MsgUpdateCertifier) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (m MsgProposeCertifier) Type() string { return "propose_certifier" }
+func (m MsgUpdateCertifier) Type() string { return TypeMsgUpdateCertifier }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgProposeCertifier) ValidateBasic() error {
+func (m MsgUpdateCertifier) ValidateBasic() error {
+	authorityAddr, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Authority)
+	}
+	if authorityAddr.Empty() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
+
 	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
 	if err != nil {
-		panic(err)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Certifier)
 	}
 	if certifierAddr.Empty() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, certifierAddr.String())
+		return ErrEmptyCertifier
+	}
+
+	if _, err := AddOrRemoveFromProto(m.Operation); err != nil {
+		return err
 	}
 	return nil
 }
 
 // GetSigners defines whose signature is required.
-func (m MsgProposeCertifier) GetSigners() []sdk.AccAddress {
-	proposerAddr, err := sdk.AccAddressFromBech32(m.Proposer)
+func (m MsgUpdateCertifier) GetSigners() []sdk.AccAddress {
+	authorityAddr, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{proposerAddr}
+	return []sdk.AccAddress{authorityAddr}
 }
 
 // NewMsgIssueCertificate returns a new certification message.
@@ -89,6 +105,27 @@ func (m MsgIssueCertificate) Type() string { return "issue_certificate" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgIssueCertificate) ValidateBasic() error {
+	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
+	if err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Certifier)
+	}
+	if certifierAddr.Empty() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
+
+	certType, err := certificateTypeFromAny(m.Content)
+	if err != nil {
+		return err
+	}
+
+	if certType == CertificateTypeCompilation {
+		if m.Compiler == "" {
+			return ErrCompiler
+		}
+		if m.BytecodeHash == "" {
+			return ErrBytecodeHash
+		}
+	}
 	return nil
 }
 
@@ -120,10 +157,13 @@ func NewMsgRevokeCertificate(revoker sdk.AccAddress, id uint64, description stri
 func (m MsgRevokeCertificate) ValidateBasic() error {
 	revokerAddr, err := sdk.AccAddressFromBech32(m.Revoker)
 	if err != nil {
-		panic(err)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.Revoker)
 	}
 	if revokerAddr.Empty() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, revokerAddr.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
+	if m.Id == 0 {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "certificate id must be positive")
 	}
 	return nil
 }
@@ -143,53 +183,59 @@ func (m MsgRevokeCertificate) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{revokerAddr}
 }
 
-// NewMsgCertifyPlatform returns a new validator host platform certification
-// message.
-func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk cryptotypes.PubKey, platform string) (*MsgCertifyPlatform, error) {
-	var pkAny *codectypes.Any
-	if pk != nil {
-		var err error
-		if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
-			return nil, err
+func certificateTypeFromAny(contentAny *codectypes.Any) (CertificateType, error) {
+	if contentAny == nil || contentAny.TypeUrl == "" {
+		return CertificateTypeNil, ErrInvalidRequestContentType
+	}
+
+	if content, ok := contentAny.GetCachedValue().(Content); ok {
+		switch content.(type) {
+		case *Compilation:
+			return CertificateTypeCompilation, nil
+		case *Auditing:
+			return CertificateTypeAuditing, nil
+		case *Proof:
+			return CertificateTypeProof, nil
+		case *OracleOperator:
+			return CertificateTypeOracleOperator, nil
+		case *ShieldPoolCreator:
+			return CertificateTypeShieldPoolCreator, nil
+		case *Identity:
+			return CertificateTypeIdentity, nil
+		case *General:
+			return CertificateTypeGeneral, nil
+		case *BountyAdmin:
+			return CertificateTypeBountyAdmin, nil
+		case *OpenMath:
+			return CertificateTypeOpenMath, nil
 		}
 	}
 
-	return &MsgCertifyPlatform{Certifier: certifier.String(), ValidatorPubkey: pkAny, Platform: platform}, nil
-}
-
-// Route returns the module name.
-func (m MsgCertifyPlatform) Route() string { return ModuleName }
-
-// Type returns the action name.
-func (m MsgCertifyPlatform) Type() string { return "certify_platform" }
-
-// ValidateBasic runs stateless checks on the message.
-func (m MsgCertifyPlatform) ValidateBasic() error {
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
-	if err != nil {
-		panic(err)
-	}
-	if certifierAddr.Empty() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	typeName := contentAny.TypeUrl
+	if idx := strings.LastIndex(typeName, "/"); idx >= 0 {
+		typeName = typeName[idx+1:]
 	}
 
-	if m.ValidatorPubkey == nil {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	switch typeName {
+	case "shentu.cert.v1alpha1.Compilation", "Compilation":
+		return CertificateTypeCompilation, nil
+	case "shentu.cert.v1alpha1.Auditing", "Auditing":
+		return CertificateTypeAuditing, nil
+	case "shentu.cert.v1alpha1.Proof", "Proof":
+		return CertificateTypeProof, nil
+	case "shentu.cert.v1alpha1.OracleOperator", "OracleOperator":
+		return CertificateTypeOracleOperator, nil
+	case "shentu.cert.v1alpha1.ShieldPoolCreator", "ShieldPoolCreator":
+		return CertificateTypeShieldPoolCreator, nil
+	case "shentu.cert.v1alpha1.Identity", "Identity":
+		return CertificateTypeIdentity, nil
+	case "shentu.cert.v1alpha1.General", "General":
+		return CertificateTypeGeneral, nil
+	case "shentu.cert.v1alpha1.BountyAdmin", "BountyAdmin":
+		return CertificateTypeBountyAdmin, nil
+	case "shentu.cert.v1alpha1.OpenMath", "OpenMath":
+		return CertificateTypeOpenMath, nil
+	default:
+		return CertificateTypeNil, ErrInvalidRequestContentType
 	}
-	return nil
-}
-
-// GetSigners defines whose signature is required.
-func (m MsgCertifyPlatform) GetSigners() []sdk.AccAddress {
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{certifierAddr}
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (m MsgCertifyPlatform) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(m.ValidatorPubkey, &pubKey)
 }

@@ -5,11 +5,11 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/shentufoundation/shentu/v2/x/cert/types"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 type msgServer struct {
@@ -24,8 +24,38 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) ProposeCertifier(_ context.Context, _ *types.MsgProposeCertifier) (*types.MsgProposeCertifierResponse, error) {
-	return &types.MsgProposeCertifierResponse{}, nil
+func (k msgServer) UpdateCertifier(goCtx context.Context, msg *types.MsgUpdateCertifier) (*types.MsgUpdateCertifierResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if k.Keeper.authority != msg.Authority {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "invalid authority; expected %s, got %s", k.Keeper.authority, msg.Authority)
+	}
+
+	operation, err := types.AddOrRemoveFromProto(msg.Operation)
+	if err != nil {
+		return nil, err
+	}
+
+	certifierAddr, err := sdk.AccAddressFromBech32(msg.Certifier)
+	if err != nil {
+		return nil, err
+	}
+
+	certifier := types.NewCertifier(certifierAddr, msg.Description)
+	if err := k.Keeper.UpdateCertifier(ctx, operation, certifier); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"update_certifier",
+			sdk.NewAttribute("operation", operation.String()),
+			sdk.NewAttribute("certifier", msg.Certifier),
+			sdk.NewAttribute("description", msg.Description),
+		),
+	)
+
+	return &types.MsgUpdateCertifierResponse{}, nil
 }
 
 func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCertificate) (*types.MsgIssueCertificateResponse, error) {
@@ -82,24 +112,4 @@ func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevoke
 	ctx.EventManager().EmitEvent(revokeEvent)
 
 	return &types.MsgRevokeCertificateResponse{}, nil
-}
-
-func (k msgServer) CertifyPlatform(goCtx context.Context, msg *types.MsgCertifyPlatform) (*types.MsgCertifyPlatformResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	valPubKey, ok := msg.ValidatorPubkey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", valPubKey)
-	}
-
-	certifierAddr, err := sdk.AccAddressFromBech32(msg.Certifier)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := k.Keeper.CertifyPlatform(ctx, certifierAddr, valPubKey, msg.Platform); err != nil {
-		return nil, err
-	}
-
-	return &types.MsgCertifyPlatformResponse{}, nil
 }

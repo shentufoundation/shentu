@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	"github.com/test-go/testify/require"
+
+	"cosmossdk.io/math"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )

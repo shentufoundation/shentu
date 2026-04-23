@@ -4,6 +4,7 @@ import (
 	"time"
 
 	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 func (s *IntegrationTestSuite) testBounty() {
@@ -45,10 +46,10 @@ func (s *IntegrationTestSuite) testBounty() {
 
 		// Issue admin certificate
 		certifierAcct, _ := c.certifier.keyInfo.GetAddress()
-		s.execIssueCertificate(c, valIdx, charlie.String(), "bountyadmin", "set bounty admin", certifierAcct.String(), feesAmountCoin, false)
+		s.execIssueCertificate(c, valIdx, charlie.String(), certtypes.BountyAdminCertificateTypeName, "set bounty admin", certifierAcct.String(), feesAmountCoin, false)
 		s.Require().Eventually(
 			func() bool {
-				ok, _ := queryCertificate(grpcEndpoint, charlie.String(), "bountyadmin")
+				ok, _ := queryCertificate(grpcEndpoint, charlie.String(), certtypes.BountyAdminCertificateTypeName)
 				return ok
 			},
 			20*time.Second,

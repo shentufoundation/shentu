@@ -37,7 +37,11 @@ message GenesisState {
   string constitution = 9;
   // params defines all the parameters of related to custom.
   CustomParams custom_params = 10;
-  // proposals that require and have passed cert votes.
-  repeated uint64 cert_voted_proposal_ids = 11;
+
+  // Field 11 (cert_voted_proposal_ids) tracked proposals that had
+  // cleared the certifier round under the two-round security-proposal
+  // model. The model is gone and the field must not be re-used.
+  reserved 11;
+  reserved "cert_voted_proposal_ids";
 }
 

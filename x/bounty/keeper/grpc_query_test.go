@@ -16,9 +16,7 @@ import (
 func (suite *KeeperTestSuite) TestGRPCQueryProgram() {
 	queryClient := suite.queryClient
 
-	var (
-		req *types.QueryProgramRequest
-	)
+	var req *types.QueryProgramRequest
 
 	testCases := []struct {
 		msg      string
@@ -76,9 +74,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryProgram() {
 func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 	queryClient := suite.queryClient
 
-	var (
-		req *types.QueryProgramsRequest
-	)
+	var req *types.QueryProgramsRequest
 
 	testCases := []struct {
 		msg      string
@@ -124,9 +120,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 	pid := uuid.NewString()
 	suite.InitCreateProgram(pid)
 	suite.InitActivateProgram(pid)
-	var (
-		req *types.QueryFindingRequest
-	)
+	var req *types.QueryFindingRequest
 
 	testCases := []struct {
 		msg      string
@@ -188,7 +182,6 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 			}
 		})
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestGRPCQueryFindings() {

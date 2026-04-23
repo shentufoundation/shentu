@@ -10,8 +10,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
@@ -27,7 +25,6 @@ func GetQueryCmd() *cobra.Command {
 	certQueryCmds.AddCommand(
 		GetCmdCertifier(),
 		GetCmdCertifiers(),
-		GetCmdPlatform(),
 		GetCmdCertificate(),
 		GetCmdCertificates(),
 	)
@@ -40,18 +37,14 @@ func GetCmdCertifier() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "certifier <address>",
 		Short: "Get certifier information",
-		Args:  cobra.RangeArgs(0, 1),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			var req types.QueryCertifierRequest
-			req.Alias = viper.GetString(FlagAlias)
-			if len(args) > 0 {
-				req.Address = args[0]
-			}
+			req := types.QueryCertifierRequest{Address: args[0]}
 
 			queryClient := types.NewQueryClient(cliCtx)
 			res, err := queryClient.Certifier(
@@ -66,7 +59,6 @@ func GetCmdCertifier() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagAlias, "", "use alias to query the certifier info")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
@@ -145,11 +137,17 @@ func GetCmdCertificates() *cobra.Command {
 				return err
 			}
 
+			certificateType, err := types.ParseCertificateType(viper.GetString(FlagCertType))
+			if err != nil {
+				return err
+			}
+
 			res, err := queryClient.Certificates(
 				cmd.Context(),
 				&types.QueryCertificatesRequest{
 					Certifier:       viper.GetString(FlagCertifier),
-					CertificateType: viper.GetString(FlagCertType),
+					CertificateType: certificateType,
+					Content:         viper.GetString(FlagContent),
 					Pagination:      pageReq,
 				})
 			if err != nil {
@@ -162,46 +160,8 @@ func GetCmdCertificates() *cobra.Command {
 
 	cmd.Flags().String(FlagCertifier, "", "certificates issued by certifier")
 	cmd.Flags().String(FlagCertType, "", "certificates by type")
+	cmd.Flags().String(FlagContent, "", "certificates by content")
 	flags.AddPaginationFlagsToCmd(cmd, "certificates")
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdPlatform returns the validator host platform certification query command.
-func GetCmdPlatform() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "platform <pubkey>",
-		Short: "Get validator host platform certification information",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(cliCtx)
-
-			var pk cryptotypes.PubKey
-			err = cliCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &pk)
-			if err != nil {
-				return err
-			}
-			var pkAny *codectypes.Any
-			if pk != nil {
-				var err error
-				if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
-					return err
-				}
-			}
-
-			res, err := queryClient.Platform(context.Background(), &types.QueryPlatformRequest{Pubkey: pkAny})
-			if err != nil {
-				return err
-			}
-
-			return cliCtx.PrintProto(res)
-		},
-	}
-
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

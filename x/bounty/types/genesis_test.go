@@ -21,7 +21,8 @@ func TestValidateGenesis(t *testing.T) {
 		args    args
 		errArgs errArgs
 	}{
-		{"genesis(1)  -> success",
+		{
+			"genesis(1)  -> success",
 			args{
 				dataGS: *DefaultGenesisState(),
 			},
@@ -46,7 +47,8 @@ func TestValidateGenesis(t *testing.T) {
 			},
 		},
 
-		{"genesis(3)  -> findingId error",
+		{
+			"genesis(3)  -> findingId error",
 			args{
 				dataGS: GenesisState{
 					Programs: []*Program{
@@ -65,7 +67,8 @@ func TestValidateGenesis(t *testing.T) {
 				shouldPass: false,
 			},
 		},
-		{"genesis(4)  -> invalid programId error",
+		{
+			"genesis(4)  -> invalid programId error",
 			args{
 				dataGS: GenesisState{
 					Programs: []*Program{

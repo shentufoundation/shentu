@@ -12,11 +12,7 @@ import (
 )
 
 const (
-	upgradeName = "v2.17.0"
-	// The following store keys are defined manually here because their respective modules
-	// have been removed from the app in v2.17.0.
-	crisisStoreKey     = "crisis"
-	capabilityStoreKey = "capability"
+	upgradeName = "v2.18.0"
 )
 
 func (app ShentuApp) setUpgradeHandler(_ codec.BinaryCodec) {
@@ -33,9 +29,7 @@ func (app ShentuApp) setUpgradeHandler(_ codec.BinaryCodec) {
 	}
 
 	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
-			Deleted: []string{crisisStoreKey, capabilityStoreKey},
-		}
+		storeUpgrades := storetypes.StoreUpgrades{}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))

@@ -1,170 +1,184 @@
 package simulation
 
-//
-//import (
-//	"math/rand"
-//
-//	"github.com/cosmos/cosmos-sdk/baseapp"
-//	"github.com/cosmos/cosmos-sdk/codec"
-//	sdk "github.com/cosmos/cosmos-sdk/types"
-//	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-//	"github.com/cosmos/cosmos-sdk/x/simulation"
-//
-//	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
-//	"github.com/shentufoundation/shentu/v2/x/cert/types"
-//)
-//
-//const (
-//	OpWeightMsgCertifyValidator = "op_weight_msg_certify_validator"
-//	OpWeightMsgCertifyPlatform  = "op_weight_msg_certify_platform"
-//	OpWeightMsgIssueCertificate = "op_weight_msg_issue_certificate"
-//)
-//
-//// Default simulation operation weights for messages.
-//const (
-//	DefaultWeightMsgCertify int = 20
-//)
-//
-//// WeightedOperations creates an operation (with weight) for each type of message generators.
-//func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, ak types.AccountKeeper,
-//	bk types.BankKeeper, k keeper.Keeper) simulation.WeightedOperations {
-//	//var weightMsgCertifyValidator int
-//	//appParams.GetOrGenerate(cdc, OpWeightMsgCertifyValidator, &weightMsgCertifyValidator, nil,
-//	//	func(_ *rand.Rand) {
-//	//		weightMsgCertifyValidator = simappparams.DefaultWeightMsgSend
-//	//	})
-//	//
-//	//var weightMsgCertifyPlatform int
-//	//appParams.GetOrGenerate(cdc, OpWeightMsgCertifyPlatform, &weightMsgCertifyPlatform, nil,
-//	//	func(_ *rand.Rand) {
-//	//		weightMsgCertifyPlatform = simappparams.DefaultWeightMsgSend
-//	//	})
-//	//
-//	//var weightMsgIssueCertificate int
-//	//appParams.GetOrGenerate(cdc, OpWeightMsgIssueCertificate, &weightMsgIssueCertificate, nil,
-//	//	func(_ *rand.Rand) {
-//	//		weightMsgIssueCertificate = simappparams.DefaultWeightMsgSend
-//	//	})
-//	//
-//	//return simulation.WeightedOperations{
-//	//	simulation.NewWeightedOperation(weightMsgCertifyPlatform, SimulateMsgCertifyPlatform(ak, bk, k)),
-//	//	simulation.NewWeightedOperation(weightMsgIssueCertificate, SimulateMsgIssueCertificates(ak, bk, k)),
-//	//}
-//	return nil
-//}
-//
-//// SimulateMsgCertifyPlatform generates a MsgCertifyPlatform object which fields contain
-//// a randomly chosen existing certifier, a randomized validator's PubKey and a random string description.
-//func SimulateMsgCertifyPlatform(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
-//	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
-//		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-//		//	certifiers := k.GetAllCertifiers(ctx)
-//		//	certifier := certifiers[r.Intn(len(certifiers))]
-//		//	certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
-//		//	if err != nil {
-//		//		panic(err)
-//		//	}
-//		//	var certifierAcc simtypes.Account
-//		//	for _, acc := range accs {
-//		//		if acc.Address.Equals(certifierAddr) {
-//		//			certifierAcc = acc
-//		//			break
-//		//		}
-//		//	}
-//		//	validator := simtypes.RandomAccounts(r, 1)[0]
-//		//	platform := simtypes.RandStringOfLength(r, 10)
-//		//
-//		//	msg, err := types.NewMsgCertifyPlatform(certifierAddr, validator.PubKey, platform)
-//		//	if err != nil {
-//		//		panic(err)
-//		//	}
-//		//
-//		//	account := ak.GetAccount(ctx, certifierAddr)
-//		//	fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
-//		//	if err != nil {
-//		//		return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCertifyPlatform, err.Error()), nil, err
-//		//	}
-//		//
-//		//	txGen := simappparams.MakeTestEncodingConfig().TxConfig
-//		//	tx, err := helpers.GenSignedMockTx(
-//		//		r,
-//		//		txGen,
-//		//		[]sdk.Msg{msg},
-//		//		fees,
-//		//		helpers.DefaultGenTxGas,
-//		//		chainID,
-//		//		[]uint64{account.GetAccountNumber()},
-//		//		[]uint64{account.GetSequence()},
-//		//		certifierAcc.PrivKey,
-//		//	)
-//		//	if err != nil {
-//		//		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-//		//	}
-//		//
-//		//	_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
-//		//	if err != nil {
-//		//		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-//		//	}
-//		//	return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
-//		return simtypes.NewOperationMsg(nil, true, "", nil), nil, nil
-//	}
-//
-//}
-//
-//// SimulateMsgIssueCertificates generates a MsgCertifyGeneral object which field values.
-//func SimulateMsgIssueCertificates(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
-//	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account,
-//		chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-//		//certifiers := k.GetAllCertifiers(ctx)
-//		//certifier := certifiers[r.Intn(len(certifiers))]
-//		//certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
-//		//if err != nil {
-//		//	panic(err)
-//		//}
-//		//var certifierAcc simtypes.Account
-//		//for _, acc := range accs {
-//		//	if acc.Address.Equals(certifierAddr) {
-//		//		certifierAcc = acc
-//		//		break
-//		//	}
-//		//}
-//		//
-//		//certType := types.CertificateType_name[r.Int31n(7)+1]
-//		//contentStr := simtypes.RandStringOfLength(r, 20)
-//		//compiler := simtypes.RandStringOfLength(r, 5)
-//		//bytecodeHash := simtypes.RandStringOfLength(r, 20)
-//		//description := simtypes.RandStringOfLength(r, 10)
-//		//
-//		//content := types.AssembleContent(certType, contentStr)
-//		//msg := types.NewMsgIssueCertificate(content, compiler, bytecodeHash, description, certifierAddr)
-//		//
-//		//account := ak.GetAccount(ctx, certifierAddr)
-//		//fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
-//		//if err != nil {
-//		//	return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-//		//}
-//		//
-//		//txGen := simappparams.MakeTestEncodingConfig().TxConfig
-//		//tx, err := helpers.GenSignedMockTx(
-//		//	r,
-//		//	txGen,
-//		//	[]sdk.Msg{msg},
-//		//	fees,
-//		//	helpers.DefaultGenTxGas,
-//		//	chainID,
-//		//	[]uint64{account.GetAccountNumber()},
-//		//	[]uint64{account.GetSequence()},
-//		//	certifierAcc.PrivKey,
-//		//)
-//		//if err != nil {
-//		//	return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-//		//}
-//		//
-//		//_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
-//		//if err != nil {
-//		//	return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-//		//}
-//		//return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
-//		return simtypes.NewOperationMsg(nil, true, "", nil), nil, nil
-//	}
-//}
+import (
+	"math/rand"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	simutil "github.com/shentufoundation/shentu/v2/x/auth/simulation"
+	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
+)
+
+const (
+	OpWeightMsgIssueCertificate  = "op_weight_msg_issue_certificate"
+	OpWeightMsgRevokeCertificate = "op_weight_msg_revoke_certificate"
+
+	DefaultWeightMsgIssueCertificate  = 30
+	DefaultWeightMsgRevokeCertificate = 15
+)
+
+// WeightedOperations returns all the operations from the module with their respective weights.
+func WeightedOperations(
+	appParams simtypes.AppParams,
+	_ codec.JSONCodec,
+	ak types.AccountKeeper,
+	bk types.BankKeeper,
+	k keeper.Keeper,
+) simulation.WeightedOperations {
+	var weightMsgIssue, weightMsgRevoke int
+
+	appParams.GetOrGenerate(OpWeightMsgIssueCertificate, &weightMsgIssue, nil,
+		func(_ *rand.Rand) { weightMsgIssue = DefaultWeightMsgIssueCertificate },
+	)
+	appParams.GetOrGenerate(OpWeightMsgRevokeCertificate, &weightMsgRevoke, nil,
+		func(_ *rand.Rand) { weightMsgRevoke = DefaultWeightMsgRevokeCertificate },
+	)
+
+	return simulation.WeightedOperations{
+		simulation.NewWeightedOperation(weightMsgIssue, SimulateMsgIssueCertificate(ak, bk, k)),
+		simulation.NewWeightedOperation(weightMsgRevoke, SimulateMsgRevokeCertificate(ak, bk, k)),
+	}
+}
+
+// SimulateMsgIssueCertificate generates a MsgIssueCertificate with random fields.
+func SimulateMsgIssueCertificate(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
+		accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		msgType := sdk.MsgTypeURL(&types.MsgIssueCertificate{})
+
+		certifiers := k.GetAllCertifiers(ctx)
+		if len(certifiers) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, "no certifiers"), nil, nil
+		}
+
+		// Pick a random certifier and find the matching sim account.
+		certifier := certifiers[r.Intn(len(certifiers))]
+		certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, "invalid certifier address"), nil, nil
+		}
+
+		var simAccount simtypes.Account
+		var found bool
+		for _, acc := range accs {
+			if acc.Address.Equals(certifierAddr) {
+				simAccount = acc
+				found = true
+				break
+			}
+		}
+		if !found {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, "certifier not in sim accounts"), nil, nil
+		}
+
+		// Build the certificate message.
+		certType := randCertificateType(r)
+		contentStr := simtypes.RandStringOfLength(r, 20)
+		content := types.AssembleContent(certType, contentStr)
+		description := simtypes.RandStringOfLength(r, 10)
+
+		msg := types.NewMsgIssueCertificate(content, "", "", description, certifierAddr)
+
+		account := ak.GetAccount(ctx, certifierAddr)
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, err.Error()), nil, err
+		}
+
+		txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
+		tx, err := simtestutil.GenSignedMockTx(
+			r, txGen, []sdk.Msg{msg}, fees, simtestutil.DefaultGenTxGas, chainID,
+			[]uint64{account.GetAccountNumber()}, []uint64{account.GetSequence()},
+			simAccount.PrivKey,
+		)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, err.Error()), nil, err
+		}
+
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, err.Error()), nil, err
+		}
+
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+// SimulateMsgRevokeCertificate generates a MsgRevokeCertificate for a random existing certificate.
+func SimulateMsgRevokeCertificate(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
+		accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		msgType := sdk.MsgTypeURL(&types.MsgRevokeCertificate{})
+
+		certs := k.GetAllCertificates(ctx)
+		if len(certs) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, "no certificates to revoke"), nil, nil
+		}
+
+		// Pick a random certificate.
+		cert := certs[r.Intn(len(certs))]
+
+		// Use a current certifier as the revoker, not the original issuer.
+		// The issuer may have been removed by a governance proposal, but any
+		// active certifier is allowed to revoke.
+		certifiers := k.GetAllCertifiers(ctx)
+		if len(certifiers) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, "no certifiers"), nil, nil
+		}
+		revoker := certifiers[r.Intn(len(certifiers))]
+		revokerAddr, err := sdk.AccAddressFromBech32(revoker.Address)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, "invalid certifier address"), nil, nil
+		}
+
+		var simAccount simtypes.Account
+		var found bool
+		for _, acc := range accs {
+			if acc.Address.Equals(revokerAddr) {
+				simAccount = acc
+				found = true
+				break
+			}
+		}
+		if !found {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, "certifier not in sim accounts"), nil, nil
+		}
+
+		description := simtypes.RandStringOfLength(r, 10)
+		msg := types.NewMsgRevokeCertificate(revokerAddr, cert.CertificateId, description)
+
+		account := ak.GetAccount(ctx, revokerAddr)
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, err.Error()), nil, err
+		}
+
+		txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
+		tx, err := simtestutil.GenSignedMockTx(
+			r, txGen, []sdk.Msg{msg}, fees, simtestutil.DefaultGenTxGas, chainID,
+			[]uint64{account.GetAccountNumber()}, []uint64{account.GetSequence()},
+			simAccount.PrivKey,
+		)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, err.Error()), nil, err
+		}
+
+		_, _, err = app.SimDeliver(txGen.TxEncoder(), tx)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msgType, err.Error()), nil, err
+		}
+
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}

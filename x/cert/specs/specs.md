@@ -1,174 +1,180 @@
 # Cert
 
-The `cert` module handles most of the certifier-related logic, include adding and removing certifiers, certifying validators, and issuing certificates.
+The `cert` module is responsible for two domain concepts:
 
-Certifiers are chain users that are responsible for overseeing the chain's security. Shentu Chain has two governing bodies that make decisions for the chain. First, validators are chain users that stake tokens as part of Shentu Chain's Delegated Proof-of-Stake consensus protocol. A validator's voting is proportional to their amount staked. Second, certifiers are responsible for security-related votes. Each certifier gets one equally-weighted vote. That being said, many of the actions that certifiers are privileged to take (see [Messages](#messages) below) do not require a voting process.
+- `certifier`: a governance-controlled roster of privileged security reviewers
+- `certificate`: an on-chain record issued by a certifier
+
+Validator certification, platform certification, and library registration have been removed. The module scope is now limited to `certifier` and `certificate`.
+
+## Domain Boundary
+
+### Certifiers
+
+`Certifier` is a permission roster, not a parameter set.
+
+It exists as module state because:
+
+- other modules depend on `IsCertifier`
+- certifiers are governance-controlled actors, not runtime config
+- the roster may carry governance metadata and lifecycle checks
+
+The certifier model:
+
+```go
+type Certifier struct {
+    Address     string `json:"address"`
+    Proposer    string `json:"proposer"`
+    Description string `json:"description"`
+}
+```
+
+Notes:
+
+- `alias` has been removed from the certifier model
+- certifier identity is address-based only
+- any human-friendly labeling should be handled off-chain or as optional non-indexed metadata later
+
+### Certificates
+
+`Certificate` is the core business object of the module.
+
+The current `Any`-based content model is preserved. A follow-up patch may simplify it later.
 
 ## State
 
 ### Certificates
 
-A `Certificate` can be stored on-chain to signify that a smart contract has been audited or formally verified.
+Certificates are stored by ID as the canonical primary record.
 
-- Certificate: `0x5 | LittleEndian(CertificateId) -> amino(certificate)`
-- NextCertificateID: `0x8 -> NextCertificateID`
+- Certificate: `0x5 | LittleEndian(CertificateId) -> ProtoBuf(Certificate)`
+- NextCertificateID: `0x8 -> uint64`
 
-```go
-type Certificate struct {
-    CertificateId      uint64               `json:"certificate_id"`
-    Content            *types.Any           `json:"content"`
-    CompilationContent *CompilationContent  `json:"compilation_content"`
-    Description        string               `json:"description"`
-    Certifier          string               `json:"certifier"`
-}
-```
+### Certificate Secondary Indexes
 
-There are currently seven types of supported certificates:
+Five secondary indexes eliminate full-store scans for common reads. Each index key stores a sentinel value (`[]byte{0x1}`); the certificate ID is embedded in the key for extraction during iteration.
 
-- `Compilation`
-- `Auditing`
-- `Proof`
-- `OracleOperator`
-- `ShieldPoolCreator`
-- `Identity`
-- `General`
+| Prefix | Key Layout | Purpose |
+|--------|-----------|---------|
+| `0x10` | `[0x10][20B certifier_addr][8B cert_id_BE]` | Lookup by certifier |
+| `0x11` | `[0x11][1B cert_type][8B cert_id_BE]` | Lookup by certificate type |
+| `0x12` | `[0x12][20B certifier_addr][1B cert_type][8B cert_id_BE]` | Lookup by certifier + type |
+| `0x13` | `[0x13][32B content_sha256][8B cert_id_BE]` | Lookup by content hash |
+| `0x14` | `[0x14][1B cert_type][32B content_sha256][8B cert_id_BE]` | Lookup by type + content hash |
 
-In addition to `CertificateId`, all certificates can be looked up by their `Certifier` and `Content`. Certificate types are determined by parsing the content string, in which contents are assembled into `Content` struct instances of their respective types.
+These indexes support:
 
-```go
-// Content is the interface for all kinds of certificate content.
-type Content interface {
-    proto.Message
+- `GetCertificatesFiltered` (paginated certificate list queries)
+- `GetCertificatesByCertifier`
+- `IsCertified` (type + content hash prefix scan)
+- `IsContentCertified` (content hash prefix scan)
+- `IsBountyAdmin` (type + content hash prefix scan)
 
-    GetContent() string
-}
-```
-
-In addition to the source code, additional information, such as compiler version and optimization settings, needs to be provided by the certifier. `CompilationContent` contains the compilation info for a smart contract in need of certification.
-
-```go
-type CompilationContent struct {
-    Compiler        string
-    BytecodeHash    string
-}
-```
+Index consistency is maintained by `writeCertificateIndexes` and `deleteCertificateIndexes`, called from `SetCertificate`, `DeleteCertificate`, and the v2→v3 migration.
 
 ### Certifiers
 
-`Certifier` objects keep track of a certifier's information, including the certifier's alias and who proposed to add the certifier.
+Certifiers are stored as dedicated module state.
 
-- Certifier: `0x0 | Address -> amino(certifier)`
-- CertifierByAlias: `0x7 | Alias -> amino(certifier)`
+- Certifier: `0x0 | Address -> LengthPrefixed(Certifier)`
 
-```go
-type Certifier struct {
-    Address     string  `json:"certifier"`
-    Alias       string  `json:"alias"`
-    Proposer    string  `json:"proposer"`
-    Description string  `json:"description"`
-}
-```
+The alias index (prefix `0x7`) has been removed.
 
-### Validators
+### Removed Prefixes
 
-A `Validator` is a validator node, which can be certified by an existing certifier. When de-certified, the validator will then be unbonded, which prevents it from signing blocks or earning rewards.
+The following store prefixes have been removed and are deleted during the v2→v3 migration:
 
-- Validator: `0x1 | Pubkey -> amino(validator)`
+| Prefix | Former Purpose |
+|--------|---------------|
+| `0x1` | Validator certifications |
+| `0x2` | Platform certifications |
+| `0x6` | Library registrations |
+| `0x7` | Certifier alias index |
 
-```go
-type Validator struct {
-    Pubkey    *types.Any `json:"pubkey"`
-    Certifier string     `json:"certifier"`
-}
-```
+## Governance And Mutation Model
 
-### Platforms
+### Certifier updates
 
-`Platform` objects are validators' host platforms that can be certified.
+Adding or removing certifiers is governance-authorized through a single execution path.
 
-- Platform: `0x2 | ValidatorPubkey -> amino(platform)`
+`MsgUpdateCertifier` is an authority-gated message executed only by the governance authority after proposal passage. The previous `MsgProposeCertifier` flow has been removed.
 
-```go
-type Platform struct {
-    ValidatorPubkey *types.Any  `json:"validator_pubkey"`
-    Description     string      `json:"description"`
-}
-```
+Execution flow:
 
-### Libraries
+1. a user submits a governance proposal
+2. the proposal contains `MsgUpdateCertifier`
+3. governance passes the proposal
+4. the governance module executes `MsgUpdateCertifier` using module authority
+5. `cert` keeper applies the certifier roster change
 
-A `Library` object can be certified as well. It stores the library address and its publisher.
+That path owns:
 
-- Library: `0x6 | Address -> amino(library)`
+- add certifier
+- remove certifier
+- validation of uniqueness and minimum-roster safety
 
-```go
-type Library struct {
-    Address     string  `json:"address"`
-    Publisher   string  `json:"publisher"`
-}
-```
+### Certificate updates
+
+Certificate mutation is message-driven:
+
+- `MsgIssueCertificate`
+- `MsgRevokeCertificate`
+
+Both paths maintain secondary index consistency.
+
+## Queries
+
+The module exposes:
+
+- query certifier by address
+- query all certifiers
+- query certificate by ID
+- query certificates with indexed filtering (by certifier, type, or both)
+
+The certifier query-by-alias path has been removed together with `alias`.
+
+The platform query has been removed together with `platform`.
+
+### Query Behavior
+
+- `GetCertificatesFiltered` chooses the narrowest index prefix based on filter params
+- `total` returns the true count of all matching records, not page size
+- pagination operates directly on the index iterator
 
 ## Messages
 
-`MsgProposeCertifier` must be proposed by a current certifier. It is first handled by the governance module for voting.
+Public message surface:
 
-```go
-type MsgProposeCertifier struct {
-    Proposer    string  `json:"proposer" yaml:"proposer"`
-    Alias       string  `json:"alias" yaml:"alias"`
-    Certifier   string  `json:"certifier" yaml:"certifier"`
-    Description string  `json:"description" yaml:"description"`
-}
-```
+- `MsgUpdateCertifier` (governance-authorized certifier add/remove)
+- `MsgIssueCertificate`
+- `MsgRevokeCertificate`
 
-`MsgCertifyValidator` and `MsgDecertifyValidator` certifies and de-certifies a validator, respectively.
+Removed messages:
 
-```go
-type MsgCertifyValidator struct {
-    Certifier   string      `json:"certifier" yaml:"certifier"`
-    Pubkey      *types.Any  `json:"pubkey"`
-}
-```
+- `MsgProposeCertifier` (removed; was a no-op)
+- `MsgCertifyPlatform` (fully removed from proto service and generated code)
 
-```go
-type MsgDecertifyValidator struct {
-    Decertifier string      `json:"decertifier" yaml:"decertifier"`
-    Pubkey      *types.Any  `json:"pubkey"`
-}
-```
+## Migration
 
-`MsgIssueCertificate` issues a certificate. It fails when the given certifier does not exist.
+### v2 → v3 (consensus version 3)
 
-```go
-type MsgIssueCertificate struct {
-    Content         *types.Any  `json:"content"`
-    Compiler        string      `json:"compiler" yaml:"compiler"`
-    BytecodeHash    string      `json:"bytecode_hash" yaml:"bytecodehash"`
-    Description     string      `json:"description" yaml:"description"`
-    Certifier       string      `json:"certifier" yaml:"certifier"`
-}
-```
+The module migration `Migrate2to3` performs:
 
-`MsgRevokeCertificate` removes a certificate from the store.
+1. Rebuilds all five secondary certificate indexes from existing primary certificate records
+2. Deletes obsolete validator store entries (prefix `0x1`)
+3. Deletes obsolete platform store entries (prefix `0x2`)
+4. Deletes obsolete library store entries (prefix `0x6`)
+5. Deletes obsolete certifier alias index entries (prefix `0x7`)
 
-```go
-type MsgRevokeCertificate struct {
-    Revoker     string  `json:"revoker" yaml:"revoker"`
-    Id          uint64  `json:"id" yaml:"id"`
-    Description string  `json:"description" yaml:"description"`
-}
-```
-
-`MsgCertifyPlatform` certifies a validator's host platform.
-
-```go
-type MsgCertifyPlatform struct {
-    Certifier       string     `json:"certifier" yaml:"certifier"`
-    ValidatorPubkey *types.Any `json:"validator_pubkey"`
-    Platform        string     `json:"platform" yaml:"platform"`
-}
-```
+All deletions tolerate already-empty prefixes.
 
 ## Parameters
 
-There are currently no parameters specific to the `cert` module.
+There are no parameters specific to the `cert` module.
+
+`certifier` must not be moved into params. It is governance-controlled state, not module configuration.
+
+## Deferred Items
+
+- Refresh generated docs/swagger (requires tooling)
+- Evaluate certificate content model simplification (follow-up patch)

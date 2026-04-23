@@ -7,11 +7,9 @@ import (
 )
 
 // NewCertifier returns a new certifier.
-func NewCertifier(address sdk.AccAddress, alias string, proposer sdk.AccAddress, description string) Certifier {
+func NewCertifier(address sdk.AccAddress, description string) Certifier {
 	return Certifier{
 		Address:     address.String(),
-		Alias:       alias,
-		Proposer:    proposer.String(),
 		Description: description,
 	}
 }

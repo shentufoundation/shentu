@@ -45,7 +45,7 @@ func (k Keeper) IterateAllWithdraws(ctx context.Context, callback func(withdraw 
 func (k Keeper) IterateMatureWithdraws(ctx context.Context, callback func(withdraw types.Withdraw) (stop bool)) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, uint64(sdkCtx.BlockHeight()))
+	binary.LittleEndian.PutUint64(b, uint64(sdkCtx.BlockHeight())) //nolint:gosec // BlockHeight is non-negative
 
 	store := k.storeService.OpenKVStore(ctx)
 	iterator, _ := store.Iterator(types.WithdrawStoreKeyPrefix,

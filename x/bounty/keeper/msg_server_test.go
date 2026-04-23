@@ -5,11 +5,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/google/uuid"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -30,7 +32,8 @@ func (suite *KeeperTestSuite) TestCreateProgram() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Program(1)  -> Set: Simple",
+		{
+			"Program(1)  -> Set: Simple",
 			args{
 				msgCreatePrograms: []types.MsgCreateProgram{
 					{
@@ -835,11 +838,12 @@ func (suite *KeeperTestSuite) TestCreateTheorem() {
 		{
 			"valid request",
 			&types.MsgCreateTheorem{
-				Title:        "Test Theorem",
-				Description:  "A test theorem description",
-				Code:         "function example() { return true; }",
-				InitialGrant: sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(1e6))),
-				Proposer:     suite.programAddr.String(),
+				Title:               "Test Theorem",
+				Description:         "A test theorem description",
+				Code:                "function example() { return true; }",
+				InitialGrant:        sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(1e6))),
+				Proposer:            suite.programAddr.String(),
+				RequireOpenmathCert: true,
 			},
 			true,
 		},
@@ -871,6 +875,7 @@ func (suite *KeeperTestSuite) TestCreateTheorem() {
 			suite.Require().Equal(testCase.req.Code, theorem.Code)
 			suite.Require().Equal(types.TheoremStatus_THEOREM_STATUS_PROOF_PERIOD, theorem.Status)
 			suite.Require().Equal(testCase.req.Proposer, theorem.Proposer)
+			suite.Require().Equal(testCase.req.RequireOpenmathCert, theorem.RequireOpenmathCert)
 
 			// Verify grant was created
 			grant, err := suite.keeper.Grants.Get(suite.ctx, collections.Join(resp.TheoremId, sdk.MustAccAddressFromBech32(testCase.req.Proposer)))
@@ -1074,16 +1079,21 @@ func (suite *KeeperTestSuite) TestGrant() {
 
 // Helper function to create a theorem for testing
 func (suite *KeeperTestSuite) InitCreateTheorem() uint64 {
+	return suite.InitCreateTheoremWithOpenMathRequirement(false)
+}
+
+func (suite *KeeperTestSuite) InitCreateTheoremWithOpenMathRequirement(requireOpenMathCert bool) uint64 {
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	bondDenom, err := suite.app.StakingKeeper.BondDenom(suite.ctx)
 	suite.Require().NoError(err)
 
 	createReq := &types.MsgCreateTheorem{
-		Title:        "Test Theorem",
-		Description:  "A test theorem description",
-		Code:         "function test() { return true; }",
-		InitialGrant: sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(1e6))),
-		Proposer:     suite.programAddr.String(),
+		Title:               "Test Theorem",
+		Description:         "A test theorem description",
+		Code:                "function test() { return true; }",
+		InitialGrant:        sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(1e6))),
+		Proposer:            suite.programAddr.String(),
+		RequireOpenmathCert: requireOpenMathCert,
 	}
 
 	resp, err := suite.msgServer.CreateTheorem(ctx, createReq)
@@ -1216,6 +1226,29 @@ func (suite *KeeperTestSuite) TestSubmitProofHash() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestSubmitProofHash_OpenMathCertificateRequired() {
+	theoremID := suite.InitCreateTheoremWithOpenMathRequirement(true)
+	bondDenom, err := suite.app.StakingKeeper.BondDenom(suite.ctx)
+	suite.Require().NoError(err)
+
+	detail := "openmath restricted proof detail"
+	proofHash := suite.app.BountyKeeper.GetProofHash(theoremID, suite.whiteHatAddr.String(), detail)
+	req := &types.MsgSubmitProofHash{
+		TheoremId: theoremID,
+		Prover:    suite.whiteHatAddr.String(),
+		ProofHash: proofHash,
+		Deposit:   sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(500000))),
+	}
+
+	_, err = suite.msgServer.SubmitProofHash(sdk.WrapSDKContext(suite.ctx), req)
+	suite.Require().ErrorIs(err, types.ErrProofOpenMathCertNeeded)
+
+	suite.issueOpenMathCertificate(suite.whiteHatAddr)
+
+	_, err = suite.msgServer.SubmitProofHash(sdk.WrapSDKContext(suite.ctx), req)
+	suite.Require().NoError(err)
+}
+
 // TestSubmitProofDetail tests the SubmitProofDetail message handler
 func (suite *KeeperTestSuite) TestSubmitProofDetail() {
 	// Create a theorem and submit a proof hash
@@ -1312,6 +1345,41 @@ func (suite *KeeperTestSuite) TestSubmitProofDetail() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestSubmitProofDetail_OpenMathCertificateRequired() {
+	theoremID := suite.InitCreateTheoremWithOpenMathRequirement(true)
+	detail := "detail requires certified prover"
+	proofHash := suite.app.BountyKeeper.GetProofHash(theoremID, suite.whiteHatAddr.String(), detail)
+
+	proof := types.NewProof(
+		theoremID,
+		proofHash,
+		suite.whiteHatAddr.String(),
+		suite.ctx.BlockHeader().Time,
+		suite.ctx.BlockHeader().Time.Add(5*time.Minute),
+		sdk.NewCoins(),
+	)
+	err := suite.keeper.Proofs.Set(suite.ctx, proof.Id, proof)
+	suite.Require().NoError(err)
+	err = suite.keeper.ProofsByTheorem.Set(suite.ctx, collections.Join(theoremID, proof.Id), []byte{})
+	suite.Require().NoError(err)
+	err = suite.keeper.ActiveProofsQueue.Set(suite.ctx, collections.Join(*proof.EndTime, proof.Id), proof)
+	suite.Require().NoError(err)
+
+	req := &types.MsgSubmitProofDetail{
+		ProofId: proofHash,
+		Prover:  suite.whiteHatAddr.String(),
+		Detail:  detail,
+	}
+
+	_, err = suite.msgServer.SubmitProofDetail(sdk.WrapSDKContext(suite.ctx), req)
+	suite.Require().ErrorIs(err, types.ErrProofOpenMathCertNeeded)
+
+	suite.issueOpenMathCertificate(suite.whiteHatAddr)
+
+	_, err = suite.msgServer.SubmitProofDetail(sdk.WrapSDKContext(suite.ctx), req)
+	suite.Require().NoError(err)
 }
 
 // Helper function to initialize proof hash submission

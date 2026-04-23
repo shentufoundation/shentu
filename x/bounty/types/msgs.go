@@ -108,13 +108,14 @@ func NewMsgPublishFinding(fid, desc, poc string, operator sdk.AccAddress) *MsgPu
 	}
 }
 
-func NewMsgCreateTheorem(title, desc, code, proposer string, initialGrant sdk.Coins) *MsgCreateTheorem {
+func NewMsgCreateTheorem(title, desc, code, proposer string, initialGrant sdk.Coins, requireOpenMathCert bool) *MsgCreateTheorem {
 	return &MsgCreateTheorem{
-		Title:        title,
-		Description:  desc,
-		Code:         code,
-		InitialGrant: initialGrant,
-		Proposer:     proposer,
+		Title:               title,
+		Description:         desc,
+		Code:                code,
+		InitialGrant:        initialGrant,
+		Proposer:            proposer,
+		RequireOpenmathCert: requireOpenMathCert,
 	}
 }
 

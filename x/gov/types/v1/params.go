@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -18,7 +17,6 @@ const ParamCustom = "custom"
 // parameter store keys
 var (
 	ParamStoreKeyCustomParams = []byte("customparams")
-	CertVotesKeyPrefix        = []byte("certvote")
 )
 
 // ParamKeyTable is the key declaration for parameters.
@@ -97,9 +95,6 @@ func validateCustomParams(i interface{}) error {
 	if err := validateTallyParams(*v.CertifierUpdateSecurityVoteTally); err != nil {
 		return err
 	}
-	if err := validateTallyParams(*v.CertifierUpdateStakeVoteTally); err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -157,11 +152,6 @@ func validateVotingParams(i interface{}) error {
 	}
 
 	return nil
-}
-
-// CertVotesKey gets the first part of the cert votes key based on the proposalID
-func CertVotesKey(proposalID uint64) []byte {
-	return append(CertVotesKeyPrefix, GetProposalIDBytes(proposalID)...)
 }
 
 // GetProposalIDBytes returns the byte representation of the proposalID

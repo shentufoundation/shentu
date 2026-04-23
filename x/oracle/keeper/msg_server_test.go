@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -40,11 +41,11 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	RespondToTxTask(ctx, txHash, 90, addrs[0], true)
 	ctx = PassBlocks(ctx, ok, t, 10, 0)
 	RespondToTxTask(ctx, txHash, 80, addrs[1], true)
-	//Duplicate submission
+	// Duplicate submission
 	RespondToTxTask(ctx, txHash, 8, addrs[1], false)
 
 	ctx = PassBlocks(ctx, ok, t, 709, 0)
-	ctx = PassBlocks(ctx, ok, t, 1, 1)                    //after one hour, the txtask should become invalid
+	ctx = PassBlocks(ctx, ok, t, 1, 1)                    // after one hour, the txtask should become invalid
 	CheckTask(ctx, txHash, types.TaskStatusSucceeded, 85) // 85=(80+90)/2
 
 	ctx = PassBlocks(ctx, ok, t, 22, 0)
@@ -82,12 +83,12 @@ func TestMsgServer_pending(t *testing.T) {
 	ctx = PassBlocks(ctx, ok, t, 3, 1)
 	CheckTask(ctx, txHash, types.TaskStatusSucceeded, 78)
 
-	//be noted the expiration time is counted from TxTaskResponse
-	//the expirationDuration is one day. i.e. 86400 seconds
-	//17280=86400/5
+	// be noted the expiration time is counted from TxTaskResponse
+	// the expirationDuration is one day. i.e. 86400 seconds
+	// 17280=86400/5
 	ctx = PassBlocks(ctx, ok, t, 17280-9, 0)
 	require.Len(t, ok.GetAllTasks(ctx), 1)
-	//after passing one day, the txtask should be deleted
+	// after passing one day, the txtask should be deleted
 	ctx = PassBlocks(ctx, ok, t, 1, 0)
 	require.Len(t, ok.GetAllTasks(ctx), 0)
 }
@@ -120,12 +121,12 @@ func TestMsgServer_shortcut(t *testing.T) {
 	RespondToTxTask(ctx, txHash, 42, addrs[2], false)
 	ctx = PassBlocks(ctx, ok, t, 0, 0)
 	ctx = PassBlocks(ctx, ok, t, 1, 0)
-	RespondToTxTask(ctx, txHash, 78, addrs[0], false) //task closed
+	RespondToTxTask(ctx, txHash, 78, addrs[0], false) // task closed
 
 	txBytes, txHash = GetBytesHash("the second tx")
 
 	RespondToTxTask(ctx, txHash, 78, addrs[0], true)
-	RespondToTxTask(ctx, txHash, 78, addrs[0], false) //same operator
+	RespondToTxTask(ctx, txHash, 78, addrs[0], false) // same operator
 	RespondToTxTask(ctx, txHash, 78, addrs[1], true)
 	RespondToTxTask(ctx, txHash, 78, addrs[2], true)
 	ctx = PassBlocks(ctx, ok, t, 0, 0)
@@ -134,7 +135,7 @@ func TestMsgServer_shortcut(t *testing.T) {
 
 	ctx = PassBlocks(ctx, ok, t, 0, 1)
 	CheckTask(ctx, txHash, types.TaskStatusSucceeded, 78)
-	_ = PassBlocks(ctx, ok, t, 6, 0) //the two task should already be removed from closingTaskIDs
+	_ = PassBlocks(ctx, ok, t, 6, 0) // the two task should already be removed from closingTaskIDs
 }
 
 func PassBlocks(ctx sdk.Context, ok keeper.Keeper, t require.TestingT, n int64, m int) sdk.Context {
@@ -160,7 +161,7 @@ func DepositCollateral(ctx sdk.Context, ok keeper.Keeper, ck certkeeper.Keeper, 
 	t := ctx.Value("t").(*testing.T)
 	params := ok.GetLockedPoolParams(ctx)
 	collateral := sdk.Coins{sdk.NewInt64Coin("stake", params.MinimumCollateral)}
-	ck.SetCertifier(ctx, certtypes.NewCertifier(addr, "", addr, ""))
+	ck.SetCertifier(ctx, certtypes.NewCertifier(addr, ""))
 	require.NoError(t, ok.CreateOperator(ctx, addr, collateral, addr, "operator0"))
 }
 

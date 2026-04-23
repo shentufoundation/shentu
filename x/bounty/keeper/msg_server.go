@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"strings"
 
-	"cosmossdk.io/collections"
-	"cosmossdk.io/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"cosmossdk.io/collections"
+	"cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -652,7 +653,16 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 		return nil, err
 	}
 
-	theorem := types.NewTheorem(theoremID, proposer, msg.Title, msg.Description, msg.Code, submitTime, endTime)
+	theorem := types.NewTheorem(
+		theoremID,
+		proposer,
+		msg.Title,
+		msg.Description,
+		msg.Code,
+		msg.RequireOpenmathCert,
+		submitTime,
+		endTime,
+	)
 
 	if err = k.Theorems.Set(ctx, theorem.Id, theorem); err != nil {
 		return nil, err
@@ -668,6 +678,8 @@ func (k msgServer) CreateTheorem(goCtx context.Context, msg *types.MsgCreateTheo
 		sdk.NewEvent(types.EventTypeCreateTheorem,
 			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
 			sdk.NewAttribute(types.AttributeKeyProposer, msg.Proposer),
+			sdk.NewAttribute(types.AttributeKeyInitialGrant, sdk.NewCoins(msg.InitialGrant...).String()),
+			sdk.NewAttribute(types.AttributeKeyRequireOpenmathCert, fmt.Sprintf("%t", msg.RequireOpenmathCert)),
 		),
 	)
 
@@ -730,6 +742,9 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 	if err != nil {
 		return nil, err
 	}
+	if err = k.requireOpenMathCertificate(ctx, *theorem, proposer); err != nil {
+		return nil, err
+	}
 
 	// check if there are any proofs in hash lock or detail period for this theorem
 	hasActiveProof, activeProofID, err := k.Keeper.HasActiveProofs(ctx, msg.TheoremId)
@@ -773,8 +788,10 @@ func (k msgServer) SubmitProofHash(goCtx context.Context, msg *types.MsgSubmitPr
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeSubmitProofHash,
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", msg.TheoremId)),
 			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
-			sdk.NewAttribute(types.AttributeKeyProposer, msg.Prover),
+			sdk.NewAttribute(types.AttributeKeyProver, msg.Prover),
+			sdk.NewAttribute(types.AttributeKeyDeposit, sdk.NewCoins(msg.Deposit...).String()),
 		),
 	)
 
@@ -811,6 +828,18 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 		)
 	}
 
+	theorem, err := k.Theorems.Get(ctx, proof.TheoremId)
+	if err != nil {
+		return nil, err
+	}
+	proverAddr, err := k.validateAddress(msg.Prover)
+	if err != nil {
+		return nil, err
+	}
+	if err = k.requireOpenMathCertificate(ctx, theorem, proverAddr); err != nil {
+		return nil, err
+	}
+
 	// Verify the hash matches
 	hash := k.GetProofHash(proof.TheoremId, msg.Prover, msg.Detail)
 	if proof.Id != hash {
@@ -835,8 +864,9 @@ func (k msgServer) SubmitProofDetail(goCtx context.Context, msg *types.MsgSubmit
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSubmitProofDetail,
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
 			sdk.NewAttribute(types.AttributeKeyProofID, msg.ProofId),
-			sdk.NewAttribute(types.AttributeKeyProposer, msg.Prover),
+			sdk.NewAttribute(types.AttributeKeyProver, msg.Prover),
 		),
 	)
 
@@ -888,7 +918,9 @@ func (k msgServer) SubmitProofVerification(goCtx context.Context, msg *types.Msg
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSubmitProofVerification,
+			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
 			sdk.NewAttribute(types.AttributeKeyProofID, msg.ProofId),
+			sdk.NewAttribute(types.AttributeKeyProver, proof.Prover),
 			sdk.NewAttribute(types.AttributeKeyChecker, msg.Checker),
 			sdk.NewAttribute(types.AttributeKeyProofStatus, msg.Status.String()),
 		),
@@ -1086,6 +1118,16 @@ func (k msgServer) validateTheoremStatus(ctx sdk.Context, theoremID uint64) (*ty
 	return &theorem, nil
 }
 
+func (k msgServer) requireOpenMathCertificate(ctx sdk.Context, theorem types.Theorem, prover sdk.AccAddress) error {
+	if !theorem.RequireOpenmathCert {
+		return nil
+	}
+	if k.certKeeper.IsOpenMathCertified(ctx, prover) {
+		return nil
+	}
+	return types.ErrProofOpenMathCertNeeded
+}
+
 // isValidProofStatus checks if the given proof status is valid
 func isValidProofStatus(status types.ProofStatus) bool {
 	return status == types.ProofStatus_PROOF_STATUS_PASSED ||
@@ -1181,8 +1223,10 @@ func (k msgServer) handlePassedProof(
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProofPassed,
-			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
 			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
+			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
+			sdk.NewAttribute(types.AttributeKeyProver, proof.Prover),
+			sdk.NewAttribute(types.AttributeKeyComplexity, fmt.Sprintf("%d", complexity)),
 		),
 	)
 
@@ -1202,8 +1246,9 @@ func (k msgServer) handleFailedProof(
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProofFailed,
-			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
 			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", proof.TheoremId)),
+			sdk.NewAttribute(types.AttributeKeyProofID, proof.Id),
+			sdk.NewAttribute(types.AttributeKeyProver, proof.Prover),
 		),
 	)
 

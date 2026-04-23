@@ -194,7 +194,8 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, t
 			sdk.NewEvent(
 				types.EventTypeImportedReward,
 				sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", importedRewards[i].theorem.Id)),
-				sdk.NewAttribute(types.AttributeKeyProposer, importedRewards[i].reward.String()),
+				sdk.NewAttribute(types.AttributeKeyProposer, importedRewards[i].proposer.String()),
+				sdk.NewAttribute(types.AttributeKeyReward, importedRewards[i].reward.String()),
 			),
 		)
 	}
@@ -209,8 +210,10 @@ func (k Keeper) DistributionGrants(ctx context.Context, theorem types.Theorem, t
 		sdk.NewEvent(
 			types.EventTypeDistributeReward,
 			sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theorem.Id)),
-			sdk.NewAttribute(types.AttributeKeyChecker, checkerRewards.String()),
-			sdk.NewAttribute(types.AttributeKeyProposer, proverRewards.String()),
+			sdk.NewAttribute(types.AttributeKeyChecker, checker.String()),
+			sdk.NewAttribute(types.AttributeKeyCheckerReward, checkerRewards.String()),
+			sdk.NewAttribute(types.AttributeKeyProver, prover.String()),
+			sdk.NewAttribute(types.AttributeKeyProverReward, proverRewards.String()),
 		),
 	)
 

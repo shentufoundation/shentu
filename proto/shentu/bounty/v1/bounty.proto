@@ -139,6 +139,9 @@ message Theorem {
 
   // a list of import external theorems.
   repeated uint64 imports = 12;
+
+  // require_openmath_cert gates proof submission to provers with an OpenMath certificate.
+  bool require_openmath_cert = 13;
 }
 
 message Proof {

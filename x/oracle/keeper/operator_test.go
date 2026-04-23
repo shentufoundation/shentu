@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
@@ -29,7 +30,8 @@ func (suite *KeeperTestSuite) TestOperator_Create() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: min collateral",
+		{
+			"Operator(1) Create: min collateral",
 			args{
 				collateral:   50000,
 				senderAddr:   suite.address[0],
@@ -41,7 +43,8 @@ func (suite *KeeperTestSuite) TestOperator_Create() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: under min collateral",
+		{
+			"Operator(1) Create: under min collateral",
 			args{
 				collateral:   10000,
 				senderAddr:   suite.address[0],
@@ -58,7 +61,7 @@ func (suite *KeeperTestSuite) TestOperator_Create() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			ck := suite.app.CertKeeper
-			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr, "", tc.args.proposerAddr, ""))
+			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr, ""))
 			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("stake", tc.args.collateral)}, tc.args.proposerAddr, tc.args.operatorName)
 			if tc.errArgs.shouldPass {
 				suite.Require().NoError(err, tc.name)
@@ -91,7 +94,8 @@ func (suite *KeeperTestSuite) TestOperator_Get() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(2) Get: One & All",
+		{
+			"Operator(2) Get: One & All",
 			args{
 				collateral:    50000,
 				senderAddr1:   suite.address[0],
@@ -111,8 +115,8 @@ func (suite *KeeperTestSuite) TestOperator_Get() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			ck := suite.app.CertKeeper
-			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr1, "", tc.args.proposerAddr1, ""))
-			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr2, "", tc.args.proposerAddr2, ""))
+			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr1, ""))
+			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr2, ""))
 			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr1, sdk.Coins{sdk.NewInt64Coin("stake", tc.args.collateral)}, tc.args.proposerAddr1, tc.args.operatorName1)
 			suite.Require().NoError(err, tc.name)
 			err = suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr2, sdk.Coins{sdk.NewInt64Coin("stake", tc.args.collateral)}, tc.args.proposerAddr2, tc.args.operatorName2)
@@ -154,7 +158,8 @@ func (suite *KeeperTestSuite) TestOperator_Remove() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(2) Remove: One",
+		{
+			"Operator(2) Remove: One",
 			args{
 				collateral:    50000,
 				senderAddr1:   suite.address[0],
@@ -174,8 +179,8 @@ func (suite *KeeperTestSuite) TestOperator_Remove() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			ck := suite.app.CertKeeper
-			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr1, "", tc.args.proposerAddr1, ""))
-			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr2, "", tc.args.proposerAddr2, ""))
+			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr1, ""))
+			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr2, ""))
 			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr1, sdk.Coins{sdk.NewInt64Coin("stake", tc.args.collateral)}, tc.args.proposerAddr1, tc.args.operatorName1)
 			suite.Require().NoError(err, tc.name)
 			err = suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr2, sdk.Coins{sdk.NewInt64Coin("stake", tc.args.collateral)}, tc.args.proposerAddr2, tc.args.operatorName2)
@@ -222,7 +227,8 @@ func (suite *KeeperTestSuite) TestOperator_Collateral() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Add: 100,000 uctk",
+		{
+			"Operator(1) Add: 100,000 uctk",
 			args{
 				collateral:      50000,
 				senderAddr:      suite.address[0],
@@ -236,7 +242,8 @@ func (suite *KeeperTestSuite) TestOperator_Collateral() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Add: 10,000 uctk -> Reduce: 5,000 uctk",
+		{
+			"Operator(1) Add: 10,000 uctk -> Reduce: 5,000 uctk",
 			args{
 				collateral:         50000,
 				senderAddr:         suite.address[2],
@@ -251,7 +258,8 @@ func (suite *KeeperTestSuite) TestOperator_Collateral() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Add: 10,000 uctk -> Reduce: 15,000 uctk", // 10,000+10,000-15,000=5000 < min(10,000)
+		{
+			"Operator(1) Add: 10,000 uctk -> Reduce: 15,000 uctk", // 10,000+10,000-15,000=5000 < min(10,000)
 			args{
 				collateral:         50000,
 				senderAddr:         suite.address[0],
@@ -271,7 +279,7 @@ func (suite *KeeperTestSuite) TestOperator_Collateral() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			ck := suite.app.CertKeeper
-			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr, "", tc.args.proposerAddr, ""))
+			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr, ""))
 			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("stake", tc.args.collateral)}, tc.args.proposerAddr, tc.args.operatorName)
 			suite.Require().NoError(err, tc.name)
 			collateral, err := suite.keeper.GetCollateralAmount(suite.ctx, tc.args.senderAddr)
@@ -327,7 +335,8 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Add: 100000 uctk",
+		{
+			"Operator(1) Add: 100000 uctk",
 			args{
 				collateral:   50000,
 				senderAddr:   suite.address[0],
@@ -340,7 +349,8 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) WithdrawAll: Reward <= Collateral",
+		{
+			"Operator(1) WithdrawAll: Reward <= Collateral",
 			args{
 				collateral:   50000,
 				senderAddr:   suite.address[0],
@@ -354,7 +364,8 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) WithdrawAll: Reward > Collateral",
+		{
+			"Operator(1) WithdrawAll: Reward > Collateral",
 			args{
 				collateral:   50000,
 				senderAddr:   suite.address[0],
@@ -374,7 +385,7 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			ck := suite.app.CertKeeper
-			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr, "", tc.args.proposerAddr, ""))
+			ck.SetCertifier(suite.ctx, certtypes.NewCertifier(tc.args.proposerAddr, ""))
 			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("stake", tc.args.collateral)}, tc.args.proposerAddr, tc.args.operatorName)
 			suite.Require().NoError(err, tc.name)
 			scTask := types.NewTask(

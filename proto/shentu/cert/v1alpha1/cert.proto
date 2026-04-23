@@ -13,8 +13,10 @@ message Certifier {
     option (gogoproto.goproto_getters) = false;
 
     string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
-    string alias = 2 [ (gogoproto.moretags) = "yaml:\"alias\"" ];
-    string proposer = 3 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+    reserved 2;
+    reserved "alias";
+    reserved 3;
+    reserved "proposer";
     string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
 }
 
@@ -30,6 +32,7 @@ enum CertificateType {
     CERT_TYPE_IDENTITY = 6 [(gogoproto.enumvalue_customname) = "CertificateTypeIdentity"];
     CERT_TYPE_GENERAL = 7 [(gogoproto.enumvalue_customname) = "CertificateTypeGeneral"];
     CERT_TYPE_BOUNTY_ADMIN = 8 [(gogoproto.enumvalue_customname) = "CertificateTypeBountyAdmin"];
+    CERT_TYPE_OPENMATH = 9 [(gogoproto.enumvalue_customname) = "CertificateTypeOpenMath"];
 }
 
 message CompilationContent {
@@ -49,15 +52,6 @@ message Certificate {
     CompilationContent compilation_content = 3 [ (gogoproto.moretags) = "yaml:\"compilation_content\"" ];
     string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-}
-
-// Library is a type for certified libraries.
-message Library {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    
-    string address = 1;
-    string publisher = 2;
 }
 
 message Compilation {
@@ -108,24 +102,25 @@ message BountyAdmin {
     string content = 1;
 }
 
-// Platform is a genesis type for certified platform of a validator
-message Platform {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    
-    google.protobuf.Any validator_pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-    string description = 2;
+message OpenMath {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    string content = 1;
 }
 
-// CertifierUpdateProposal adds or removes a certifier
+// Deprecated: CertifierUpdateProposal is the legacy v1beta1 governance proposal.
+// Retained only so existing on-chain proposals can be deserialized.
+// New certifier updates use MsgUpdateCertifier.
 message CertifierUpdateProposal {
+    option deprecated = true;
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
     option (cosmos_proto.implements_interface) = "*github.com/cosmos/cosmos-sdk/x/gov/types.Content";
 
     string title = 1 [ (gogoproto.moretags) = "yaml:\"title\"" ];
     string proposer = 2 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
-    string alias = 3 [ (gogoproto.moretags) = "yaml:\"alias\"" ];
+    reserved 3;
+    reserved "alias";
     string certifier = 4 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
     string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     bool add_or_remove = 6 [ (gogoproto.moretags) = "yaml:\"add_or_remove\"", (gogoproto.casttype) = "AddOrRemove" ];

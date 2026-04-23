@@ -102,7 +102,6 @@ func removeInactiveProposals(ctx sdk.Context, k *keeper.Keeper, logger log.Logge
 
 		return false, nil
 	})
-
 	if err != nil {
 		return err
 	}
@@ -144,30 +143,28 @@ func processActiveProposal(ctx sdk.Context, k *keeper.Keeper, logger log.Logger)
 			return false, err
 		}
 		if certifierVoteIsRequired {
-			certifierVoted, err := k.GetCertifierVoted(ctx, proposal.Id)
-			if err != nil {
-				return false, err
-			}
-			if !certifierVoted {
-				var endVoting bool
-				_, endVoting, tallyResults = keeper.SecurityTally(ctx, *k, proposal)
-				if !endVoting {
-					// Skip the rest of this iteration, because the proposal needs to go
-					// through the validator voting period now.
-					err = k.SetCertifierVoted(ctx, proposal.Id)
-					if err != nil {
-						return false, err
-					}
-					err = k.DeleteVotes(ctx, proposal.Id)
-					if err != nil {
-						return false, err
-					}
+			// CertifierUpdate proposals are decided entirely by the
+			// cert round: pass → finalize, otherwise → reject + burn.
+			// A tally error (missing custom params, decode failure,
+			// etc.) is treated as a rejection so a misconfiguration
+			// can't let a cert-update proposal survive past its
+			// deadline. The v6→v7 migration guarantees no old-model
+			// cert_voted=true proposal survives into this path.
+			st, tallyErr := k.SecurityTally(ctx, proposal)
+			tallyResults = st.Tally
+			if tallyErr == nil && st.Pass {
+				if err := finalizePassedSecurityProposal(ctx, k, logger, proposal, tallyResults); err != nil {
+					return false, err
 				}
-				return false, nil
+			} else {
+				if err := rejectEndedSecurityProposal(ctx, k, logger, proposal, tallyResults); err != nil {
+					return false, err
+				}
 			}
+			return false, nil
 		}
 
-		//var tagValue, logMsg string
+		// var tagValue, logMsg string
 		passes, burnDeposits, tallyResults, err = k.Tally(ctx, proposal)
 		if err != nil {
 			return false, err
@@ -307,11 +304,7 @@ func processActiveProposal(ctx sdk.Context, k *keeper.Keeper, logger log.Logger)
 }
 
 func processSecurityVote(ctx sdk.Context, k *keeper.Keeper, logger log.Logger) error {
-	var (
-		tagValue, logMsg string
-		passes           bool
-		tallyResults     govtypesv1.TallyResult
-	)
+	var tallyResults govtypesv1.TallyResult
 	// Iterate over all active proposals, regardless of end time, so that
 	// security voting can end as soon as a passing threshold is met.
 	rng := collections.NewPrefixUntilPairRange[time.Time, uint64](time.Unix(common.MaxTimestamp, 0))
@@ -341,102 +334,162 @@ func processSecurityVote(ctx sdk.Context, k *keeper.Keeper, logger log.Logger) e
 		if err != nil {
 			return false, err
 		}
-		// Only process security proposals
+		// Only CertifierUpdate proposals get an early decision from the
+		// cert round. Everything else falls through to the regular
+		// stake tally on expiry.
 		if !certifierVoteIsRequired {
 			return false, nil
 		}
-		// Only process proposals in the security voting period.
-		certifierVoted, err := k.GetCertifierVoted(ctx, proposal.Id)
-		if err != nil {
+
+		st, tallyErr := k.SecurityTally(ctx, proposal)
+		if tallyErr != nil {
+			// Wait for expiry; processActiveProposal will fail-closed.
+			return false, nil
+		}
+		if !st.Pass {
+			// Cert round not yet passing; may still pass before expiry.
+			return false, nil
+		}
+		tallyResults = st.Tally
+		if err := finalizePassedSecurityProposal(ctx, k, logger, proposal, tallyResults); err != nil {
 			return false, err
 		}
-		if certifierVoted {
-			return false, nil
-		}
-
-		var endVoting bool
-		passes, endVoting, tallyResults = keeper.SecurityTally(ctx, *k, proposal)
-		if !passes {
-			// Do nothing, because the proposal still has time before the voting period ends.
-			return false, nil
-		}
-		//Else: the proposal passed the certifier voting period.
-		if endVoting {
-			var (
-				//idx    int
-				events sdk.Events
-				msg    sdk.Msg
-			)
-
-			cacheCtx, writeCache := ctx.CacheContext()
-			messages, err := proposal.GetMsgs()
-			if err != nil {
-				proposal.Status = govtypesv1.StatusFailed
-				proposal.FailedReason = err.Error()
-				tagValue = govtypes.AttributeValueProposalFailed
-				logMsg = fmt.Sprintf("passed proposal (%v) failed to execute; msgs: %s", proposal, err)
-			} else {
-				for _, msg = range messages {
-					handler := k.Router().Handler(msg)
-
-					var res *sdk.Result
-					res, err = handler(cacheCtx, msg)
-					if err != nil {
-						break
-					}
-
-					events = append(events, res.GetEvents()...)
-				}
-
-				proposal.Status = govtypesv1.StatusPassed
-				tagValue = govtypes.AttributeValueProposalPassed
-				logMsg = "passed"
-
-				// write state to the underlying multi-store
-				writeCache()
-
-				// propagate the msg events to the current context
-				ctx.EventManager().EmitEvents(events)
-			}
-
-			proposal.FinalTallyResult = &tallyResults
-			err = k.SetProposal(ctx, proposal)
-			if err != nil {
-				return false, err
-			}
-			if err = k.ActiveProposalsQueue.Remove(ctx, collections.Join(*proposal.VotingEndTime, proposal.Id)); err != nil {
-				return false, err
-			}
-
-			logger.Info(
-				"proposal tallied",
-				"proposal", proposal.Id,
-				"result", logMsg,
-			)
-
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					govtypes.EventTypeActiveProposal,
-					sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
-					sdk.NewAttribute(govtypes.AttributeKeyProposalResult, tagValue),
-				),
-			)
-		} else {
-			// Activate validator voting period
-			err = k.SetCertifierVoted(ctx, proposal.Id)
-			if err != nil {
-				return false, err
-			}
-			err = k.DeleteVotes(ctx, proposal.Id)
-			if err != nil {
-				return false, err
-			}
-		}
-
 		return true, nil
 	})
 
 	return err
+}
+
+func finalizePassedSecurityProposal(
+	ctx sdk.Context,
+	k *keeper.Keeper,
+	logger log.Logger,
+	proposal govtypesv1.Proposal,
+	tallyResults govtypesv1.TallyResult,
+) error {
+	if err := k.RefundAndDeleteDeposits(ctx, proposal.Id); err != nil {
+		return err
+	}
+	if err := k.DeleteVotes(ctx, proposal.Id); err != nil {
+		return err
+	}
+
+	var (
+		tagValue = govtypes.AttributeValueProposalPassed
+		logMsg   = "passed"
+		idx      int
+		events   sdk.Events
+		msg      sdk.Msg
+	)
+
+	cacheCtx, writeCache := ctx.CacheContext()
+	messages, err := proposal.GetMsgs()
+	if err != nil {
+		proposal.Status = govtypesv1.StatusFailed
+		proposal.FailedReason = err.Error()
+		tagValue = govtypes.AttributeValueProposalFailed
+		logMsg = fmt.Sprintf("passed proposal (%v) failed to execute; msgs: %s", proposal, err)
+	} else {
+		for idx, msg = range messages {
+			handler := k.Router().Handler(msg)
+			var res *sdk.Result
+			res, err = safeExecuteHandler(cacheCtx, msg, handler)
+			if err != nil {
+				break
+			}
+
+			events = append(events, res.GetEvents()...)
+		}
+
+		if err == nil {
+			proposal.Status = govtypesv1.StatusPassed
+			writeCache()
+			ctx.EventManager().EmitEvents(events)
+		} else {
+			proposal.Status = govtypesv1.StatusFailed
+			proposal.FailedReason = err.Error()
+			tagValue = govtypes.AttributeValueProposalFailed
+			logMsg = fmt.Sprintf("passed, but msg %d (%s) failed on execution: %s", idx, sdk.MsgTypeURL(msg), err)
+		}
+	}
+
+	proposal.FinalTallyResult = &tallyResults
+	if err := k.SetProposal(ctx, proposal); err != nil {
+		return err
+	}
+	if err := k.ActiveProposalsQueue.Remove(ctx, collections.Join(*proposal.VotingEndTime, proposal.Id)); err != nil {
+		return err
+	}
+
+	logger.Info(
+		"proposal tallied",
+		"proposal", proposal.Id,
+		"status", proposal.Status.String(),
+		"expedited", proposal.Expedited,
+		"title", proposal.Title,
+		"results", logMsg,
+	)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			govtypes.EventTypeActiveProposal,
+			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
+			sdk.NewAttribute(govtypes.AttributeKeyProposalResult, tagValue),
+			sdk.NewAttribute(govtypes.AttributeKeyProposalLog, logMsg),
+		),
+	)
+
+	return nil
+}
+
+func rejectEndedSecurityProposal(
+	ctx sdk.Context,
+	k *keeper.Keeper,
+	logger log.Logger,
+	proposal govtypesv1.Proposal,
+	tallyResults govtypesv1.TallyResult,
+) error {
+	// Burn deposits on a conclusive certifier-round rejection. This preserves
+	// the pre-refactor behavior where security proposals voted down by
+	// certifiers were penalized economically — refunding here would let a
+	// proposer cheaply spam rejected security proposals.
+	if err := k.DeleteAndBurnDeposits(ctx, proposal.Id); err != nil {
+		return err
+	}
+	if err := k.DeleteVotes(ctx, proposal.Id); err != nil {
+		return err
+	}
+
+	proposal.Status = govtypesv1.StatusRejected
+	proposal.FailedReason = "proposal did not pass the certifier voting period"
+	proposal.FinalTallyResult = &tallyResults
+	if err := k.SetProposal(ctx, proposal); err != nil {
+		return err
+	}
+	if err := k.ActiveProposalsQueue.Remove(ctx, collections.Join(*proposal.VotingEndTime, proposal.Id)); err != nil {
+		return err
+	}
+
+	logMsg := "rejected in certifier voting period"
+	logger.Info(
+		"proposal tallied",
+		"proposal", proposal.Id,
+		"status", proposal.Status.String(),
+		"expedited", proposal.Expedited,
+		"title", proposal.Title,
+		"results", logMsg,
+	)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			govtypes.EventTypeActiveProposal,
+			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.Id)),
+			sdk.NewAttribute(govtypes.AttributeKeyProposalResult, govtypes.AttributeValueProposalRejected),
+			sdk.NewAttribute(govtypes.AttributeKeyProposalLog, logMsg),
+		),
+	)
+
+	return nil
 }
 
 // executes handle(msg) and recovers from panic.

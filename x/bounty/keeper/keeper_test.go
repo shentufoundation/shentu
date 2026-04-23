@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,9 +41,9 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 	suite.msgServer = keeper.NewMsgServerImpl(suite.keeper)
 
-	err := suite.app.CertKeeper.SetCertifier(suite.ctx, certTypes.NewCertifier(suite.address[2], "", suite.address[2], ""))
+	err := suite.app.CertKeeper.SetCertifier(suite.ctx, certTypes.NewCertifier(suite.address[2], ""))
 	suite.Require().NoError(err)
-	certificate, err := certTypes.NewCertificate("bountyadmin", suite.address[3].String(), "", "", "", suite.address[2])
+	certificate, err := certTypes.NewCertificate(certTypes.BountyAdminCertificateTypeName, suite.address[3].String(), "", "", "", suite.address[2])
 	if err != nil {
 		panic(err)
 	}
@@ -85,4 +86,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
+}
+
+func (suite *KeeperTestSuite) issueOpenMathCertificate(addr sdk.AccAddress) {
+	certificate, err := certTypes.NewCertificate(certTypes.OpenMathCertificateTypeName, addr.String(), "", "", "", suite.address[2])
+	suite.Require().NoError(err)
+
+	_, err = suite.app.CertKeeper.IssueCertificate(suite.ctx, certificate)
+	suite.Require().NoError(err)
 }
