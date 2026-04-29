@@ -402,7 +402,9 @@ func certificateQueryIterator(store storetypes.KVStore, start []byte, reverse bo
 			defer iterator.Close()
 			if iterator.Valid() {
 				iterator.Next()
-				end = iterator.Key()
+				if iterator.Valid() {
+					end = iterator.Key()
+				}
 			}
 		}
 		return store.ReverseIterator(nil, end)
