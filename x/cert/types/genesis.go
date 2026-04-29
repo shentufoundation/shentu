@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -18,8 +19,43 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{NextCertificateId: 1}
 }
 
-// ValidateGenesis - validate crisis genesis data
-func ValidateGenesis(_ json.RawMessage) error {
+// ValidateGenesis verifies the cert module genesis state is internally consistent:
+//   - every certificate has a non-zero ID
+//   - certificate IDs are unique
+//   - NextCertificateId is strictly greater than every imported certificate ID,
+//     so future issuance cannot overwrite an imported record
+//   - certifier addresses are non-empty and unique
+func ValidateGenesis(data GenesisState) error {
+	seenCerts := make(map[uint64]struct{}, len(data.Certificates))
+	var maxID uint64
+	for _, c := range data.Certificates {
+		if c.CertificateId == 0 {
+			return fmt.Errorf("certificate has zero id")
+		}
+		if _, dup := seenCerts[c.CertificateId]; dup {
+			return fmt.Errorf("duplicate certificate id in genesis: %d", c.CertificateId)
+		}
+		seenCerts[c.CertificateId] = struct{}{}
+		if c.CertificateId > maxID {
+			maxID = c.CertificateId
+		}
+	}
+	if data.NextCertificateId <= maxID {
+		return fmt.Errorf("nextCertificateId (%d) must be strictly greater than max imported certificate id (%d)",
+			data.NextCertificateId, maxID)
+	}
+
+	seenCertifiers := make(map[string]struct{}, len(data.Certifiers))
+	for _, c := range data.Certifiers {
+		addr, err := sdk.AccAddressFromBech32(c.Address)
+		if err != nil {
+			return fmt.Errorf("invalid certifier address %q: %w", c.Address, err)
+		}
+		if _, dup := seenCertifiers[addr.String()]; dup {
+			return fmt.Errorf("duplicate certifier in genesis: %s", c.Address)
+		}
+		seenCertifiers[addr.String()] = struct{}{}
+	}
 	return nil
 }
 
