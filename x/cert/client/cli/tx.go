@@ -64,6 +64,10 @@ func GetCmdIssueCertificate() *cobra.Command {
 				return err
 			}
 
+			if _, err := types.ParseCertificateType(args[0]); err != nil {
+				return err
+			}
+
 			compiler, bytecodeHash := "", ""
 			certificateTypeString := strings.ToLower(args[0])
 			if certificateTypeString == "compilation" {
