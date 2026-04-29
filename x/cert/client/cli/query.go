@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -137,7 +136,19 @@ func GetCmdCertificates() *cobra.Command {
 				return err
 			}
 
-			certificateType, err := types.ParseCertificateType(viper.GetString(FlagCertType))
+			certTypeStr, err := cmd.Flags().GetString(FlagCertType)
+			if err != nil {
+				return err
+			}
+			certificateType, err := types.ParseCertificateType(certTypeStr)
+			if err != nil {
+				return err
+			}
+			certifier, err := cmd.Flags().GetString(FlagCertifier)
+			if err != nil {
+				return err
+			}
+			content, err := cmd.Flags().GetString(FlagContent)
 			if err != nil {
 				return err
 			}
@@ -145,9 +156,9 @@ func GetCmdCertificates() *cobra.Command {
 			res, err := queryClient.Certificates(
 				cmd.Context(),
 				&types.QueryCertificatesRequest{
-					Certifier:       viper.GetString(FlagCertifier),
+					Certifier:       certifier,
 					CertificateType: certificateType,
-					Content:         viper.GetString(FlagContent),
+					Content:         content,
 					Pagination:      pageReq,
 				})
 			if err != nil {

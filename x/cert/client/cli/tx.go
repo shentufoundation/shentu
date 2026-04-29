@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -71,12 +70,15 @@ func GetCmdIssueCertificate() *cobra.Command {
 			compiler, bytecodeHash := "", ""
 			certificateTypeString := strings.ToLower(args[0])
 			if certificateTypeString == "compilation" {
-				compiler, bytecodeHash, err = parseCertifyCompilationFlags()
+				compiler, bytecodeHash, err = parseCertifyCompilationFlags(cmd)
 				if err != nil {
 					return err
 				}
 			}
-			description := viper.GetString(FlagDescription)
+			description, err := cmd.Flags().GetString(FlagDescription)
+			if err != nil {
+				return err
+			}
 			content := types.AssembleContent(args[0], args[1])
 			msg := types.NewMsgIssueCertificate(content, compiler, bytecodeHash, description, from)
 			if err := msg.ValidateBasic(); err != nil {
@@ -95,12 +97,18 @@ func GetCmdIssueCertificate() *cobra.Command {
 }
 
 // parseCertifyCompilation parses flags for compilation certificate.
-func parseCertifyCompilationFlags() (string, string, error) {
-	compiler := viper.GetString(FlagCompiler)
+func parseCertifyCompilationFlags(cmd *cobra.Command) (string, string, error) {
+	compiler, err := cmd.Flags().GetString(FlagCompiler)
+	if err != nil {
+		return "", "", err
+	}
 	if compiler == "" {
 		return "", "", fmt.Errorf("compiler version is required to issue a compilation certificate")
 	}
-	bytecodeHash := viper.GetString(FlagBytecodeHash)
+	bytecodeHash, err := cmd.Flags().GetString(FlagBytecodeHash)
+	if err != nil {
+		return "", "", err
+	}
 	if bytecodeHash == "" {
 		return "", "", fmt.Errorf("bytecode hash is required to issue a compilation certificate")
 	}
