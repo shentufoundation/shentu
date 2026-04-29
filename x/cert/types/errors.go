@@ -23,6 +23,7 @@ const (
 	errCompiler
 	errBytecodeHash
 	errInvalidRequestContentType
+	errCertificateAlreadyIssued
 )
 
 // [1xx] Certifier
@@ -45,4 +46,5 @@ var (
 	ErrCompiler                  = errorsmod.Register(ModuleName, errCompiler, "invalid compiler")
 	ErrBytecodeHash              = errorsmod.Register(ModuleName, errBytecodeHash, "invalid bytecode hash")
 	ErrInvalidRequestContentType = errorsmod.Register(ModuleName, errInvalidRequestContentType, "invalid request content type")
+	ErrCertificateAlreadyIssued  = errorsmod.Register(ModuleName, errCertificateAlreadyIssued, "certifier has already issued an identical certificate")
 )

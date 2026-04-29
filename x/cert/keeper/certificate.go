@@ -142,6 +142,10 @@ func (k Keeper) IssueCertificate(ctx context.Context, c types.Certificate) (uint
 		return 0, types.ErrUnqualifiedCertifier
 	}
 
+	if k.hasDuplicateCertificate(ctx, c.GetCertifier(), types.TranslateCertificateType(c), c.GetContentString()) {
+		return 0, types.ErrCertificateAlreadyIssued
+	}
+
 	certificateID, err := k.NextCertificateID.Next(ctx)
 	if err != nil {
 		return 0, err
@@ -153,6 +157,27 @@ func (k Keeper) IssueCertificate(ctx context.Context, c types.Certificate) (uint
 	}
 
 	return c.CertificateId, nil
+}
+
+// hasDuplicateCertificate reports whether the given certifier has already issued a
+// certificate with the same type and content. It scans the type+content secondary
+// index (typically 0..N candidates, N = number of certifiers who attested to this
+// exact content) and checks whether any candidate's certifier matches.
+func (k Keeper) hasDuplicateCertificate(ctx context.Context, certifier sdk.AccAddress, certType types.CertificateType, content string) bool {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, types.TypeContentIndexPrefix(certType, content))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		id := types.CertIDFromIndexKey(iterator.Key())
+		cert, err := k.GetCertificateByID(ctx, id)
+		if err != nil {
+			continue
+		}
+		if cert.GetCertifier().Equals(certifier) {
+			return true
+		}
+	}
+	return false
 }
 
 // IterateAllCertificate iterates over the all the stored certificates and performs a callback function.

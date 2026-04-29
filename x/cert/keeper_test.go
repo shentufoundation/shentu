@@ -1,6 +1,7 @@
 package cert_test
 
 import (
+	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -151,35 +152,49 @@ func Test_CertificateQueries(t *testing.T) {
 		totalCerts := 1000
 		dupContent := "duplicate content"
 
+		// Track issued (certifier, type, content) triples; the keeper rejects
+		// duplicates from the same certifier, so the test must skip them.
+		issued := map[string]struct{}{}
+
 		for i := 1; i < totalCerts; i++ {
 			index := rand.Intn(4) // random address index
 			dup := rand.Intn(100)
 
 			var cert types.Certificate
-			var cert2 types.Certificate
-
-			count++
+			var ctype, content string
 
 			if dup > 95 {
-				cert, _ = types.NewCertificate("compilation", dupContent, "compiler1",
+				ctype = "compilation"
+				content = dupContent
+			} else {
+				ctype = "general"
+				content = randomString(rand.Intn(10) + 10)
+			}
+
+			key := fmt.Sprintf("%d|%s|%s", index, ctype, content)
+			if _, ok := issued[key]; ok {
+				continue
+			}
+			issued[key] = struct{}{}
+
+			if dup > 95 {
+				cert, _ = types.NewCertificate(ctype, content, "compiler1",
 					"bytecodehash1", "", addrs[index])
+				count++
 				count2++
 				if index == 0 {
 					count3++
 					count4++
 				}
-				_, err := app.CertKeeper.IssueCertificate(ctx, cert)
-				require.NoError(t, err)
 			} else {
-				length := rand.Intn(10) + 10
-				s := randomString(length)
-				cert2, _ = types.NewCertificate("general", s, "", "", "", addrs[index])
+				cert, _ = types.NewCertificate(ctype, content, "", "", "", addrs[index])
+				count++
 				if index == 0 {
 					count3++
 				}
-				_, err := app.CertKeeper.IssueCertificate(ctx, cert2)
-				require.NoError(t, err)
 			}
+			_, err := app.CertKeeper.IssueCertificate(ctx, cert)
+			require.NoError(t, err)
 		}
 
 		// Test GetCertificatesByContent()

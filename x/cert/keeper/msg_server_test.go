@@ -305,14 +305,54 @@ func TestMsgServerRevokeCertificate_CrossCertifierRevoke(t *testing.T) {
 	require.False(t, app.CertKeeper.IsContentCertified(ctx, "cross-revoke-content"))
 }
 
-func TestMsgServerIssueCertificate_DuplicateContent(t *testing.T) {
+func TestMsgServerIssueCertificate_DuplicateRejected(t *testing.T) {
 	app, ctx, msgServer := setupMsgServer(t)
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
 	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
 
-	// Issue the same content twice — both should succeed (different certificate IDs).
-	for i := 0; i < 2; i++ {
-		content := types.AssembleContent(types.GeneralCertificateTypeName, "duplicate-content")
+	content := types.AssembleContent(types.GeneralCertificateTypeName, "duplicate-content")
+
+	// First issuance succeeds.
+	msg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
+	_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+	require.NoError(t, err)
+
+	// Second issuance by the same certifier with identical (type, content) is rejected.
+	_, err = msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+	require.Error(t, err)
+	require.True(t, errorsmod.IsOf(err, types.ErrCertificateAlreadyIssued))
+
+	certs := app.CertKeeper.GetAllCertificates(ctx)
+	require.Len(t, certs, 1)
+}
+
+func TestMsgServerIssueCertificate_DifferentCertifiersSameContentAllowed(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[1], "")))
+
+	content := types.AssembleContent(types.GeneralCertificateTypeName, "shared-content")
+
+	// Two different certifiers may independently attest to the same (type, content).
+	for _, certifier := range addrs {
+		msg := types.NewMsgIssueCertificate(content, "", "", "", certifier)
+		_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+		require.NoError(t, err)
+	}
+
+	certs := app.CertKeeper.GetAllCertificates(ctx)
+	require.Len(t, certs, 2)
+	require.NotEqual(t, certs[0].Certifier, certs[1].Certifier)
+}
+
+func TestMsgServerIssueCertificate_SameCertifierDifferentContentAllowed(t *testing.T) {
+	app, ctx, msgServer := setupMsgServer(t)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 1, math.NewInt(10000))
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "")))
+
+	for _, c := range []string{"content-a", "content-b"} {
+		content := types.AssembleContent(types.GeneralCertificateTypeName, c)
 		msg := types.NewMsgIssueCertificate(content, "", "", "", addrs[0])
 		_, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
 		require.NoError(t, err)
@@ -320,7 +360,6 @@ func TestMsgServerIssueCertificate_DuplicateContent(t *testing.T) {
 
 	certs := app.CertKeeper.GetAllCertificates(ctx)
 	require.Len(t, certs, 2)
-	require.NotEqual(t, certs[0].CertificateId, certs[1].CertificateId)
 }
 
 func TestMsgServerIssueCertificate_WithCompilationContent(t *testing.T) {
