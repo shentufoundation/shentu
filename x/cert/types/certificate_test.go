@@ -87,7 +87,9 @@ func TestNewCertificate_ValidTypes(t *testing.T) {
 		t.Run(certType, func(t *testing.T) {
 			cert, err := types.NewCertificate(certType, "test-content", "", "", "description", addr)
 			require.NoError(t, err)
-			require.Equal(t, "test-content", cert.GetContentString())
+			contentStr, err := cert.GetContentString()
+			require.NoError(t, err)
+			require.Equal(t, "test-content", contentStr)
 			require.Equal(t, "description", cert.Description)
 		})
 	}

@@ -72,11 +72,12 @@ func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCe
 	if err != nil {
 		return nil, err
 	}
+	contentStr, _ := certificate.GetContentString()
 	certEvent := sdk.NewEvent(
 		types.EventTypeCertify,
 		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
 		sdk.NewAttribute("certificate_type", types.TranslateCertificateType(certificate).String()),
-		sdk.NewAttribute("content", certificate.GetContentString()),
+		sdk.NewAttribute("content", contentStr),
 		sdk.NewAttribute("compiler", msg.Compiler),
 		sdk.NewAttribute("bytecode_hash", msg.BytecodeHash),
 		sdk.NewAttribute("description", msg.Description),

@@ -18,6 +18,12 @@ import (
 
 // SetCertificate stores a certificate using its ID field and maintains all secondary indexes.
 func (k Keeper) SetCertificate(ctx context.Context, certificate types.Certificate) error {
+	if _, err := certificate.GetContentString(); err != nil {
+		return err
+	}
+	if _, err := certificate.GetCertifier(); err != nil {
+		return err
+	}
 	if err := k.Certificates.Set(ctx, certificate.CertificateId, certificate); err != nil {
 		return err
 	}
@@ -43,8 +49,14 @@ func (k Keeper) DeleteCertificate(ctx context.Context, certificate types.Certifi
 func (k Keeper) writeCertificateIndexes(ctx context.Context, cert types.Certificate) error {
 	store := k.storeService.OpenKVStore(ctx)
 	certType := types.TranslateCertificateType(cert)
-	content := cert.GetContentString()
-	certifier := cert.GetCertifier()
+	content, err := cert.GetContentString()
+	if err != nil {
+		return err
+	}
+	certifier, err := cert.GetCertifier()
+	if err != nil {
+		return err
+	}
 	id := cert.CertificateId
 
 	if err := store.Set(types.CertifierIndexKey(certifier, id), []byte{}); err != nil {
@@ -66,8 +78,14 @@ func (k Keeper) writeCertificateIndexes(ctx context.Context, cert types.Certific
 func (k Keeper) deleteCertificateIndexes(ctx context.Context, cert types.Certificate) error {
 	store := k.storeService.OpenKVStore(ctx)
 	certType := types.TranslateCertificateType(cert)
-	content := cert.GetContentString()
-	certifier := cert.GetCertifier()
+	content, err := cert.GetContentString()
+	if err != nil {
+		return err
+	}
+	certifier, err := cert.GetCertifier()
+	if err != nil {
+		return err
+	}
 	id := cert.CertificateId
 
 	if err := store.Delete(types.CertifierIndexKey(certifier, id)); err != nil {
@@ -134,7 +152,11 @@ func (k Keeper) IsContentCertified(ctx context.Context, content string) bool {
 
 // IssueCertificate issues a certificate.
 func (k Keeper) IssueCertificate(ctx context.Context, c types.Certificate) (uint64, error) {
-	isCertifier, err := k.IsCertifier(ctx, c.GetCertifier())
+	certifier, err := c.GetCertifier()
+	if err != nil {
+		return 0, err
+	}
+	isCertifier, err := k.IsCertifier(ctx, certifier)
 	if err != nil {
 		return 0, err
 	}
@@ -142,7 +164,11 @@ func (k Keeper) IssueCertificate(ctx context.Context, c types.Certificate) (uint
 		return 0, types.ErrUnqualifiedCertifier
 	}
 
-	if k.hasDuplicateCertificate(ctx, c.GetCertifier(), types.TranslateCertificateType(c), c.GetContentString()) {
+	content, err := c.GetContentString()
+	if err != nil {
+		return 0, err
+	}
+	if k.hasDuplicateCertificate(ctx, certifier, types.TranslateCertificateType(c), content) {
 		return 0, types.ErrCertificateAlreadyIssued
 	}
 
@@ -173,7 +199,11 @@ func (k Keeper) hasDuplicateCertificate(ctx context.Context, certifier sdk.AccAd
 		if err != nil {
 			continue
 		}
-		if cert.GetCertifier().Equals(certifier) {
+		existingCertifier, err := cert.GetCertifier()
+		if err != nil {
+			continue
+		}
+		if existingCertifier.Equals(certifier) {
 			return true
 		}
 	}
@@ -382,14 +412,20 @@ func (k Keeper) loadCertificateForQuery(ctx context.Context, key, value []byte, 
 }
 
 func matchesCertificateQuery(cert types.Certificate, params types.QueryCertificatesParams) bool {
-	if len(params.Certifier) > 0 && !cert.GetCertifier().Equals(params.Certifier) {
-		return false
+	if len(params.Certifier) > 0 {
+		certifier, err := cert.GetCertifier()
+		if err != nil || !certifier.Equals(params.Certifier) {
+			return false
+		}
 	}
 	if params.CertificateType != types.CertificateTypeNil && types.TranslateCertificateType(cert) != params.CertificateType {
 		return false
 	}
-	if params.Content != "" && cert.GetContentString() != params.Content {
-		return false
+	if params.Content != "" {
+		content, err := cert.GetContentString()
+		if err != nil || content != params.Content {
+			return false
+		}
 	}
 	return true
 }

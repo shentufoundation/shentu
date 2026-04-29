@@ -39,23 +39,31 @@ func migrateCertificate(store storetypes.KVStore, cdc codec.BinaryCodec) error {
 }
 
 func transistCertContent(certificate *types.Certificate) {
-	switch certificate.GetContent().(type) {
+	decoded, err := certificate.GetContent()
+	if err != nil {
+		return
+	}
+	contentStr, err := certificate.GetContentString()
+	if err != nil {
+		return
+	}
+	switch decoded.(type) {
 	case *types.OracleOperator:
-		contentShentu, err := common.PrefixToShentu(certificate.GetContentString())
+		contentShentu, err := common.PrefixToShentu(contentStr)
 		if err != nil {
 			return
 		}
 		content := types.OracleOperator{Content: contentShentu}
 		setContentAny(certificate, &content)
 	case *types.ShieldPoolCreator:
-		contentShentu, err := common.PrefixToShentu(certificate.GetContentString())
+		contentShentu, err := common.PrefixToShentu(contentStr)
 		if err != nil {
 			return
 		}
 		content := types.ShieldPoolCreator{Content: contentShentu}
 		setContentAny(certificate, &content)
 	case *types.Identity:
-		contentShentu, err := common.PrefixToShentu(certificate.GetContentString())
+		contentShentu, err := common.PrefixToShentu(contentStr)
 		if err != nil {
 			return
 		}

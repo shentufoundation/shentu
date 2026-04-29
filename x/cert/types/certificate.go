@@ -78,7 +78,11 @@ func ParseCertificateType(s string) (CertificateType, error) {
 
 // TranslateCertificateType determines certificate type based on content interface type switch.
 func TranslateCertificateType(certificate Certificate) CertificateType {
-	switch certificate.GetContent().(type) {
+	content, err := certificate.GetContent()
+	if err != nil {
+		return CertificateTypeNil
+	}
+	switch content.(type) {
 	case *Compilation:
 		return CertificateTypeCompilation
 	case *Auditing:
@@ -170,17 +174,24 @@ func (c Certificate) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
 }
 
 // GetContent returns content of the certificate.
-func (c Certificate) GetContent() Content {
+func (c Certificate) GetContent() (Content, error) {
+	if c.Content == nil {
+		return nil, fmt.Errorf("certificate has no content")
+	}
 	content, ok := c.Content.GetCachedValue().(Content)
 	if !ok {
-		return nil
+		return nil, fmt.Errorf("certificate content is not a recognised Content (TypeUrl=%s)", c.Content.TypeUrl)
 	}
-	return content
+	return content, nil
 }
 
-// GetContentString returns string content of the certificate.
-func (c Certificate) GetContentString() string {
-	return c.GetContent().GetContent()
+// GetContentString returns the certificate content string.
+func (c Certificate) GetContentString() (string, error) {
+	content, err := c.GetContent()
+	if err != nil {
+		return "", err
+	}
+	return content.GetContent(), nil
 }
 
 // FormattedCompilationContent returns formatted certificate content of the certificate.
@@ -191,18 +202,15 @@ func (c Certificate) FormattedCompilationContent() []KVPair {
 	}
 }
 
-// GetCertifier returns certificer of the certificate.
-func (c Certificate) GetCertifier() sdk.AccAddress {
-	certifierAddr, err := sdk.AccAddressFromBech32(c.Certifier)
-	if err != nil {
-		panic(err)
-	}
-	return certifierAddr
+// GetCertifier returns the certifier address.
+func (c Certificate) GetCertifier() (sdk.AccAddress, error) {
+	return sdk.AccAddressFromBech32(c.Certifier)
 }
 
 func (c Certificate) ToString() string {
+	contentStr, _ := c.GetContentString()
 	certStr := fmt.Sprintf("certificate_id:%d content:%s description:%s certifier:%s compilation_content:",
-		c.CertificateId, c.GetContentString(), c.Description, c.Certifier)
+		c.CertificateId, contentStr, c.Description, c.Certifier)
 	if c.CompilationContent != nil {
 		return certStr + "<" + c.CompilationContent.String() + ">"
 	}

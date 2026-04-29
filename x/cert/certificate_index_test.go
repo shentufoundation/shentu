@@ -42,7 +42,9 @@ func Test_CertificateIndexWrites(t *testing.T) {
 		// Certifier index: GetCertificatesByCertifier must return the certificate.
 		certs := app.CertKeeper.GetCertificatesByCertifier(ctx, addrs[0])
 		require.Len(t, certs, 1)
-		require.Equal(t, contentStr, certs[0].GetContentString())
+		gotContent, err := certs[0].GetContentString()
+		require.NoError(t, err)
+		require.Equal(t, contentStr, gotContent)
 
 		// Type index: GetCertificatesFiltered with type-only filter must find it.
 		params := types.NewQueryCertificatesParams(1, 100, nil, types.CertificateTypeAuditing)
@@ -244,7 +246,9 @@ func Test_Migrate2to3LargeBatch(t *testing.T) {
 		got, err := app.CertKeeper.GetCertificateByID(ctx, i)
 		require.NoError(t, err, "cert %d missing after migration", i)
 		require.Equal(t, i, got.CertificateId)
-		require.Equal(t, fmt.Sprintf("content-%d", i), got.GetContentString())
+		gotContent, err := got.GetContentString()
+		require.NoError(t, err)
+		require.Equal(t, fmt.Sprintf("content-%d", i), gotContent)
 	}
 
 	// NextCertificateID counter must round-trip via collections.
