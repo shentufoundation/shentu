@@ -13,6 +13,9 @@ func InitDefaultGenesis(ctx sdk.Context, k keeper.Keeper) {
 
 // InitGenesis initializes default parameters and the keeper's address to pubkey map.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
+	if err := types.ValidateGenesis(data); err != nil {
+		panic(err)
+	}
 	for _, certifier := range data.Certifiers {
 		if err := k.SetCertifier(ctx, certifier); err != nil {
 			panic(err)

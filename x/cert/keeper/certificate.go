@@ -24,6 +24,13 @@ func (k Keeper) SetCertificate(ctx context.Context, certificate types.Certificat
 	if _, err := certificate.GetCertifier(); err != nil {
 		return err
 	}
+	has, err := k.HasCertificateByID(ctx, certificate.CertificateId)
+	if err != nil {
+		return err
+	}
+	if has {
+		return fmt.Errorf("certificate id already exists: %d", certificate.CertificateId)
+	}
 	if err := k.Certificates.Set(ctx, certificate.CertificateId, certificate); err != nil {
 		return err
 	}
