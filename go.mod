@@ -24,7 +24,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.53.5
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.7.2
-	github.com/cosmos/ibc-go/v10 v10.5.0
+	github.com/cosmos/ibc-go/v10 v10.7.0
 	github.com/cosmos/tools/cmd/runsim v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/magiconair/properties v1.8.10
