@@ -360,6 +360,7 @@ func NewShentuApp(
 		app.AccountKeeper,
 		app.CertKeeper,
 		app.BankKeeper,
+		app.DistrKeeper,
 		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
 	app.MintKeeper = mintkeeper.NewKeeper(

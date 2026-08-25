@@ -25,6 +25,11 @@ type importedReward struct {
 
 // AddGrant adds or updates a grant for a theorem
 func (k Keeper) AddGrant(ctx context.Context, theoremID uint64, grantor sdk.AccAddress, grantAmount sdk.Coins) error {
+	if k.bankKeeper.BlockedAddr(grantor) {
+		return errors.Wrapf(sdkerrors.ErrUnauthorized,
+			"%s is not allowed to grant: it could not receive a refund", grantor)
+	}
+
 	// Check if theorem exists and verify status
 	theorem, err := k.Theorems.Get(ctx, theoremID)
 	if err != nil {
@@ -80,11 +85,33 @@ func (k Keeper) updateOrCreateGrant(ctx context.Context, theoremID uint64, grant
 
 // RefundAndDeleteGrants refunds and deletes all the grants for a theorem
 func (k Keeper) RefundAndDeleteGrants(ctx context.Context, theoremID uint64) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+
 	return k.IterateGrants(ctx, theoremID, func(key collections.Pair[uint64, sdk.AccAddress], grant types.Grant) (bool, error) {
 		grantor := key.K2()
+
+		if k.bankKeeper.BlockedAddr(grantor) {
+			if err := k.distrKeeper.FundCommunityPool(ctx, grant.Amount, moduleAddr); err != nil {
+				return false, err
+			}
+
+			sdkCtx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeGrantRefundRedirected,
+					sdk.NewAttribute(types.AttributeKeyTheoremID, fmt.Sprintf("%d", theoremID)),
+					sdk.NewAttribute(types.AttributeKeyTheoremGrantor, grantor.String()),
+					sdk.NewAttribute(sdk.AttributeKeyAmount, sdk.NewCoins(grant.Amount...).String()),
+				),
+			)
+
+			return false, k.Grants.Remove(ctx, key)
+		}
+
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, grantor, grant.Amount); err != nil {
 			return false, err
 		}
+
 		return false, k.Grants.Remove(ctx, key)
 	})
 }
