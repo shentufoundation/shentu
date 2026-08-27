@@ -67,9 +67,6 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	sdkgovtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/cosmos-sdk/x/group"
-	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
-	groupmodule "github.com/cosmos/cosmos-sdk/x/group/module"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	sdkminttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -188,7 +185,6 @@ type ShentuApp struct {
 	OracleKeeper          oraclekeeper.Keeper
 	ShieldKeeper          shieldkeeper.Keeper
 	BountyKeeper          bountykeeper.Keeper
-	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	// module manager
@@ -400,9 +396,6 @@ func NewShentuApp(
 		authAddr,
 	)
 
-	groupConfig := group.DefaultConfig()
-	app.GroupKeeper = groupkeeper.NewKeeper(keys[group.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper, groupConfig)
-
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
@@ -473,7 +466,6 @@ func NewShentuApp(
 		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(sdkgovtypes.ModuleName)),
-		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
@@ -532,7 +524,7 @@ func NewShentuApp(
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName,
 		sdkauthz.ModuleName, sdkfeegrant.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName,
-		oracletypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
+		oracletypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName, consensusparamtypes.ModuleName,
 	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
@@ -541,7 +533,7 @@ func NewShentuApp(
 		authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
-		certtypes.ModuleName, oracletypes.ModuleName, bountytypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
+		certtypes.ModuleName, oracletypes.ModuleName, bountytypes.ModuleName, consensusparamtypes.ModuleName,
 	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
@@ -567,7 +559,6 @@ func NewShentuApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		bountytypes.ModuleName,
-		group.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -592,7 +583,6 @@ func NewShentuApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		bountytypes.ModuleName,
-		group.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -919,7 +909,6 @@ func StoreKeys() (
 		ibctransfertypes.StoreKey,
 		icahosttypes.StoreKey,
 		bountytypes.StoreKey,
-		group.StoreKey,
 	}
 
 	keys := storetypes.NewKVStoreKeys(storeKeys...)
