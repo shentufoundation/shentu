@@ -50,11 +50,15 @@ jobs:
             sed -i.bak "/$(echo $filename | sed 's/\//\\\//g')/d" coverage.txt
           done
 
+      # `file` was removed in codecov-action v4; v6 only accepts `files`, so the
+      # old spelling silently uploaded nothing and then failed the job.
       - uses: codecov/codecov-action@v6.0.0
         with:
-          file: ./coverage.txt # optional
-          token: 6556fc17-6f3d-40be-b947-0bba9a9fe92f
-          fail_ci_if_error: true
+          files: ./coverage.txt
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # Coverage upload is a third-party service; a Codecov outage should not
+          # block merging code whose tests already passed.
+          fail_ci_if_error: false
 
   test-e2e:
     runs-on: ubuntu-latest

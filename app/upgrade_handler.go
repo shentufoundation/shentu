@@ -11,9 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const (
-	upgradeName = "v2.18.0"
-)
+const upgradeName = "v2.19.0"
 
 func (app ShentuApp) setUpgradeHandler(_ codec.BinaryCodec) {
 	app.UpgradeKeeper.SetUpgradeHandler(

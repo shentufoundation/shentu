@@ -6,11 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/spf13/cast"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -71,9 +67,6 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	sdkgovtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/cosmos-sdk/x/group"
-	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
-	groupmodule "github.com/cosmos/cosmos-sdk/x/group/module"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	sdkminttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -149,7 +142,6 @@ var (
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		bountytypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
-		wasmtypes.ModuleName:           {authtypes.Burner},
 	}
 )
 
@@ -193,9 +185,7 @@ type ShentuApp struct {
 	OracleKeeper          oraclekeeper.Keeper
 	ShieldKeeper          shieldkeeper.Keeper
 	BountyKeeper          bountykeeper.Keeper
-	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
-	WasmKeeper            wasmkeeper.Keeper
 
 	// module manager
 	mm                 *module.Manager
@@ -360,6 +350,7 @@ func NewShentuApp(
 		app.AccountKeeper,
 		app.CertKeeper,
 		app.BankKeeper,
+		app.DistrKeeper,
 		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
 	)
 	app.MintKeeper = mintkeeper.NewKeeper(
@@ -404,9 +395,6 @@ func NewShentuApp(
 		govConfig,
 		authAddr,
 	)
-
-	groupConfig := group.DefaultConfig()
-	app.GroupKeeper = groupkeeper.NewKeeper(keys[group.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper, groupConfig)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -461,30 +449,6 @@ func NewShentuApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
-	wasmDir := filepath.Join(homePath, "wasm")
-	wasmConfig, err := wasm.ReadNodeConfig(appOpts)
-	if err != nil {
-		panic("error while reading wasm config: " + err.Error())
-	}
-	app.WasmKeeper = wasmkeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(app.keys[wasmtypes.StoreKey]),
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.StakingKeeper,
-		distrkeeper.NewQuerier(app.DistrKeeper),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.TransferKeeper,
-		bApp.MsgServiceRouter(),
-		bApp.GRPCQueryRouter(),
-		wasmDir,
-		wasmConfig,
-		wasmtypes.VMConfig{},
-		wasmkeeper.BuiltInCapabilities(),
-		authtypes.NewModuleAddress(sdkgovtypes.ModuleName).String(),
-	)
-
 	/****  Module Options ****/
 
 	// NOTE: Any module instantiated in the module manager that is
@@ -502,11 +466,9 @@ func NewShentuApp(
 		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(sdkgovtypes.ModuleName)),
-		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
-		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctm.NewAppModule(tmLightClientModule),
 		params.NewAppModule(app.ParamsKeeper),
@@ -540,6 +502,7 @@ func NewShentuApp(
 		EnabledSignModes:           enabledSignModes,
 		TextualCoinMetadataQueryFn: txmodule.NewBankKeeperCoinMetadataQueryFn(app.BankKeeper),
 	}
+	var err error
 	txConfig, err = authtx.NewTxConfigWithOptions(
 		appCodec,
 		txConfigOpts,
@@ -561,7 +524,7 @@ func NewShentuApp(
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName,
 		sdkauthz.ModuleName, sdkfeegrant.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName,
-		oracletypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
+		oracletypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName, consensusparamtypes.ModuleName,
 	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
@@ -570,8 +533,7 @@ func NewShentuApp(
 		authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
-		certtypes.ModuleName, oracletypes.ModuleName, bountytypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
-		wasmtypes.ModuleName,
+		certtypes.ModuleName, oracletypes.ModuleName, bountytypes.ModuleName, consensusparamtypes.ModuleName,
 	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
@@ -597,9 +559,7 @@ func NewShentuApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		bountytypes.ModuleName,
-		group.ModuleName,
 		consensusparamtypes.ModuleName,
-		wasmtypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -623,9 +583,7 @@ func NewShentuApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		bountytypes.ModuleName,
-		group.ModuleName,
 		consensusparamtypes.ModuleName,
-		wasmtypes.ModuleName,
 	)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
@@ -665,7 +623,7 @@ func NewShentuApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 	// The AnteHandler handles signature verification and transaction pre-processing
-	app.setAnteHandler(txConfig, wasmConfig, keys[wasmtypes.StoreKey])
+	app.setAnteHandler(txConfig)
 
 	app.RegisterUpgradeHandlers()
 
@@ -678,7 +636,7 @@ func NewShentuApp(
 	return app
 }
 
-func (app *ShentuApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtypes.NodeConfig, txCounterStoreKey *storetypes.KVStoreKey) {
+func (app *ShentuApp) setAnteHandler(txConfig client.TxConfig) {
 	anteHandler, err := NewAnteHandler(
 		HandlerOptions{
 			HandlerOptions: ante.HandlerOptions{
@@ -688,10 +646,7 @@ func (app *ShentuApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmty
 				FeegrantKeeper:  app.FeegrantKeeper,
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
-			IBCKeeper:             app.IBCKeeper,
-			WasmConfig:            &wasmConfig,
-			WasmKeeper:            &app.WasmKeeper,
-			TXCounterStoreService: runtime.NewKVStoreService(txCounterStoreKey),
+			IBCKeeper: app.IBCKeeper,
 		},
 	)
 	if err != nil {
@@ -954,8 +909,6 @@ func StoreKeys() (
 		ibctransfertypes.StoreKey,
 		icahosttypes.StoreKey,
 		bountytypes.StoreKey,
-		group.StoreKey,
-		wasmtypes.StoreKey,
 	}
 
 	keys := storetypes.NewKVStoreKeys(storeKeys...)

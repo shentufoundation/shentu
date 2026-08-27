@@ -18,10 +18,11 @@ type Keeper struct {
 	cdc codec.BinaryCodec // Codec for binary encoding/decoding
 
 	// External keepers
-	certKeeper types.CertKeeper
-	authKeeper types.AccountKeeper
-	bankKeeper types.BankKeeper
-	authority  string
+	certKeeper  types.CertKeeper
+	authKeeper  types.AccountKeeper
+	bankKeeper  types.BankKeeper
+	distrKeeper types.DistrKeeper
+	authority   string
 
 	storeService corestoretypes.KVStoreService // KVStore service for state persistence
 	Schema       collections.Schema            // Collections schema
@@ -54,6 +55,7 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	ck types.CertKeeper,
 	bk types.BankKeeper,
+	dk types.DistrKeeper,
 	authority string,
 ) Keeper {
 	// Validate authority address
@@ -70,6 +72,7 @@ func NewKeeper(
 		certKeeper:          ck,
 		authKeeper:          ak,
 		bankKeeper:          bk,
+		distrKeeper:         dk,
 		authority:           authority,
 		storeService:        storeService,
 		Params:              collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),

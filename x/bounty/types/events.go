@@ -31,6 +31,7 @@ const (
 	EventTypeDistributeReward        = "distribute_theorem_reward"
 	EventTypeImportedReward          = "imported_reward"
 	EventTypeUpdateTheoremComplexity = "update_theorem_complexity"
+	EventTypeGrantRefundRedirected   = "grant_refund_redirected"
 
 	// Proof related events
 	EventTypeSubmitProofHash         = "submit_proof_hash"
