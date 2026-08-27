@@ -127,7 +127,6 @@ distclean: clean
 ###############################################################################
 GO_VERSION := $(shell cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)
 GORELEASER_IMAGE := ghcr.io/goreleaser/goreleaser-cross:v$(GO_VERSION)
-COSMWASM_VERSION := $(shell go list -m github.com/CosmWasm/wasmvm/v2 | sed 's/.* //')
 
 # create tag and run goreleaser without publishing
 # errors are possible while running goreleaser - the process can run for >30 min
@@ -146,7 +145,6 @@ ifneq ($(strip $(TAG)),)
 		--rm \
 		-e CGO_ENABLED=1 \
 		-e TM_VERSION=$(TM_VERSION) \
-		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v `pwd`:/go/src/shentud \
 		-w /go/src/shentud \
 		$(GORELEASER_IMAGE) \
@@ -186,7 +184,6 @@ goreleaser-build-local:
 		--rm \
 		-e CGO_ENABLED=1 \
 		-e TM_VERSION=$(TM_VERSION) \
-		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v `pwd`:/go/src/shentud \
 		-w /go/src/shentud \
 		$(GORELEASER_IMAGE) \
@@ -206,7 +203,6 @@ ci-release:
 		-e CGO_ENABLED=1 \
 		-e GITHUB_TOKEN=$(GITHUB_TOKEN) \
 		-e TM_VERSION=$(TM_VERSION) \
-		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v `pwd`:/go/src/shentud \
 		-w /go/src/shentud \
 		$(GORELEASER_IMAGE) \

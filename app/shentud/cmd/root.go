@@ -4,8 +4,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
@@ -55,7 +53,6 @@ func NewRootCmd() *cobra.Command {
 	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
 	cfg.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
 	cfg.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
-	cfg.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 	cfg.Seal()
 
 	temp := tempDir()
@@ -198,9 +195,7 @@ func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, 
 	return cmd
 }
 
-func addModuleInitFlags(startCmd *cobra.Command) {
-	wasm.AddModuleInitFlags(startCmd)
-}
+func addModuleInitFlags(_ *cobra.Command) {}
 
 func queryCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -289,7 +284,7 @@ func createSimappAndExport(
 }
 
 var tempDir = func() string {
-	dir, err := os.MkdirTemp("", "wasmd")
+	dir, err := os.MkdirTemp("", "shentud")
 	if err != nil {
 		panic("failed to create temp dir: " + err.Error())
 	}
