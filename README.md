@@ -348,3 +348,7 @@ $ shentud tx broadcast signedTx.json
 # Check the balance of node0
 $ curl -s http:/localhost:1317/ctk/balance/$NODE0_KEY
 ```
+
+## Resources
+
+- [RPC Latency Benchmark](https://openchainbench.com/benchmarks/shentu-rpc) — independent latency and availability measurements for Shentu Chain public RPC endpoints
