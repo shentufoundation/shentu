@@ -28,7 +28,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/magiconair/properties v1.8.10
 	github.com/ory/dockertest/v3 v3.10.0
-	github.com/rakyll/statik v0.1.7
+	github.com/rakyll/statik v0.1.8
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
