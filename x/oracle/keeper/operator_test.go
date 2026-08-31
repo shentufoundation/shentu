@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -71,6 +72,92 @@ func (suite *KeeperTestSuite) TestOperator_Create() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestOperator_CreateRejectsExistingOperator() {
+	operatorAddr := suite.address[0]
+	proposerAddr := suite.address[1]
+	collateral := sdk.NewCoins(sdk.NewInt64Coin("stake", 50000))
+
+	suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(proposerAddr, ""))
+	suite.Require().NoError(suite.keeper.CreateOperator(
+		suite.ctx,
+		operatorAddr,
+		collateral,
+		proposerAddr,
+		"operator",
+	))
+
+	isOperator, err := suite.keeper.IsOperator(suite.ctx, operatorAddr)
+	suite.Require().NoError(err)
+	suite.Require().True(isOperator)
+
+	err = suite.keeper.CreateOperator(
+		suite.ctx,
+		operatorAddr,
+		collateral,
+		proposerAddr,
+		"duplicate operator",
+	)
+	suite.Require().True(errorsmod.IsOf(err, types.ErrOperatorAlreadyExists))
+}
+
+func (suite *KeeperTestSuite) TestOperatorOperationsRejectNonOperator() {
+	address := suite.address[0]
+	coins := sdk.NewCoins(sdk.NewInt64Coin("stake", 1))
+
+	isOperator, err := suite.keeper.IsOperator(suite.ctx, address)
+	suite.Require().NoError(err)
+	suite.Require().False(isOperator)
+
+	tests := []struct {
+		name string
+		run  func() error
+	}{
+		{
+			name: "remove operator",
+			run: func() error {
+				return suite.keeper.RemoveOperator(suite.ctx, address.String(), address.String())
+			},
+		},
+		{
+			name: "add collateral",
+			run: func() error {
+				return suite.keeper.AddCollateral(suite.ctx, address, coins)
+			},
+		},
+		{
+			name: "reduce collateral",
+			run: func() error {
+				return suite.keeper.ReduceCollateral(suite.ctx, address, coins)
+			},
+		},
+		{
+			name: "add reward",
+			run: func() error {
+				return suite.keeper.AddReward(suite.ctx, address, coins)
+			},
+		},
+		{
+			name: "withdraw reward",
+			run: func() error {
+				_, err := suite.keeper.WithdrawAllReward(suite.ctx, address)
+				return err
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			err := tc.run()
+			suite.Require().True(errorsmod.IsOf(err, types.ErrNoOperatorFound))
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestRespondToTaskRejectsNonOperator() {
+	err := suite.keeper.RespondToTask(suite.ctx, []byte("task"), 50, suite.address[0])
+	suite.Require().True(errorsmod.IsOf(err, types.ErrUnqualifiedOperator))
 }
 
 func (suite *KeeperTestSuite) TestOperator_Get() {

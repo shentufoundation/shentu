@@ -559,8 +559,12 @@ func (k Keeper) HandleNoneTxTaskForResponse(ctx context.Context, txHash []byte) 
 
 // RespondToTask records the response from an operator for a task.
 func (k Keeper) RespondToTask(ctx context.Context, taskID []byte, score int64, operatorAddress sdk.AccAddress) error {
-	if _, err := k.IsOperator(ctx, operatorAddress); err != nil {
+	isOperator, err := k.IsOperator(ctx, operatorAddress)
+	if err != nil {
 		return err
+	}
+	if !isOperator {
+		return types.ErrUnqualifiedOperator
 	}
 
 	task, err := k.GetTask(ctx, taskID)

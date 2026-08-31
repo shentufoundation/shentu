@@ -74,9 +74,12 @@ func (k Keeper) IsBelowMinCollateral(ctx context.Context, currentCollateral sdk.
 
 // CreateOperator creates an operator and deposits collateral.
 func (k Keeper) CreateOperator(ctx context.Context, address sdk.AccAddress, collateral sdk.Coins, proposer sdk.AccAddress, name string) error {
-	_, err := k.IsOperator(ctx, address)
+	isOperator, err := k.IsOperator(ctx, address)
 	if err != nil {
 		return err
+	}
+	if isOperator {
+		return types.ErrOperatorAlreadyExists
 	}
 	if k.IsBelowMinCollateral(ctx, collateral) {
 		return types.ErrNoEnoughCollateral
@@ -120,12 +123,16 @@ func (k Keeper) RemoveOperator(ctx context.Context, operatorAddress, proposerAdd
 	if err != nil {
 		return err
 	}
-	if _, err = k.IsOperator(ctx, operatorAddr); err != nil {
+	isOperator, err := k.IsOperator(ctx, operatorAddr)
+	if err != nil {
 		return err
+	}
+	if !isOperator {
+		return types.ErrNoOperatorFound
 	}
 	operator, err := k.GetOperator(ctx, operatorAddr)
 	if err != nil {
-		return nil
+		return err
 	}
 	if err := k.ReduceTotalCollateral(ctx, operator.Collateral); err != nil {
 		return err
@@ -152,8 +159,12 @@ func (k Keeper) GetAllOperators(ctx context.Context) types.Operators {
 
 // AddCollateral increases an operator's collateral, effective immediately.
 func (k Keeper) AddCollateral(ctx context.Context, address sdk.AccAddress, increment sdk.Coins) error {
-	if _, err := k.IsOperator(ctx, address); err != nil {
+	isOperator, err := k.IsOperator(ctx, address)
+	if err != nil {
 		return err
+	}
+	if !isOperator {
+		return types.ErrNoOperatorFound
 	}
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
@@ -174,8 +185,12 @@ func (k Keeper) AddCollateral(ctx context.Context, address sdk.AccAddress, incre
 
 // ReduceCollateral reduces an operator's collateral and creates a withdrawal for it.
 func (k Keeper) ReduceCollateral(ctx context.Context, address sdk.AccAddress, decrement sdk.Coins) error {
-	if _, err := k.IsOperator(ctx, address); err != nil {
+	isOperator, err := k.IsOperator(ctx, address)
+	if err != nil {
 		return err
+	}
+	if !isOperator {
+		return types.ErrNoOperatorFound
 	}
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
@@ -200,8 +215,12 @@ func (k Keeper) ReduceCollateral(ctx context.Context, address sdk.AccAddress, de
 
 // AddReward increases an operators accumulated rewards.
 func (k Keeper) AddReward(ctx context.Context, address sdk.AccAddress, increment sdk.Coins) error {
-	if _, err := k.IsOperator(ctx, address); err != nil {
+	isOperator, err := k.IsOperator(ctx, address)
+	if err != nil {
 		return err
+	}
+	if !isOperator {
+		return types.ErrNoOperatorFound
 	}
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
@@ -216,8 +235,12 @@ func (k Keeper) AddReward(ctx context.Context, address sdk.AccAddress, increment
 
 // WithdrawAllReward gives back all rewards of an operator.
 func (k Keeper) WithdrawAllReward(ctx context.Context, address sdk.AccAddress) (sdk.Coins, error) {
-	if _, err := k.IsOperator(ctx, address); err != nil {
+	isOperator, err := k.IsOperator(ctx, address)
+	if err != nil {
 		return nil, err
+	}
+	if !isOperator {
+		return nil, types.ErrNoOperatorFound
 	}
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
