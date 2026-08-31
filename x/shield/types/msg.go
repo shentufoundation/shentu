@@ -1,6 +1,8 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -32,12 +34,13 @@ func (msg MsgWithdrawRewards) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgWithdrawRewards) ValidateBasic() error {
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	if from.Empty() {
+	if msg.From == "" {
 		return ErrEmptySender
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return errorsmod.Wrapf(err, "invalid sender address %s", msg.From)
 	}
 
 	return nil
