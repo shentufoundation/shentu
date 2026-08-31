@@ -26,7 +26,7 @@ require (
 	github.com/cosmos/ibc-go/v10 v10.5.0
 	github.com/cosmos/tools/cmd/runsim v1.0.0
 	github.com/google/uuid v1.6.0
-	github.com/magiconair/properties v1.8.10
+	github.com/magiconair/properties v1.18.11
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.10.0
