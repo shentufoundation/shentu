@@ -52,7 +52,7 @@ jobs:
 
       # `file` was removed in codecov-action v4; v6 only accepts `files`, so the
       # old spelling silently uploaded nothing and then failed the job.
-      - uses: codecov/codecov-action@v6.0.0
+      - uses: codecov/codecov-action@v7.1.0
         with:
           files: ./coverage.txt
           token: ${{ secrets.CODECOV_TOKEN }}
