@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     name: shentud state sync
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v5.5.0
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '^1.21'
 
