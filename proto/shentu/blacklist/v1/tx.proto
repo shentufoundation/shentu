@@ -1,0 +1,64 @@
+syntax = "proto3";
+package shentu.blacklist.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/msg/v1/msg.proto";
+
+import "shentu/blacklist/v1/blacklist.proto";
+
+
+option go_package = "github.com/shentufoundation/shentu/x/blacklist/types";
+
+// Msg defines the blacklist Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // BanAddress adds an address to the blacklist.
+  rpc BanAddress(MsgBanAddress) returns (MsgBanAddressResponse);
+
+  // UnbanAddress removes an address from the blacklist.
+  rpc UnbanAddress(MsgUnbanAddress) returns (MsgUnbanAddressResponse);
+
+}
+
+// MsgBanAddress adds an address to the blacklist. Only the governance module
+// account is authorized to submit this message, i.e. it must be executed via
+// a governance proposal.
+message MsgBanAddress {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // authority is the address that controls the module (governance).
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // address is the bech32 account address to blacklist.
+  string address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // category classifies the entry (why the address is blacklisted).
+  Category category = 3;
+}
+
+// MsgBanAddressResponse defines the Msg/BanAddress response type.
+message MsgBanAddressResponse {}
+
+// MsgUnbanAddress removes an address from the blacklist. Only the governance
+// module account is authorized to submit this message.
+message MsgUnbanAddress {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // authority is the address that controls the module (governance).
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // address is the bech32 account address to remove from the blacklist.
+  string address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgUnbanAddressResponse defines the Msg/UnbanAddress response type.
+message MsgUnbanAddressResponse {}
+

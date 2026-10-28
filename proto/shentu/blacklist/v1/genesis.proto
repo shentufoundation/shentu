@@ -1,0 +1,17 @@
+syntax = "proto3";
+package shentu.blacklist.v1;
+
+import "gogoproto/gogo.proto";
+import "amino/amino.proto";
+
+import "shentu/blacklist/v1/blacklist.proto";
+
+option go_package = "github.com/shentufoundation/shentu/x/blacklist/types";
+
+// GenesisState defines the blacklist module's genesis state.
+message GenesisState {
+  option (gogoproto.equal) = true;
+
+  // entries are the blacklisted addresses at genesis.
+  repeated Entry entries = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}

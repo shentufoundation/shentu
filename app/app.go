@@ -104,6 +104,9 @@ import (
 	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bank"
 	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/blacklist"
+	blacklistkeeper "github.com/shentufoundation/shentu/v2/x/blacklist/keeper"
+	blacklisttypes "github.com/shentufoundation/shentu/v2/x/blacklist/types"
 	"github.com/shentufoundation/shentu/v2/x/bounty"
 	bountykeeper "github.com/shentufoundation/shentu/v2/x/bounty/keeper"
 	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -185,6 +188,7 @@ type ShentuApp struct {
 	OracleKeeper          oraclekeeper.Keeper
 	ShieldKeeper          shieldkeeper.Keeper
 	BountyKeeper          bountykeeper.Keeper
+	BlacklistKeeper       blacklistkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	// module manager
@@ -310,6 +314,12 @@ func NewShentuApp(
 	app.CertKeeper = certkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[certtypes.StoreKey]),
+		authAddr,
+	)
+	app.BlacklistKeeper = blacklistkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[blacklisttypes.StoreKey]),
+		app.AccountKeeper,
 		authAddr,
 	)
 	app.AuthKeeper = authkeeper.NewKeeper(
@@ -467,6 +477,7 @@ func NewShentuApp(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(sdkgovtypes.ModuleName)),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
+		blacklist.NewAppModule(appCodec, app.BlacklistKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
@@ -558,6 +569,7 @@ func NewShentuApp(
 		sdkfeegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
+		blacklisttypes.ModuleName,
 		bountytypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
@@ -583,6 +595,7 @@ func NewShentuApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		bountytypes.ModuleName,
+		blacklisttypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -646,7 +659,8 @@ func (app *ShentuApp) setAnteHandler(txConfig client.TxConfig) {
 				FeegrantKeeper:  app.FeegrantKeeper,
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
-			IBCKeeper: app.IBCKeeper,
+			IBCKeeper:       app.IBCKeeper,
+			BlacklistKeeper: app.BlacklistKeeper,
 		},
 	)
 	if err != nil {
@@ -909,6 +923,7 @@ func StoreKeys() (
 		ibctransfertypes.StoreKey,
 		icahosttypes.StoreKey,
 		bountytypes.StoreKey,
+		blacklisttypes.StoreKey,
 	}
 
 	keys := storetypes.NewKVStoreKeys(storeKeys...)

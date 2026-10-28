@@ -1,0 +1,37 @@
+syntax = "proto3";
+package shentu.blacklist.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/shentufoundation/shentu/x/blacklist/types";
+
+// Category classifies why an address is blacklisted.
+enum Category {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // CATEGORY_UNSPECIFIED indicates no category was set; invalid in entries.
+  CATEGORY_UNSPECIFIED = 0;
+
+  // CATEGORY_COMPROMISED marks an address whose signing key is confirmed to
+  // be compromised (leaked, stolen or brute-forceable), or that is controlled
+  // by an attacker. The legitimate owner and the attacker hold the same
+  // signing power. Entries of this category are usually long-lived and
+  // unfreezing requires migrating the assets to a fresh address.
+  CATEGORY_COMPROMISED = 1;
+
+  // CATEGORY_SUSPECTED marks an address with a suspected (unconfirmed) key
+  // leak, frozen as a precaution while the investigation is ongoing.
+  CATEGORY_SUSPECTED = 2;
+}
+
+// Entry represents a blacklisted address record. Releases are handled by
+// governance via MsgUnbanAddress.
+message Entry {
+  option (gogoproto.equal) = true;
+
+  // address is the bech32-encoded account address that is blacklisted.
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+
+  // category classifies why the address is blacklisted.
+  Category category = 2 [(gogoproto.moretags) = "yaml:\"category\""];
+}
