@@ -152,7 +152,7 @@ func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
 
 // WeightedOperations returns cert operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return certsimulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.moduleKeeper)
+	return certsimulation.WeightedOperations(simState.AppParams, simState.TxConfig, am.authKeeper, am.bankKeeper, am.moduleKeeper)
 }
 
 func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {

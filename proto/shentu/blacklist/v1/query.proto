@@ -1,0 +1,45 @@
+syntax = "proto3";
+package shentu.blacklist.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+import "shentu/blacklist/v1/blacklist.proto";
+
+option go_package = "github.com/shentufoundation/shentu/x/blacklist/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Entries returns all blacklisted addresses.
+  rpc Entries(QueryEntriesRequest) returns (QueryEntriesResponse) {
+    option (google.api.http).get = "/shentu/blacklist/v1/entries";
+  }
+
+  // Entry returns a single blacklisted address entry.
+  rpc Entry(QueryEntryRequest) returns (QueryEntryResponse) {
+    option (google.api.http).get = "/shentu/blacklist/v1/entries/{address}";
+  }
+}
+
+// QueryEntriesRequest is the request type for the Query/Entries RPC.
+message QueryEntriesRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryEntriesResponse is the response type for the Query/Entries RPC.
+message QueryEntriesResponse {
+  repeated Entry entries = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryEntryRequest is the request type for the Query/Entry RPC.
+message QueryEntryRequest {
+  // address is the bech32 account address to look up.
+  string address = 1;
+}
+
+// QueryEntryResponse is the response type for the Query/Entry RPC.
+message QueryEntryResponse {
+  Entry entry = 1 [(gogoproto.nullable) = false];
+}

@@ -8,6 +8,9 @@ import (
 
 	ibcante "github.com/cosmos/ibc-go/v10/modules/core/ante"
 	"github.com/cosmos/ibc-go/v10/modules/core/keeper"
+
+	blacklistante "github.com/shentufoundation/shentu/v2/x/blacklist/ante"
+	blacklistkeeper "github.com/shentufoundation/shentu/v2/x/blacklist/keeper"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
@@ -15,7 +18,8 @@ import (
 type HandlerOptions struct {
 	ante.HandlerOptions
 
-	IBCKeeper *keeper.Keeper
+	IBCKeeper       *keeper.Keeper
+	BlacklistKeeper blacklistkeeper.Keeper
 }
 
 // NewAnteHandler constructor
@@ -31,7 +35,8 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
-		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		ante.NewSetUpContextDecorator(),                              // outermost AnteDecorator. SetUpContext must be called first
+		blacklistante.NewBlacklistDecorator(options.BlacklistKeeper), // reject blacklisted addresses before any state-affecting work
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
