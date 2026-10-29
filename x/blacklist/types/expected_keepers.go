@@ -13,3 +13,7 @@ type AccountKeeper interface {
 	// the account does not exist.
 	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 }
+
+type CertKeeper interface {
+	IsCertifier(ctx context.Context, addr sdk.AccAddress) (bool, error)
+}

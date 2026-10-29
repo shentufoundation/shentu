@@ -22,11 +22,13 @@ func NewMsgServerImpl(k Keeper) types.MsgServer {
 	return msgServer{k: k}
 }
 
-// BanAddress implements the Msg/BanAddress RPC method. It must be executed
-// by the governance module account.
+// BanAddress implements the Msg/BanAddress RPC method. Two submitter lanes
+// are accepted: the governance module account (proposal execution) and
+// registered certifiers (direct emergency lane — TEMPORARY, see
+// ValidateSubmitter).
 func (ms msgServer) BanAddress(ctx context.Context, msg *types.MsgBanAddress) (*types.MsgBanAddressResponse, error) {
-	if ms.k.authority != msg.Authority {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "expected %q got %q", ms.k.authority, msg.Authority)
+	if err := ms.k.ValidateSubmitter(ctx, msg.Authority); err != nil {
+		return nil, err
 	}
 
 	if err := msg.ValidateBasic(); err != nil {
@@ -67,11 +69,13 @@ func (ms msgServer) BanAddress(ctx context.Context, msg *types.MsgBanAddress) (*
 	return &types.MsgBanAddressResponse{}, nil
 }
 
-// UnbanAddress implements the Msg/UnbanAddress RPC method. It must be
-// executed by the governance module account.
+// UnbanAddress implements the Msg/UnbanAddress RPC method. Two submitter
+// lanes are accepted: the governance module account (proposal execution) and
+// registered certifiers (direct emergency lane — TEMPORARY, see
+// ValidateSubmitter).
 func (ms msgServer) UnbanAddress(ctx context.Context, msg *types.MsgUnbanAddress) (*types.MsgUnbanAddressResponse, error) {
-	if ms.k.authority != msg.Authority {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "expected %q got %q", ms.k.authority, msg.Authority)
+	if err := ms.k.ValidateSubmitter(ctx, msg.Authority); err != nil {
+		return nil, err
 	}
 
 	if err := msg.ValidateBasic(); err != nil {

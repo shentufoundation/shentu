@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"cosmossdk.io/collections"
 	store "cosmossdk.io/core/store"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,6 +22,7 @@ type Keeper struct {
 	storeService  store.KVStoreService
 	authority     string
 	accountKeeper types.AccountKeeper
+	certKeeper    types.CertKeeper
 
 	// Entries maps a bech32-encoded address to its blacklist entry.
 	Entries collections.Map[string, types.Entry]
@@ -31,6 +35,7 @@ func NewKeeper(
 	cdc codec.Codec,
 	storeService store.KVStoreService,
 	accountKeeper types.AccountKeeper,
+	certKeeper types.CertKeeper,
 	authority string,
 ) Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
@@ -43,6 +48,7 @@ func NewKeeper(
 		cdc:           cdc,
 		storeService:  storeService,
 		accountKeeper: accountKeeper,
+		certKeeper:    certKeeper,
 		authority:     authority,
 		Entries: collections.NewMap(
 			sb,
@@ -65,6 +71,35 @@ func NewKeeper(
 // GetAuthority returns the module's authority address (governance).
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+// ValidateSubmitter authorizes a message submitter. Two lanes are accepted:
+//
+//   - governance lane: submitter is the governance module account (i.e. the
+//     message was embedded in a proposal that passed voting);
+//   - emergency lane: submitter is a registered certifier
+//
+// TEMPORARY: the emergency lane exists for the current special period only
+// and is planned for removal once the situation normalizes.
+func (k Keeper) ValidateSubmitter(ctx context.Context, submitter string) error {
+	if submitter == k.authority {
+		return nil
+	}
+
+	addr, err := sdk.AccAddressFromBech32(submitter)
+	if err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "invalid submitter")
+	}
+
+	isCertifier, err := k.certKeeper.IsCertifier(ctx, addr)
+	if err != nil {
+		return err
+	}
+	if !isCertifier {
+		return errorsmod.Wrapf(sdkerrors.ErrUnauthorized,
+			"submitter %s is neither governance nor a certifier", submitter)
+	}
+	return nil
 }
 
 // Cdc returns the keeper's codec, used by the ante decorator to unpack

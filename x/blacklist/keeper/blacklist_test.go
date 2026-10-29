@@ -13,6 +13,7 @@ import (
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	blacklistkeeper "github.com/shentufoundation/shentu/v2/x/blacklist/keeper"
 	"github.com/shentufoundation/shentu/v2/x/blacklist/types"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 func TestBanUnbanRoundtrip(t *testing.T) {
@@ -178,4 +179,58 @@ func TestCanonicalAddressSpelling(t *testing.T) {
 	_, blacklisted, err = app.BlacklistKeeper.IsBlacklisted(ctx, canonical)
 	require.NoError(t, err)
 	require.False(t, blacklisted)
+}
+
+// TestCertifierEmergencyLane verifies the emergency lane: a registered
+// certifier can ban and unban directly, without a governance vote. A
+// non-certifier, non-governance submitter is rejected.
+func TestCertifierEmergencyLane(t *testing.T) {
+	app := shentuapp.Setup(t, false)
+	ctx := app.BaseApp.NewContext(false)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 3, math.NewInt(10000))
+	certifier, target, outsider := addrs[0], addrs[1], addrs[2]
+
+	require.NoError(t, app.CertKeeper.SetCertifier(ctx, certtypes.NewCertifier(certifier, "")))
+
+	ms := blacklistkeeper.NewMsgServerImpl(app.BlacklistKeeper)
+
+	// outsider (neither gov nor certifier) is rejected
+	_, err := ms.BanAddress(ctx, &types.MsgBanAddress{
+		Authority: outsider.String(),
+		Address:   target.String(),
+		Category:  types.CATEGORY_COMPROMISED,
+	})
+	require.ErrorIs(t, err, sdkerrors.ErrUnauthorized)
+
+	// certifier bans directly, no governance vote needed
+	_, err = ms.BanAddress(ctx, &types.MsgBanAddress{
+		Authority: certifier.String(),
+		Address:   target.String(),
+		Category:  types.CATEGORY_COMPROMISED,
+	})
+	require.NoError(t, err)
+	_, blacklisted, err := app.BlacklistKeeper.IsBlacklisted(ctx, target.String())
+	require.NoError(t, err)
+	require.True(t, blacklisted)
+
+	// certifier unbans directly
+	_, err = ms.UnbanAddress(ctx, &types.MsgUnbanAddress{
+		Authority: certifier.String(),
+		Address:   target.String(),
+	})
+	require.NoError(t, err)
+	_, blacklisted, err = app.BlacklistKeeper.IsBlacklisted(ctx, target.String())
+	require.NoError(t, err)
+	require.False(t, blacklisted)
+
+	// governance lane still works: gov authority bans directly too
+	_, err = ms.BanAddress(ctx, &types.MsgBanAddress{
+		Authority: app.BlacklistKeeper.GetAuthority(),
+		Address:   target.String(),
+		Category:  types.CATEGORY_SUSPECTED,
+	})
+	require.NoError(t, err)
+	_, blacklisted, err = app.BlacklistKeeper.IsBlacklisted(ctx, target.String())
+	require.NoError(t, err)
+	require.True(t, blacklisted)
 }
