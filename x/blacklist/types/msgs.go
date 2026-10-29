@@ -2,12 +2,15 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-var _ sdk.Msg = (*MsgBanAddress)(nil)
-var _ sdk.Msg = (*MsgUnbanAddress)(nil)
+var (
+	_ sdk.Msg = (*MsgBanAddress)(nil)
+	_ sdk.Msg = (*MsgUnbanAddress)(nil)
+)
 
 // GetSigners returns the address of the message signer. Only the governance
 // module account is authorized to sign these messages in practice; the actual
