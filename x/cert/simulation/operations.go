@@ -4,10 +4,9 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
@@ -27,7 +26,7 @@ const (
 // WeightedOperations returns all the operations from the module with their respective weights.
 func WeightedOperations(
 	appParams simtypes.AppParams,
-	_ codec.JSONCodec,
+	txGen client.TxConfig,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	k keeper.Keeper,
@@ -42,13 +41,13 @@ func WeightedOperations(
 	)
 
 	return simulation.WeightedOperations{
-		simulation.NewWeightedOperation(weightMsgIssue, SimulateMsgIssueCertificate(ak, bk, k)),
-		simulation.NewWeightedOperation(weightMsgRevoke, SimulateMsgRevokeCertificate(ak, bk, k)),
+		simulation.NewWeightedOperation(weightMsgIssue, SimulateMsgIssueCertificate(txGen, ak, bk, k)),
+		simulation.NewWeightedOperation(weightMsgRevoke, SimulateMsgRevokeCertificate(txGen, ak, bk, k)),
 	}
 }
 
 // SimulateMsgIssueCertificate generates a MsgIssueCertificate with random fields.
-func SimulateMsgIssueCertificate(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
+func SimulateMsgIssueCertificate(txGen client.TxConfig, ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
@@ -94,7 +93,6 @@ func SimulateMsgIssueCertificate(ak types.AccountKeeper, bk types.BankKeeper, k 
 			return simtypes.NoOpMsg(types.ModuleName, msgType, err.Error()), nil, err
 		}
 
-		txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
 		tx, err := simtestutil.GenSignedMockTx(
 			r, txGen, []sdk.Msg{msg}, fees, simtestutil.DefaultGenTxGas, chainID,
 			[]uint64{account.GetAccountNumber()}, []uint64{account.GetSequence()},
@@ -114,7 +112,7 @@ func SimulateMsgIssueCertificate(ak types.AccountKeeper, bk types.BankKeeper, k 
 }
 
 // SimulateMsgRevokeCertificate generates a MsgRevokeCertificate for a random existing certificate.
-func SimulateMsgRevokeCertificate(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
+func SimulateMsgRevokeCertificate(txGen client.TxConfig, ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
@@ -164,7 +162,6 @@ func SimulateMsgRevokeCertificate(ak types.AccountKeeper, bk types.BankKeeper, k
 			return simtypes.NoOpMsg(types.ModuleName, msgType, err.Error()), nil, err
 		}
 
-		txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
 		tx, err := simtestutil.GenSignedMockTx(
 			r, txGen, []sdk.Msg{msg}, fees, simtestutil.DefaultGenTxGas, chainID,
 			[]uint64{account.GetAccountNumber()}, []uint64{account.GetSequence()},

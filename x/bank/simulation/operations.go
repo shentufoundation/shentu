@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -42,13 +41,13 @@ func WeightedOperations(
 		},
 	)
 
-	op := simulation.NewWeightedOperation(weightMsgLockedSend, SimulateMsgLockedSend(ak, bk))
+	op := simulation.NewWeightedOperation(weightMsgLockedSend, SimulateMsgLockedSend(txGen, ak, bk))
 	return append(cosmosOps, op)
 }
 
 // SimulateMsgLockedSend tests and runs a single msg send where both
 // accounts already exist.
-func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Operation {
+func SimulateMsgLockedSend(txGen client.TxConfig, ak types.AccountKeeper, bk keeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
@@ -81,7 +80,6 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Op
 
 			msg := types.NewMsgLockedSend(fromAcc.GetAddress(), toAddr, "", sendCoins)
 
-			txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
 			tx, err := simtestutil.GenSignedMockTx(
 				r,
 				txGen,
