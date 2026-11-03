@@ -1,0 +1,63 @@
+// Historical parameter types from wasmd v0.55.1 (Apache-2.0).
+// Retained for decoding governance history after removal of x/wasm.
+syntax = "proto3";
+package cosmwasm.wasm.v1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "amino/amino.proto";
+
+option go_package = "github.com/shentufoundation/shentu/v2/app/legacy/wasm";
+option (gogoproto.goproto_getters_all) = false;
+option (gogoproto.equal_all) = true;
+
+// AccessType permission types
+enum AccessType {
+  option (gogoproto.goproto_enum_prefix) = false;
+  option (gogoproto.goproto_enum_stringer) = true;
+  // AccessTypeUnspecified placeholder for empty value
+  ACCESS_TYPE_UNSPECIFIED = 0
+      [ (gogoproto.enumvalue_customname) = "AccessTypeUnspecified" ];
+  // AccessTypeNobody forbidden
+  ACCESS_TYPE_NOBODY = 1
+      [ (gogoproto.enumvalue_customname) = "AccessTypeNobody" ];
+
+  reserved 2; // was AccessTypeOnlyAddress
+
+  // AccessTypeEverybody unrestricted
+  ACCESS_TYPE_EVERYBODY = 3
+      [ (gogoproto.enumvalue_customname) = "AccessTypeEverybody" ];
+  // AccessTypeAnyOfAddresses allow any of the addresses
+  ACCESS_TYPE_ANY_OF_ADDRESSES = 4
+      [ (gogoproto.enumvalue_customname) = "AccessTypeAnyOfAddresses" ];
+}
+
+// AccessTypeParam
+message AccessTypeParam {
+  option (gogoproto.goproto_stringer) = true;
+  AccessType value = 1 [ (gogoproto.moretags) = "yaml:\"value\"" ];
+}
+
+// AccessConfig access control type.
+message AccessConfig {
+  option (gogoproto.goproto_stringer) = true;
+  AccessType permission = 1 [ (gogoproto.moretags) = "yaml:\"permission\"" ];
+
+  reserved 2; // was address
+
+  repeated string addresses = 3
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+}
+
+// Params defines the set of wasm parameters.
+message Params {
+  option (gogoproto.goproto_stringer) = true;
+  AccessConfig code_upload_access = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.moretags) = "yaml:\"code_upload_access\""
+  ];
+  AccessType instantiate_default_permission = 2
+      [ (gogoproto.moretags) = "yaml:\"instantiate_default_permission\"" ];
+}
+
